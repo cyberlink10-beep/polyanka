@@ -1,30 +1,53 @@
-import { put, list, del } from '@vercel/blob';
+import { createClient } from 'redis';
 
-const PREFIX = 'site-data-';
+const KEY = 'site-data';
 const ADMIN_PASSWORD = 'geroi2025';
+
+let _client = null;
+let _err = null;
+
+async function getClient() {
+  if (_client && _client.isOpen) return _client;
+  const url = process.env.REDIS_URL || process.env.KV_URL;
+  if (!url) {
+    _err = 'REDIS_URL not set. Available: ' + (Object.keys(process.env).filter(k => /KV|REDIS|UPSTASH|STORAGE/i.test(k)).join(', ') || '(none)');
+    return null;
+  }
+  try {
+    _client = createClient({
+      url,
+      socket: { connectTimeout: 7000, reconnectStrategy: false },
+    });
+    _client.on('error', e => { console.error('Redis error:', e?.message); });
+    await _client.connect();
+    _err = null;
+    return _client;
+  } catch (e) {
+    _err = String(e?.message || e);
+    _client = null;
+    return null;
+  }
+}
 
 const noStore = (res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 };
 
-async function readLatestBlob() {
-  const { blobs } = await list({ prefix: PREFIX, limit: 100 });
-  if (!blobs.length) return { data: {}, blobs: [] };
-  const sorted = [...blobs].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-  const latest = sorted[0];
-  // Latest url is brand new each PUT (unique filename), so CDN cannot have stale copy.
-  const r = await fetch(latest.url, { cache: 'no-store' });
-  if (!r.ok) return { data: {}, blobs: sorted };
-  let data = {};
-  try { data = await r.json(); } catch {}
-  return { data, blobs: sorted };
+async function readState() {
+  const c = await getClient();
+  if (!c) return {};
+  try {
+    const raw = await c.get(KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch (e) {
+    return {};
+  }
 }
-
-async function cleanupOldBlobs(blobs, keep = 3) {
-  // Keep the most recent N, delete older
-  if (blobs.length <= keep) return;
-  const toDel = blobs.slice(keep);
-  await Promise.all(toDel.map(b => del(b.url).catch(() => {})));
+async function writeState(obj) {
+  const c = await getClient();
+  if (!c) throw new Error(_err || 'Redis not configured');
+  await c.set(KEY, JSON.stringify(obj));
 }
 
 export default async function handler(req, res) {
@@ -33,14 +56,20 @@ export default async function handler(req, res) {
       noStore(res);
       const url0 = new URL(req.url, 'http://x');
       if (url0.searchParams.get('debug') === '1') {
-        const { blobs } = await list({ prefix: PREFIX, limit: 100 });
+        const c = await getClient();
+        const envKeys = Object.keys(process.env).filter(k => /KV|REDIS|UPSTASH|STORAGE/i.test(k));
+        const data = c ? await readState() : {};
         return res.status(200).json({
-          PREFIX,
-          blobCount: blobs.length,
-          blobs: blobs.map(b => ({ pathname: b.pathname, url: b.url, size: b.size, uploadedAt: b.uploadedAt })),
+          backend: 'node-redis',
+          key: KEY,
+          redisConfigured: !!c,
+          redisError: _err,
+          envKeys,
+          keyCount: Object.keys(data).length,
+          keys: Object.keys(data),
         });
       }
-      const { data } = await readLatestBlob();
+      const data = await readState();
       return res.status(200).json(data);
     }
 
@@ -56,49 +85,44 @@ export default async function handler(req, res) {
 
       const url = new URL(req.url, 'http://x');
       const isReplace = url.searchParams.get('replace') === '1';
-      const { data: existing, blobs: existingBlobs } = isReplace
-        ? { data: {}, blobs: [] }
-        : await readLatestBlob();
+      const existing = isReplace ? {} : await readState();
 
-      // Deep-merge logic for korpuses
       const merged = { ...existing };
       for (const k of Object.keys(incoming)) {
-        if (k === 'geroi_korpuses' && Array.isArray(existing[k]) && Array.isArray(incoming[k])) {
-          const byId = new Map((existing[k] || []).map(x => [x.id, x]));
-          for (const x of incoming[k]) {
-            const ex = byId.get(x.id);
-            if (ex) {
+        const ex = existing[k];
+        const inc = incoming[k];
+        if (k === 'geroi_korpuses' && Array.isArray(ex) && Array.isArray(inc)) {
+          // Korpuses: merge by id, deep-merge floorPolygons
+          const byId = new Map(ex.map(x => [x.id, x]));
+          for (const x of inc) {
+            const old = byId.get(x.id);
+            if (old) {
               byId.set(x.id, {
-                ...ex,
+                ...old,
                 ...x,
-                floorPolygons: { ...(ex.floorPolygons || {}), ...(x.floorPolygons || {}) },
+                floorPolygons: { ...(old.floorPolygons || {}), ...(x.floorPolygons || {}) },
+                floorSchemas:  { ...(old.floorSchemas  || {}), ...(x.floorSchemas  || {}) },
               });
             } else {
               byId.set(x.id, x);
             }
           }
           merged[k] = Array.from(byId.values()).sort((a, b) => (a.id || 0) - (b.id || 0));
+        } else if (ex && typeof ex === 'object' && !Array.isArray(ex) && inc && typeof inc === 'object' && !Array.isArray(inc)) {
+          // Plain objects (e.g. geroi_settings, geroi_about, geroi_infra, geroi_footer): shallow merge
+          merged[k] = { ...ex, ...inc };
         } else {
-          merged[k] = incoming[k];
+          // Arrays without id semantics, primitives, etc — replace
+          merged[k] = inc;
         }
       }
 
-      // Write to a NEW filename each time (timestamp-suffixed) — defeats CDN caching on read
-      const filename = `${PREFIX}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`;
-      const putResult = await put(filename, JSON.stringify(merged), {
-        access: 'public',
-        addRandomSuffix: false,
-        contentType: 'application/json',
-      });
-
-      // Async cleanup of older files (don't await, fire-and-forget)
-      cleanupOldBlobs(existingBlobs, 3).catch(() => {});
-
+      await writeState(merged);
       noStore(res);
       return res.status(200).json({
         ok: true,
+        backend: 'node-redis',
         keys: Object.keys(merged),
-        savedTo: putResult?.pathname,
       });
     }
 
