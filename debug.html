@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Debug — geroi</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; max-width: 900px; margin: 24px auto; padding: 0 20px; color: #1a1a1a; }
+  h1 { margin: 0 0 12px; }
+  .row { padding: 12px 16px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e5e5e5; }
+  .ok { background: #effae9; border-color: #b9e9a3; }
+  .err { background: #ffeded; border-color: #ffb3b3; }
+  pre { background: #f7f7f7; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; max-height: 60vh; overflow-y: auto; }
+  .key { font-weight: 600; }
+  .small { color: #666; font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 13px; }
+  td, th { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+  th { background: #f0f0f0; }
+</style>
+</head>
+<body>
+<h1>🔍 Geroi server diagnostics</h1>
+<div id="status" class="row">Загружаю /api/data...</div>
+<h3>Что в localStorage этого браузера:</h3>
+<pre id="local"></pre>
+<h3>Что на сервере (/api/data):</h3>
+<pre id="server"></pre>
+<h3>Сводка:</h3>
+<table id="summary"><thead><tr><th>Ключ</th><th>На сервере</th><th>В localStorage</th></tr></thead><tbody></tbody></table>
+
+<script>
+const KEYS = ['geroi_apts','geroi_slides','geroi_settings','geroi_about','geroi_promos','geroi_construction','geroi_infra','geroi_footer','geroi_korpuses','geroi_site_render'];
+
+function showLocal() {
+  const obj = {};
+  KEYS.forEach(k => {
+    try { const v = localStorage.getItem(k); obj[k] = v ? JSON.parse(v) : null; } catch (e) { obj[k] = '⚠ parse error'; }
+  });
+  document.getElementById('local').textContent = JSON.stringify(obj, null, 2);
+  return obj;
+}
+
+async function go() {
+  const local = showLocal();
+  const status = document.getElementById('status');
+  let serverObj = null;
+  try {
+    const r = await fetch('/api/data', { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    serverObj = await r.json();
+    status.className = 'row ok';
+    status.innerHTML = '✓ Сервер отвечает. Ключей на сервере: <b>' + Object.keys(serverObj).length + '</b>';
+  } catch (e) {
+    status.className = 'row err';
+    status.innerHTML = '✗ Ошибка: ' + e.message + '<br><span class="small">API недоступен или возвращает не-JSON</span>';
+    document.getElementById('server').textContent = '(нет данных)';
+    return;
+  }
+  document.getElementById('server').textContent = JSON.stringify(serverObj, null, 2);
+
+  const tbody = document.querySelector('#summary tbody');
+  KEYS.forEach(k => {
+    const tr = document.createElement('tr');
+    const onServer = serverObj[k];
+    const onLocal = local[k];
+    const desc = (val) => {
+      if (val == null) return '—';
+      if (Array.isArray(val)) return val.length + ' эл.';
+      if (typeof val === 'object') return Object.keys(val).length + ' полей';
+      return String(val).slice(0, 40);
+    };
+    tr.innerHTML = '<td class="key">' + k + '</td><td>' + desc(onServer) + '</td><td>' + desc(onLocal) + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+go();
+</script>
+</body>
+</html>

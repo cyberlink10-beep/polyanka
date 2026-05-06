@@ -1,0 +1,7 @@
+{
+  "framework": null,
+  "rewrites": [
+    { "source": "/flat", "destination": "/index.html" },
+    { "source": "/flat/", "destination": "/index.html" }
+  ]
+}

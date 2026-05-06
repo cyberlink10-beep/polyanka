@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ЖК Герои — Жилой комплекс</title>
+  <script>
+    /* Bootstrap from server: synchronously fetch latest data into localStorage
+       before React reads it. Edge runtime keeps this fast (~50–150ms). */
+    (function () {
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/data', false);
+        xhr.timeout = 4000;
+        xhr.send();
+        if (xhr.status === 200) {
+          var data = JSON.parse(xhr.responseText || '{}');
+          Object.keys(data).forEach(function (k) {
+            try { localStorage.setItem(k, JSON.stringify(data[k])); } catch (e) {}
+          });
+        }
+      } catch (e) { /* offline / first run / cold start — fall back to localStorage */ }
+    })();
+  </script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <style>
+    @font-face { font-family: 'Dela Gothic One'; src: url('fonts/DelaGothicOne-Regular.ttf') format('truetype'); }
+    @font-face { font-family: 'Inter'; src: url('fonts/Inter-Regular.ttf') format('truetype'); }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --c-brand: #D94E1F;
+      --c-brand-dark: #8B1500;
+      --c-brand-mid: #C43818;
+      --c-gold: #C9A84C;
+      --c-dark: #1E1B18;
+      --c-charcoal: #2D2A27;
+      --c-gray-700: #4A4540;
+      --c-gray-500: #7A746E;
+      --c-gray-300: #C0B8B0;
+      --c-gray-100: #EDE8E3;
+      --c-surface: #F7F4F1;
+      --c-white: #FFFFFF;
+      --font-display: 'Dela Gothic One', Impact, sans-serif;
+      --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      --max-w: 1280px;
+      --r-sm: 4px;
+      --r-md: 8px;
+      --r-lg: 12px;
+      --shadow-md: 0 2px 16px rgba(0,0,0,0.10);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--c-surface);
+      color: var(--c-charcoal);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      padding: 13px 28px;
+      transition: all 220ms cubic-bezier(0.22,1,0.36,1);
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ripple */
+    .btn .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.35);
+      transform: scale(0);
+      animation: ripple-anim 550ms ease-out forwards;
+      pointer-events: none;
+    }
+    @keyframes ripple-anim {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #E05520 0%, #D94E1F 50%, #C43818 100%);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(217,78,31,0.40);
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 220ms;
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(217,78,31,0.55); }
+    .btn-primary:hover::before { opacity: 1; }
+    .btn-primary:active { transform: scale(0.97) translateY(0); box-shadow: 0 2px 8px rgba(217,78,31,0.3); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--c-brand);
+      border: 1.5px solid var(--c-brand);
+    }
+    .btn-secondary:hover {
+      background: var(--c-brand);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(217,78,31,0.35);
+    }
+    .btn-secondary:active { transform: scale(0.97); }
+
+    .btn-dark { background: var(--c-dark); color: #fff; }
+    .btn-dark:hover { background: var(--c-charcoal); transform: translateY(-2px); }
+    .btn-lg { padding: 17px 40px; font-size: 15px; }
+
+    /* Hero-specific ghost button */
+    .btn-hero-ghost {
+      background: transparent;
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.45);
+      backdrop-filter: blur(4px);
+    }
+    .btn-hero-ghost:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.8);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .btn-hero-ghost:active { transform: scale(0.97); }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 4px 20px rgba(217,78,31,0.4); }
+      50% { box-shadow: 0 4px 28px rgba(217,78,31,0.75), 0 0 0 6px rgba(217,78,31,0.12); }
+    }
+
+    /* Phone number shimmer */
+    .phone-link {
+      position: relative;
+      background: linear-gradient(90deg, #fff 0%, #fff 40%, var(--c-brand) 50%, #fff 60%, #fff 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: phone-shimmer 3.5s linear infinite;
+    }
+    .phone-link:hover {
+      animation: phone-shimmer 1.2s linear infinite;
+      filter: drop-shadow(0 0 8px rgba(217,78,31,0.7));
+    }
+    @keyframes phone-shimmer {
+      0%   { background-position: 100% center; }
+      100% { background-position: -100% center; }
+    }
+
+    /* Enhanced call button */
+    .btn-call {
+      animation: pulse-glow 2.5s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-call::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+      animation: btn-sweep 3s ease-in-out infinite;
+      border-radius: inherit;
+    }
+    @keyframes btn-sweep {
+      0%   { left: -100%; }
+      40%, 100% { left: 140%; }
+    }
+
+    /* Ken Burns hero bg */
+    @keyframes kenburns {
+      0%   { transform: scale(1.08) translate(0, 0); }
+      50%  { transform: scale(1.13) translate(-1%, -0.5%); }
+      100% { transform: scale(1.08) translate(0, 0); }
+    }
+
+    /* Hero text reveal */
+    @keyframes heroSlideUp {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-line { animation: heroSlideUp 0.8s cubic-bezier(0.22,1,0.36,1) both; }
+    .hero-line-1 { animation-delay: 0.15s; }
+    .hero-line-2 { animation-delay: 0.30s; }
+    .hero-line-3 { animation-delay: 0.45s; }
+    .hero-line-4 { animation-delay: 0.60s; }
+    .hero-line-5 { animation-delay: 0.78s; }
+
+    /* Floating badge */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-6px); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--c-gray-300); border-radius: 3px; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(20,16,12,0.75);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .modal-box {
+      background: #fff; border-radius: 16px;
+      max-width: 720px; width: 100%;
+      overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+      max-height: 90vh; overflow-y: auto;
+    }
+
+    /* Scroll-reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 600ms cubic-bezier(0.22,1,0.36,1), transform 600ms cubic-bezier(0.22,1,0.36,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 100ms; }
+    .reveal-delay-2 { transition-delay: 200ms; }
+    .reveal-delay-3 { transition-delay: 320ms; }
+    .reveal-delay-4 { transition-delay: 440ms; }
+    .reveal-delay-5 { transition-delay: 560ms; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Modern dual range slider */
+    .price-slider-wrap { position: relative; height: 32px; }
+    .price-slider-wrap input[type=range] {
+      position: absolute; width: 100%; height: 6px;
+      -webkit-appearance: none; appearance: none;
+      background: transparent; pointer-events: none;
+      top: 50%; transform: translateY(-50%); margin: 0;
+    }
+    .price-slider-wrap input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #fff;
+      cursor: grab; pointer-events: all;
+      border: 3px solid #D94E1F;
+      box-shadow:
+        0 5px 14px rgba(217,78,31,0.45),
+        0 1px 3px rgba(0,0,0,0.18),
+        inset 0 0 0 2px #fff;
+      transition: transform 200ms cubic-bezier(0.4,0,0.2,1), box-shadow 200ms;
+    }
+    .price-slider-wrap input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+      box-shadow:
+        0 8px 22px rgba(217,78,31,0.6),
+        0 2px 6px rgba(0,0,0,0.22),
+        inset 0 0 0 2px #fff;
+    }
+    .price-slider-wrap input[type=range]::-webkit-slider-thumb:active { cursor: grabbing; }
+    .price-slider-wrap input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #fff;
+      cursor: grab; pointer-events: all;
+      border: 3px solid #D94E1F;
+      box-shadow: 0 5px 14px rgba(217,78,31,0.45);
+    }
+
+    /* Nav link hover effect */
+    .nav-link {
+      position: relative;
+      font-family: var(--font-body);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      padding-bottom: 4px;
+      transition: color 200ms ease;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%;
+      width: 0; height: 2px;
+      background: var(--c-brand);
+      border-radius: 2px;
+      transition: width 250ms cubic-bezier(0.22,1,0.36,1), left 250ms cubic-bezier(0.22,1,0.36,1);
+    }
+    .nav-link:hover::after,
+    .nav-link.active::after { width: 100%; left: 0; }
+    .nav-link:hover { color: #fff !important; }
+    .nav-link.active { color: var(--c-brand) !important; }
+
+    /* Logo hover */
+    .logo-wrap {
+      cursor: pointer;
+      transition: transform 250ms cubic-bezier(0.22,1,0.36,1), opacity 200ms;
+    }
+    .logo-wrap:hover { transform: scale(1.04); opacity: 0.92; }
+    .logo-wrap:active { transform: scale(0.98); }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+/* ─── BOOTSTRAP FROM SERVER (async, gates React render) ───
+   Deep-merges server payload into localStorage. NEVER wipes local-only
+   sub-keys that the server doesn't have yet (e.g. unsynced floor polygons). */
+function __deepMerge(local, server) {
+  if (server == null) return local;
+  if (local == null) return server;
+  if (Array.isArray(local) && Array.isArray(server)) {
+    const byId = new Map();
+    for (const x of local) if (x && x.id != null) byId.set(x.id, x);
+    for (const x of server) {
+      if (x && x.id != null) {
+        const ex = byId.get(x.id);
+        byId.set(x.id, ex ? __deepMerge(ex, x) : x);
+      }
+    }
+    if (byId.size > 0) return Array.from(byId.values()).sort((a,b)=>(a.id||0)-(b.id||0));
+    return server;
+  }
+  if (typeof local === 'object' && typeof server === 'object' && !Array.isArray(local) && !Array.isArray(server)) {
+    const out = { ...local };
+    for (const k of Object.keys(server)) out[k] = __deepMerge(out[k], server[k]);
+    return out;
+  }
+  return server;
+}
+async function __bootstrapFromServer() {
+  let data = null;
+  try {
+    const r = await fetch('/api/data', { cache: 'no-store' });
+    if (!r.ok) return;
+    data = await r.json();
+  } catch (e) { return; }
+  if (!data || typeof data !== 'object') return;
+  Object.keys(data).forEach(k => {
+    try {
+      const existing = localStorage.getItem(k);
+      let merged = data[k];
+      if (existing) {
+        try {
+          const local = JSON.parse(existing);
+          merged = __deepMerge(local, data[k]);
+        } catch {}
+      }
+      localStorage.setItem(k, JSON.stringify(merged));
+    } catch (e) {}
+  });
+}
+
+(async () => {
+await __bootstrapFromServer();
+
+/* ─── RIPPLE HELPER ─── */
+function addRipple(e) {
+  const btn = e.currentTarget;
+  const r = btn.getBoundingClientRect();
+  const size = Math.max(r.width, r.height) * 2;
+  const x = e.clientX - r.left - size / 2;
+  const y = e.clientY - r.top - size / 2;
+  const span = document.createElement('span');
+  span.className = 'ripple';
+  span.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px`;
+  btn.appendChild(span);
+  span.addEventListener('animationend', () => span.remove());
+}
+
+/* ─── HEADER ─── */
+function Header({ activeSection, onNav, forceScrolled = false }) {
+  const [scrolledRaw, setScrolled] = useState(false);
+  const scrolled = forceScrolled || scrolledRaw;
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const links = [
+    { id: 'about-complex',  label: 'О комплексе' },
+    { id: 'catalog',        label: 'Квартиры' },
+    { id: 'promos',         label: 'Акции' },
+    { id: 'construction',   label: 'Строительство' },
+    { id: 'infrastructure', label: 'Инфраструктура' },
+    { id: 'contact',        label: 'Контакты' },
+  ];
+
+  return (
+    <header style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+      height: 76, display: 'flex', alignItems: 'center',
+      background: scrolled ? 'rgba(20,17,14,0.96)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(14px)' : 'none',
+      transition: 'background 350ms ease-out, backdrop-filter 350ms, box-shadow 350ms',
+      boxShadow: scrolled ? '0 1px 0 rgba(255,255,255,0.07)' : 'none',
+    }}>
+      <div style={{
+        maxWidth: 'var(--max-w)', margin: '0 auto', padding: '0 40px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', gap: 24,
+      }}>
+        {/* Logo — horizontal with white text, dark-background ready */}
+        <div className="logo-wrap" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{ flexShrink: 0 }}>
+          <img
+            src="assets/logo-horizontal-white.png"
+            alt="Герои"
+            style={{ height: 52, width: 'auto', display: 'block' }}
+          />
+        </div>
+
+        {/* Nav */}
+        <nav style={{ display: 'flex', gap: 24, flex: 1, justifyContent: 'center', paddingTop: 10 }}>
+          {links.map(l => (
+            <a
+              key={l.id}
+              className={`nav-link${activeSection === l.id ? ' active' : ''}`}
+              onClick={() => onNav(l.id)}
+              style={{ color: activeSection === l.id ? 'var(--c-brand)' : 'rgba(255,255,255,0.78)', whiteSpace: 'nowrap' }}
+            >{l.label}</a>
+          ))}
+        </nav>
+
+        {/* CTA — phone icon + number + button */}
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14, paddingTop: 5 }}>
+          {/* Phone number */}
+          <a href="tel:+73522777777" className="phone-link" style={{
+            fontSize: 14, fontWeight: 700, textDecoration: 'none',
+            letterSpacing: '0.02em', whiteSpace: 'nowrap',
+          }}>+7 (352) 277-77-77</a>
+          {/* CTA button */}
+          <a className="btn btn-primary btn-call" href="#contact"
+            onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
+            style={{ fontSize: 13, whiteSpace: 'nowrap' }}
+            onMouseDown={addRipple}>
+            Оставить заявку
+          </a>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ─── DATA LAYER (reads from admin panel localStorage) ─── */
+const _lsLoad = (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; } };
+
+const _DEFAULT_SETTINGS = {
+  phone: '+7 (800) 123-45-67', phoneLabel: 'Бесплатно по России',
+  address: 'г. Курган, ул. Героев, 1', addressLabel: 'Офис продаж',
+  hours: 'Пн–Вс: 9:00 – 21:00', hoursLabel: 'Время работы',
+  city: 'Курган', tagline: 'Жилой комплекс нового поколения',
+  floors: '12', korpuses: '4', aptCount: '320', year: '2027', area: '34–86',
+};
+const SITE = { ..._DEFAULT_SETTINGS, ..._lsLoad('geroi_settings', {}) };
+
+const DEFAULT_ABOUT = {
+  label: 'О комплексе', title: 'Жилой комплекс\nнового поколения', subtitle: 'Созданный для тех, кто ценит качество жизни',
+  text1: 'ЖК «Герои» — это современный жилой комплекс в Кургане, построенный по передовым технологиям. Продуманная архитектура, развитая инфраструктура и комфортная среда создают идеальное место для жизни.',
+  text2: 'Каждая деталь продумана: от энергоэффективных материалов до закрытого двора без машин. Мы строим не просто дома — мы создаём сообщество активных людей.',
+  features: [
+    { icon: '◆', title: 'Монолитный каркас', desc: 'Надёжная конструкция с высоким классом сейсмостойкости' },
+    { icon: '◆', title: 'Закрытый двор', desc: 'Безопасное пространство без машин для отдыха и прогулок' },
+    { icon: '◆', title: 'Энергоэффективность', desc: 'Тёплые вентфасады и высококачественное утепление' },
+    { icon: '◆', title: 'Безопасность 24/7', desc: 'Видеонаблюдение, домофоны, охраняемая территория' },
+  ],
+};
+const ABOUT_DATA = { ...DEFAULT_ABOUT, ..._lsLoad('geroi_about', {}) };
+
+const DEFAULT_PROMOS = [
+  { id:1, title: 'Ипотека от 0,1%', desc: 'Специальные условия от ведущих банков-партнёров', badge: 'Выгодно', accent: '#4ade80', expires: '31 мая 2025' },
+  { id:2, title: 'Паркинг в подарок', desc: 'При покупке квартиры от 60 м² — машиноместо бесплатно', badge: 'Акция', accent: '#E3854D', expires: '30 июня 2025' },
+  { id:3, title: 'Рассрочка 0%', desc: 'Беспроцентная рассрочка на весь период строительства', badge: 'Новинка', accent: '#818cf8', expires: '15 июня 2025' },
+  { id:4, title: 'Trade-in квартиры', desc: 'Зачтём старую квартиру по рыночной цене', badge: 'Обмен', accent: '#e879f9', expires: '31 мая 2025' },
+];
+const PROMOS_DATA = _lsLoad('geroi_promos', DEFAULT_PROMOS);
+
+const DEFAULT_CONSTRUCTION = [
+  { id:1, month: 'Апрель 2025', photos: [
+    { src: 'assets/render-aerial.jpg', caption: 'Вид с воздуха' },
+    { src: 'assets/render-facade.jpg', caption: 'Фасад корпуса 1' },
+    { src: 'assets/render-street.jpg', caption: 'Со стороны улицы' },
+  ]},
+];
+const CONSTRUCTION_DATA = _lsLoad('geroi_construction', DEFAULT_CONSTRUCTION);
+
+const DEFAULT_INFRA = {
+  mapUrl: 'https://yandex.ru/map-widget/v1/?ll=65.3654%2C55.4408&z=15&pt=65.3654%2C55.4408%2Cpm2rdl&l=map',
+  places: [
+    { name: 'Школа', dist: '350 м', cat: 'Образование' },
+    { name: 'Детский сад', dist: '200 м', cat: 'Образование' },
+    { name: 'Торговый центр', dist: '1.2 км', cat: 'Торговля' },
+    { name: 'Парк', dist: '800 м', cat: 'Отдых' },
+    { name: 'Поликлиника', dist: '500 м', cat: 'Здоровье' },
+    { name: 'МФЦ', dist: '1 км', cat: 'Сервис' },
+  ],
+};
+const INFRA_DATA = { ...DEFAULT_INFRA, ..._lsLoad('geroi_infra', {}) };
+
+const DEFAULT_FOOTER_EXTRA = {
+  legalText: 'Любая информация, представленная на данном сайте, носит исключительно информационный характер, не является публичной офертой, определяемой положениями статьи 437 ГК РФ.',
+  privacyUrl: '#', declarationUrl: '#',
+};
+const FOOTER_EXTRA = { ...DEFAULT_FOOTER_EXTRA, ..._lsLoad('geroi_footer', {}) };
+
+const DEFAULT_KORPUSES = [
+  { id: 1, name: 'Корпус 1', floors: 9,  total: 72, free: 28,
+    polygon: '10,28 36,38 36,53 33,53 33,72 22,72 22,55 6,48',
+    floorPolygons: {},
+    floorSchemas: { 1: 'assets/floor-k1-f1.jpg' },
+    cx: 18, cy: 50 },
+  { id: 2, name: 'Корпус 2', floors: 12, total: 96, free: 41,
+    polygon: '44,16 60,19 58,42 44,40',
+    floorPolygons: {}, cx: 52, cy: 28 },
+  { id: 3, name: 'Корпус 3', floors: 10, total: 80, free: 33,
+    polygon: '60,32 92,42 92,55 88,55 88,72 75,72 75,53 60,52',
+    floorPolygons: {}, cx: 80, cy: 50 },
+  { id: 4, name: 'Корпус 4', floors: 11, total: 84, free: 29,
+    polygon: '38,52 62,58 62,82 38,76',
+    floorPolygons: {}, cx: 49, cy: 68 },
+];
+const KORPUSES_DATA = _lsLoad('geroi_korpuses', DEFAULT_KORPUSES);
+const SITE_RENDER = _lsLoad('geroi_site_render', 'assets/site-render.jpg');
+
+/* ─── HERO SLIDER ─── */
+const SLIDES = _lsLoad('geroi_slides', [
+  { src: 'assets/render-hero-1.jpg', caption: 'Фасад со стороны улицы' },
+  { src: 'assets/render-hero-2.jpg', caption: 'Внутренний двор' },
+  { src: 'assets/render-hero-3.jpg', caption: 'Коммерческий первый этаж' },
+]);
+
+function Hero({ onNav }) {
+  const [current, setCurrent] = useState(0);
+  const [prev, setPrev] = useState(null);
+  const [fading, setFading] = useState(false);
+  const timerRef = useRef(null);
+
+  const goTo = useCallback((next) => {
+    if (fading) return;
+    setPrev(current);
+    setFading(true);
+    setTimeout(() => {
+      setCurrent(next);
+      setPrev(null);
+      setFading(false);
+    }, 700);
+  }, [current, fading]);
+
+  const goPrev = useCallback(() => {
+    goTo((current - 1 + SLIDES.length) % SLIDES.length);
+  }, [current, goTo]);
+
+  const goNext = useCallback(() => {
+    goTo((current + 1) % SLIDES.length);
+  }, [current, goTo]);
+
+  // Auto-advance
+  useEffect(() => {
+    timerRef.current = setInterval(goNext, 7000);
+    return () => clearInterval(timerRef.current);
+  }, [goNext]);
+
+  const resetTimer = () => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(goNext, 7000);
+  };
+
+  const handlePrev = () => { goPrev(); resetTimer(); };
+  const handleNext = () => { goNext(); resetTimer(); };
+
+  const arrowBtn = (onClick, dir) => (
+    <button onClick={onClick} style={{
+      position: 'absolute', top: '50%',
+      [dir === 'left' ? 'left' : 'right']: 36,
+      transform: 'translateY(-50%)',
+      zIndex: 10, cursor: 'pointer', border: 'none',
+      width: 56, height: 56, borderRadius: '50%',
+      background: 'rgba(255,255,255,0.12)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      transition: 'background 200ms, transform 200ms, box-shadow 200ms',
+    }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = 'rgba(217,78,31,0.75)';
+        e.currentTarget.style.transform = `translateY(-50%) scale(1.08)`;
+        e.currentTarget.style.boxShadow = '0 8px 32px rgba(217,78,31,0.45), inset 0 1px 0 rgba(255,255,255,0.2)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+        e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+        e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2)';
+      }}
+      onMouseDown={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(0.95)'; }}
+      onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)'; }}
+    >
+      {dir === 'left'
+        ? <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M14 5l-6 6 6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        : <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M8 5l6 6-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+      }
+    </button>
+  );
+
+  return (
+    <section id="hero" style={{
+      position: 'relative', height: '100vh', minHeight: 640,
+      display: 'flex', alignItems: 'flex-end',
+      overflow: 'hidden',
+    }}>
+      {/* Slide stack — using <img> for full native quality, no CSS resampling */}
+      {SLIDES.map((slide, i) => {
+        const isActive = i === current;
+        const isPrev = i === prev;
+        return (
+          <div key={slide.src} style={{
+            position: 'absolute', inset: 0,
+            opacity: isActive ? 1 : isPrev && fading ? 0 : 0,
+            transition: isActive
+              ? 'opacity 700ms ease-in-out'
+              : isPrev && fading ? 'opacity 700ms ease-in-out' : 'none',
+            zIndex: isActive ? 2 : isPrev ? 1 : 0,
+          }}>
+            <img
+              src={slide.src}
+              alt={slide.caption}
+              style={{
+                position: 'absolute', inset: 0,
+                width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center',
+                imageRendering: 'auto',
+                display: 'block',
+              }}
+              decoding="async"
+              fetchpriority={i === 0 ? 'high' : 'low'}
+            />
+          </div>
+        );
+      })}
+
+      {/* Gradient overlay */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 3,
+        background: 'linear-gradient(to top, rgba(16,12,8,0.78) 0%, rgba(16,12,8,0.30) 52%, rgba(16,12,8,0.05) 100%)',
+      }} />
+
+      {/* Accent line */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4, height: 3,
+        background: 'linear-gradient(90deg, transparent, var(--c-brand) 30%, var(--c-gold) 70%, transparent)',
+        opacity: 0.8,
+      }} />
+
+      {/* Left / Right arrows */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
+        {arrowBtn(handlePrev, 'left')}
+        {arrowBtn(handleNext, 'right')}
+      </div>
+
+      {/* Dots + caption */}
+      <div style={{
+        position: 'absolute', bottom: 28, right: 40, zIndex: 5,
+        display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10,
+      }}>
+        <span style={{
+          fontSize: 12, color: 'rgba(255,255,255,0.55)',
+          letterSpacing: '0.1em', textTransform: 'uppercase',
+          fontFamily: 'var(--font-body)',
+        }}>{SLIDES[current].caption}</span>
+        <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+          {SLIDES.map((_, i) => (
+            <button key={i} onClick={() => { goTo(i); resetTimer(); }} style={{
+              width: i === current ? 28 : 8, height: 8, borderRadius: 4,
+              background: i === current ? 'var(--c-brand)' : 'rgba(255,255,255,0.38)',
+              border: 'none', cursor: 'pointer', padding: 0,
+              transition: 'width 350ms cubic-bezier(0.22,1,0.36,1), background 300ms',
+            }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Slide counter */}
+      <div style={{
+        position: 'absolute', top: 96, right: 40, zIndex: 5,
+        fontFamily: 'var(--font-display)', fontSize: 13,
+        color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em',
+      }}>
+        {String(current + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
+      </div>
+
+      {/* Content */}
+      <div className="container" style={{ position: 'relative', zIndex: 5, paddingBottom: 80, width: '100%' }}>
+        <div style={{ maxWidth: 680 }}>
+
+          <div className="hero-line hero-line-1" style={{ marginBottom: 22, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              background: 'rgba(201,168,76,0.18)',
+              border: '1px solid rgba(201,168,76,0.55)',
+              borderRadius: 4, padding: '5px 14px 5px 10px',
+              backdropFilter: 'blur(6px)',
+            }}>
+              <svg width="12" height="15" viewBox="0 0 12 15" fill="none">
+                <path d="M6 0C2.686 0 0 2.686 0 6c0 4.418 6 9 6 9s6-4.582 6-9c0-3.314-2.686-6-6-6z" fill="#C9A84C"/>
+                <circle cx="6" cy="6" r="2" fill="white"/>
+              </svg>
+              <span style={{
+                fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.18em',
+                textTransform: 'uppercase', color: '#E8CA72', fontWeight: 500,
+              }}>{`Жилой комплекс · ${SITE.city}`}</span>
+            </span>
+          </div>
+
+          <h1 className="hero-line hero-line-2" style={{
+            fontFamily: 'var(--font-display)', fontSize: 'clamp(52px, 7.5vw, 100px)',
+            lineHeight: 0.95, letterSpacing: '-0.02em', color: '#fff',
+            textTransform: 'uppercase', marginBottom: 12,
+          }}>ГЕРОИ</h1>
+
+          <p className="hero-line hero-line-3" style={{
+            fontFamily: 'var(--font-display)', fontSize: 'clamp(16px, 2vw, 24px)',
+            color: 'rgba(255,255,255,0.68)', textTransform: 'uppercase',
+            letterSpacing: '0.05em', marginBottom: 20,
+          }}>Жилой комплекс для настоящих героев</p>
+
+          <p className="hero-line hero-line-3" style={{
+            fontSize: 15, color: 'rgba(255,255,255,0.58)', marginBottom: 36,
+            lineHeight: 1.7, maxWidth: 440,
+          }}>
+            Современные квартиры с продуманной планировкой. Закрытый двор, собственный спорткомплекс, коммерческие помещения.
+          </p>
+
+          <div className="hero-line hero-line-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <button className="btn btn-primary btn-lg" onMouseDown={addRipple} onClick={() => onNav('catalog')}>
+              Выбрать квартиру
+            </button>
+            <button className="btn btn-hero-ghost btn-lg" onMouseDown={addRipple} onClick={() => onNav('contact')}>
+              Узнать цену
+            </button>
+          </div>
+
+          <div className="hero-line hero-line-5" style={{ display: 'flex', marginTop: 48 }}>
+            {[['от 2,9 млн ₽', 'Стоимость'], ['1–3', 'Комнат'], ['34–86 м²', 'Площади'], ['2027', 'Год сдачи']].map(([v, l], i) => (
+              <div key={l} style={{
+                paddingRight: 28, paddingLeft: i === 0 ? 0 : 28,
+                borderLeft: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.14)',
+              }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: '#fff', lineHeight: 1.2 }}>{v}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.42)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 3 }}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── ABOUT STRIP ─── */
+function AboutStrip() {
+  return (
+    <section id="about" style={{ background: 'var(--c-brand)', padding: '48px 0' }}>
+      <div className="container" style={{ display: 'flex', gap: 64, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {[[SITE.floors, 'этажей'], [SITE.korpuses, 'корпуса'], [SITE.aptCount, 'квартир'], [SITE.year, 'год сдачи'], [SITE.area, 'м² площадь']].map(([v, l], i) => (
+          <div key={l} className={`reveal reveal-delay-${i + 1}`} style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 40, color: '#fff', lineHeight: 1 }}>{v}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4 }}>{l}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── APARTMENT CARD ─── */
+function ApartmentCard({ apt, onSelect }) {
+  return (
+    <div onClick={() => onSelect(apt)} style={{
+      background: '#fff', borderRadius: 10, overflow: 'hidden',
+      boxShadow: '0 2px 16px rgba(0,0,0,0.08)', cursor: 'pointer',
+      transition: 'transform 200ms ease-out, box-shadow 200ms',
+      display: 'flex', flexDirection: 'column',
+    }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.14)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.08)'; }}
+    >
+      <div style={{ position: 'relative', height: 200, overflow: 'hidden', background: '#f5f3f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src={apt.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 8 }} />
+        {apt.badge && (
+          <span style={{
+            position: 'absolute', top: 10, left: 10,
+            background: apt.badge === 'Акция' ? 'var(--c-brand)' : 'var(--c-dark)',
+            color: '#fff', fontSize: 10, padding: '3px 8px', borderRadius: 4,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+          }}>{apt.badge}</span>
+        )}
+        <span style={{
+          position: 'absolute', top: 10, right: 10,
+          background: apt.available ? '#E8F5E9' : '#FFF3E0',
+          color: apt.available ? '#2E7D32' : '#E65100',
+          fontSize: 10, padding: '3px 8px', borderRadius: 4, letterSpacing: '0.04em',
+        }}>{apt.available ? 'Свободна' : 'Бронь'}</span>
+      </div>
+      <div style={{ padding: '16px 16px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, textTransform: 'uppercase', color: 'var(--c-charcoal)' }}>
+            {apt.rooms}-комн.
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>{apt.floor} этаж</span>
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>{apt.area} м² · Корпус {apt.korpus || 1}</div>
+        <div style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid var(--c-gray-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--c-brand)' }}>
+            {apt.price.toLocaleString('ru-RU')} ₽
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--c-gray-300)' }}>
+            {Math.round(apt.price / apt.area).toLocaleString('ru-RU')} ₽/м²
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── APARTMENT CATALOG ─── */
+const APARTMENTS = _lsLoad('geroi_apts', [
+  /* Корпус 1, Этаж 1 — 5 квартир по планировке */
+  { id:1,  korpus:1, rooms:3, area:97.95, floor:1,  price:9500000, available:true,  badge:null,      img:'assets/3-k.png', polygon:'5,3 30,3 30,30 5,30' },
+  { id:2,  korpus:1, rooms:1, area:46.65, floor:1,  price:4500000, available:true,  badge:null,      img:'assets/1-k.png', polygon:'58,3 78,3 78,30 58,30' },
+  { id:3,  korpus:1, rooms:1, area:46.25, floor:1,  price:4480000, available:true,  badge:'Акция',   img:'assets/1-k.png', polygon:'78,3 97,3 97,30 78,30' },
+  { id:4,  korpus:1, rooms:2, area:62.95, floor:1,  price:6100000, available:true,  badge:null,      img:'assets/2-k.png', polygon:'10,30 35,30 35,52 10,52' },
+  { id:5,  korpus:1, rooms:1, area:44.25, floor:1,  price:4290000, available:false, badge:null,      img:'assets/1-k.png', polygon:'57,30 79,30 79,52 57,52' },
+  /* Прочие квартиры в каталоге для разнообразия */
+  { id:6,  korpus:1, rooms:1, area:36, floor:3,  price:2900000, available:true,  badge:null,      img:'assets/1-k.png' },
+  { id:7,  korpus:2, rooms:1, area:42, floor:7,  price:3350000, available:true,  badge:'Акция',   img:'assets/1-k.png' },
+  { id:8,  korpus:1, rooms:2, area:58, floor:5,  price:4100000, available:true,  badge:null,      img:'assets/2-k.png' },
+  { id:9,  korpus:2, rooms:2, area:64, floor:10, price:4800000, available:false, badge:null,      img:'assets/2-k.png' },
+  { id:10, korpus:3, rooms:3, area:78, floor:8,  price:5900000, available:true,  badge:null,      img:'assets/3-k.png' },
+  { id:11, korpus:2, rooms:3, area:86, floor:11, price:6500000, available:true,  badge:'Премиум', img:'assets/3-k.png' },
+  { id:12, korpus:3, rooms:1, area:34, floor:2,  price:2750000, available:true,  badge:null,      img:'assets/1-k.png' },
+]);
+
+const HOME_INITIAL = 8, HOME_EXPANDED = 12;
+const FULL_INITIAL = 16, FULL_STEP = 16;
+
+function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome }) {
+  const [roomsFilter, setRoomsFilter] = useState(null);
+  const [sortBy, setSortBy] = useState('price-asc');
+  // Snap min/max to step grid so the slider can always reach actual extremes
+  const PRICE_STEP = 50000;
+  const minBound = Math.floor(Math.min(...APARTMENTS.map(a => a.price)) / PRICE_STEP) * PRICE_STEP;
+  const maxBound = Math.ceil (Math.max(...APARTMENTS.map(a => a.price)) / PRICE_STEP) * PRICE_STEP;
+  const minArea = Math.floor(Math.min(...APARTMENTS.map(a => a.area)));
+  const maxArea = Math.ceil(Math.max(...APARTMENTS.map(a => a.area)));
+  const [priceRange, setPriceRange] = useState([minBound, maxBound]);
+  const [areaRange, setAreaRange] = useState([minArea, maxArea]);
+  const [revealed, setRevealed] = useState(fullPage ? FULL_INITIAL : HOME_INITIAL);
+  const [shuffleTick, setShuffleTick] = useState(0);
+
+  // Reset visible count and reshuffle when filters change
+  useEffect(() => {
+    setRevealed(fullPage ? FULL_INITIAL : HOME_INITIAL);
+    setShuffleTick(t => t + 1);
+  }, [roomsFilter, priceRange[0], priceRange[1], areaRange[0], areaRange[1], fullPage]);
+
+  const filtered = APARTMENTS
+    .filter(a => {
+      if (roomsFilter && a.rooms !== roomsFilter) return false;
+      if (a.price < priceRange[0]) return false;
+      if (a.price > priceRange[1]) return false;
+      if (a.area < areaRange[0]) return false;
+      if (a.area > areaRange[1]) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'area-asc') return a.area - b.area;
+      if (sortBy === 'area-desc') return b.area - a.area;
+      return 0;
+    });
+
+  // Initial mix: 3×1k + 3×2k + 2×3k randomly ordered (only on home + no rooms filter)
+  const ordered = useMemo(() => {
+    if (fullPage || roomsFilter) return filtered;
+    const shuffle = arr => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const r1 = shuffle(filtered.filter(x => x.rooms === 1)).slice(0, 3);
+    const r2 = shuffle(filtered.filter(x => x.rooms === 2)).slice(0, 3);
+    const r3 = shuffle(filtered.filter(x => x.rooms === 3)).slice(0, 2);
+    const mix = shuffle([...r1, ...r2, ...r3]);
+    const mixIds = new Set(mix.map(a => a.id));
+    const rest = filtered.filter(a => !mixIds.has(a.id));
+    return [...mix, ...rest];
+  }, [shuffleTick, fullPage, roomsFilter, sortBy]);
+
+  const visible = ordered.slice(0, revealed);
+  const total = ordered.length;
+  const canShowMore = revealed < total;
+
+  const fmtPrice = v => `${(v / 1000000).toFixed(2).replace(/\.?0+$/, '')} млн ₽`;
+  const fillL = (priceRange[0] - minBound) / (maxBound - minBound) * 100;
+  const fillR = (priceRange[1] - minBound) / (maxBound - minBound) * 100;
+  const aFillL = (areaRange[0] - minArea) / (maxArea - minArea) * 100;
+  const aFillR = (areaRange[1] - minArea) / (maxArea - minArea) * 100;
+
+  return (
+    <section id="catalog" style={{ padding: '96px 0', background: 'var(--c-surface)' }}>
+      <div className="container">
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-brand)', marginBottom: 12 }}>
+            Каталог квартир
+          </div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px, 4vw, 48px)', textTransform: 'uppercase', color: 'var(--c-charcoal)', lineHeight: 1.05 }}>
+            Выберите квартиру
+          </h2>
+        </div>
+
+        {/* Filter bar */}
+        <div style={{
+          background: '#fff', borderRadius: 20, marginBottom: 36,
+          boxShadow: '0 4px 40px rgba(0,0,0,0.09)',
+          overflow: 'hidden',
+          border: '1px solid rgba(0,0,0,0.05)',
+        }}>
+          {/* Top accent line */}
+          <div style={{ height: 3, background: 'linear-gradient(90deg, #E05520 0%, #D94E1F 50%, rgba(217,78,31,0.2) 100%)' }} />
+
+          <div style={{ padding: '22px 28px', display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 28, alignItems: 'center' }}>
+
+            {/* Rooms — separated pills with wow hover */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[
+                { v: null, l: 'Все' },
+                { v: 1, l: '1к' },
+                { v: 2, l: '2к' },
+                { v: 3, l: '3к' },
+              ].map(r => {
+                const active = roomsFilter === r.v;
+                return (
+                  <button key={r.v} onClick={() => setRoomsFilter(r.v)}
+                    style={{
+                      padding: '9px 22px', borderRadius: 99, fontSize: 13, fontWeight: 700,
+                      cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.02em',
+                      border: active ? 'none' : '1.5px solid #e8e5e1',
+                      transition: 'all 250ms cubic-bezier(.4,0,.2,1)',
+                      background: active ? 'linear-gradient(135deg,#E05520,#C43818)' : '#fff',
+                      color: active ? '#fff' : '#aaa',
+                      boxShadow: active
+                        ? '0 6px 20px rgba(217,78,31,0.38), 0 2px 6px rgba(217,78,31,0.2)'
+                        : '0 1px 4px rgba(0,0,0,0.06)',
+                      transform: active ? 'translateY(-2px) scale(1.06)' : 'translateY(0) scale(1)',
+                    }}
+                    onMouseEnter={e => {
+                      if (!active) {
+                        e.currentTarget.style.borderColor = 'var(--c-brand)';
+                        e.currentTarget.style.color = 'var(--c-brand)';
+                        e.currentTarget.style.boxShadow = '0 4px 18px rgba(217,78,31,0.22)';
+                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.06)';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (!active) {
+                        e.currentTarget.style.borderColor = '#e8e5e1';
+                        e.currentTarget.style.color = '#aaa';
+                        e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)';
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      }
+                    }}
+                  >{r.l}</button>
+                );
+              })}
+            </div>
+
+            {/* Stacked sliders — стоимость + площадь, modern look */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18, padding: '0 12px' }}>
+              {/* Стоимость */}
+              <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 200px', gap: 18, alignItems: 'center' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 800, color: 'var(--c-charcoal)' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-brand)', boxShadow: '0 0 8px rgba(217,78,31,0.5)' }} />
+                  Стоимость
+                </span>
+                <div className="price-slider-wrap">
+                  <div style={{ position:'absolute', top:'50%', left:0, right:0, height:6, transform:'translateY(-50%)', borderRadius:99, background:'#ede9e5' }} />
+                  <div style={{ position:'absolute', top:'50%', height:6, left:`${fillL}%`, right:`${100-fillR}%`, transform:'translateY(-50%)', borderRadius:99, background:'linear-gradient(90deg,#E05520,#D94E1F)', boxShadow:'0 0 14px rgba(217,78,31,0.4)' }} />
+                  <input type="range" min={minBound} max={maxBound} step={50000} value={priceRange[0]}
+                    onChange={e => { const v=Number(e.target.value); if(v<priceRange[1]-100000) setPriceRange([v,priceRange[1]]); }}
+                    style={{ zIndex: priceRange[0] > maxBound-(maxBound-minBound)*0.1 ? 5 : 3 }} />
+                  <input type="range" min={minBound} max={maxBound} step={50000} value={priceRange[1]}
+                    onChange={e => { const v=Number(e.target.value); if(v>priceRange[0]+100000) setPriceRange([priceRange[0],v]); }}
+                    style={{ zIndex: 4 }} />
+                </div>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, color: 'var(--c-charcoal)', textAlign: 'right', letterSpacing: '-0.01em', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
+                  {fmtPrice(priceRange[0])}<span style={{ color: '#d8d2cc', margin: '0 6px', fontFamily: 'var(--font-body)', fontWeight: 300 }}>—</span>{fmtPrice(priceRange[1])}
+                </span>
+              </div>
+
+              {/* Площадь */}
+              <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 200px', gap: 18, alignItems: 'center' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 800, color: 'var(--c-charcoal)' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-brand)', boxShadow: '0 0 8px rgba(217,78,31,0.5)' }} />
+                  Площадь
+                </span>
+                <div className="price-slider-wrap">
+                  <div style={{ position:'absolute', top:'50%', left:0, right:0, height:6, transform:'translateY(-50%)', borderRadius:99, background:'#ede9e5' }} />
+                  <div style={{ position:'absolute', top:'50%', height:6, left:`${aFillL}%`, right:`${100-aFillR}%`, transform:'translateY(-50%)', borderRadius:99, background:'linear-gradient(90deg,#E05520,#D94E1F)', boxShadow:'0 0 14px rgba(217,78,31,0.4)' }} />
+                  <input type="range" min={minArea} max={maxArea} step={1} value={areaRange[0]}
+                    onChange={e => { const v=Number(e.target.value); if(v<areaRange[1]-1) setAreaRange([v,areaRange[1]]); }}
+                    style={{ zIndex: areaRange[0] > maxArea-(maxArea-minArea)*0.1 ? 5 : 3 }} />
+                  <input type="range" min={minArea} max={maxArea} step={1} value={areaRange[1]}
+                    onChange={e => { const v=Number(e.target.value); if(v>areaRange[0]+1) setAreaRange([areaRange[0],v]); }}
+                    style={{ zIndex: 4 }} />
+                </div>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, color: 'var(--c-charcoal)', textAlign: 'right', letterSpacing: '-0.01em', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
+                  {areaRange[0]}<span style={{ color: '#d8d2cc', margin: '0 6px', fontFamily: 'var(--font-body)', fontWeight: 300 }}>—</span>{areaRange[1]}<span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#999', marginLeft: 6 }}>м²</span>
+                </span>
+              </div>
+            </div>
+
+            {/* "Смотреть все N квартир →" — link to /flat (new tab) */}
+            {!fullPage && (
+              <a href="/flat" target="_blank" rel="noopener noreferrer"
+                style={{ textDecoration: 'none', textAlign: 'center', minWidth: 130, display: 'block', padding: '10px 14px', borderRadius: 14, transition: 'all 240ms cubic-bezier(0.4,0,0.2,1)', border: '1.5px solid transparent' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(217,78,31,0.06)'; e.currentTarget.style.borderColor = 'rgba(217,78,31,0.25)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(217,78,31,0.18)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-brand)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                  Смотреть все
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 46, lineHeight: 1, color: 'var(--c-brand)', letterSpacing: '-0.03em' }}>{filtered.length}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#aaa', letterSpacing: '0.02em', marginTop: 4 }}>
+                  {filtered.length === 1 ? 'квартира' : filtered.length < 5 ? 'квартиры' : 'квартир'}
+                </div>
+              </a>
+            )}
+            {fullPage && (
+              <div style={{ textAlign: 'center', minWidth: 130 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 46, lineHeight: 1, color: 'var(--c-brand)', letterSpacing: '-0.03em' }}>{filtered.length}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#aaa', letterSpacing: '0.02em', marginTop: 4 }}>
+                  {filtered.length === 1 ? 'квартира' : filtered.length < 5 ? 'квартиры' : 'квартир'}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+          {visible.map(apt => <ApartmentCard key={apt.id} apt={apt} onSelect={onSelectApt} />)}
+        </div>
+
+        {filtered.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--c-gray-500)' }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>—</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, textTransform: 'uppercase' }}>Нет подходящих квартир</div>
+            <div style={{ fontSize: 14, marginTop: 8 }}>Попробуйте изменить фильтры</div>
+          </div>
+        )}
+
+        {filtered.length > 0 && (
+          <div style={{ textAlign: 'center', marginTop: 44 }}>
+            <p style={{ fontSize: 13, color: 'var(--c-gray-400)', marginBottom: 22, letterSpacing: '0.04em' }}>
+              Показано {visible.length} из {filtered.length} квартир
+            </p>
+
+            {/* Pagination buttons */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+              {(() => {
+                const ghostBtn = (label, onClick, primary = false) => (
+                  <button onClick={onClick} onMouseDown={addRipple} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 10,
+                    padding: '16px 36px', borderRadius: 12, border: '1.5px solid var(--c-brand)',
+                    background: primary ? 'var(--c-brand)' : 'transparent', color: primary ? '#fff' : 'var(--c-brand)',
+                    fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,
+                    cursor: 'pointer', letterSpacing: '0.04em', position: 'relative', overflow: 'hidden',
+                    transition: 'all 250ms', boxShadow: primary ? '0 6px 22px rgba(217,78,31,0.35)' : 'none',
+                  }}
+                    onMouseEnter={e => {
+                      if (primary) { e.currentTarget.style.boxShadow = '0 10px 32px rgba(217,78,31,0.45)'; e.currentTarget.style.transform = 'translateY(-2px)'; }
+                      else { e.currentTarget.style.background = 'var(--c-brand)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(217,78,31,0.4)'; e.currentTarget.style.transform = 'translateY(-2px)'; }
+                    }}
+                    onMouseLeave={e => {
+                      if (primary) { e.currentTarget.style.boxShadow = '0 6px 22px rgba(217,78,31,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }
+                      else { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--c-brand)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }
+                    }}
+                  >{label}</button>
+                );
+
+                if (fullPage) {
+                  // Full page mode: show "Ещё квартиры" while there's more
+                  if (!canShowMore) return null;
+                  const next = Math.min(total, revealed + FULL_STEP);
+                  return ghostBtn(`Ещё ${Math.min(FULL_STEP, total - revealed)} квартир`, () => setRevealed(next));
+                }
+
+                // Home mode
+                if (revealed === HOME_INITIAL && canShowMore) {
+                  return ghostBtn('Ещё квартиры', () => setRevealed(Math.min(HOME_EXPANDED, total)));
+                }
+                if (revealed >= HOME_EXPANDED || total <= HOME_EXPANDED) {
+                  // "Посмотреть все квартиры" — anchor link to /flat in a new tab
+                  return (
+                    <a key="view-all" href="/flat" target="_blank" rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 10,
+                        padding: '16px 36px', borderRadius: 12,
+                        border: '1.5px solid var(--c-brand)',
+                        background: 'var(--c-brand)', color: '#fff', textDecoration: 'none',
+                        fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        boxShadow: '0 6px 22px rgba(217,78,31,0.35)',
+                        transition: 'all 250ms cubic-bezier(0.4,0,0.2,1)',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 32px rgba(217,78,31,0.45)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(217,78,31,0.35)'; }}
+                    >
+                      Посмотреть все квартиры
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </a>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* ─── FLOOR PLAN ─── */
+function genFloor(floor, korpus) {
+  const seed = floor * 7 + korpus * 13;
+  const layouts = [
+    { rooms: 1, area: 36, side: 'left' },
+    { rooms: 1, area: 42, side: 'left' },
+    { rooms: 2, area: 58, side: 'center' },
+    { rooms: 2, area: 64, side: 'center' },
+    { rooms: 3, area: 78, side: 'right' },
+    { rooms: 3, area: 86, side: 'right' },
+    { rooms: 1, area: 34, side: 'right' },
+  ];
+  return layouts.map((l, i) => ({
+    ...l,
+    id: `${korpus}-${floor}-${i}`,
+    floor,
+    korpus,
+    available: (seed + i * 3) % 5 !== 0,
+    price: Math.round((l.area * 78000 + floor * 12000) / 10000) * 10000,
+    apt: `${(floor - 1) * 7 + i + 1}`,
+  }));
+}
+
+function AptShape({ apt, isHovered, isSelected, onClick, onHover }) {
+  const W = apt.rooms === 1 ? 70 : apt.rooms === 2 ? 100 : 130;
+  const H = apt.area < 50 ? 80 : apt.area < 70 ? 96 : 110;
+  const fill = isSelected ? '#D94E1F' : isHovered ? '#F0784A' : apt.available ? '#fff' : '#EDE8E3';
+  const stroke = isSelected ? '#D94E1F' : '#C0B8B0';
+  const textCol = isSelected ? '#fff' : apt.available ? '#2D2A27' : '#C0B8B0';
+
+  return (
+    <g
+      style={{ cursor: apt.available ? 'pointer' : 'default' }}
+      onClick={() => apt.available && onClick(apt)}
+      onMouseEnter={() => apt.available && onHover(apt.id)}
+      onMouseLeave={() => onHover(null)}
+    >
+      <rect x="0" y="0" width={W} height={H} rx="6" fill={fill} stroke={stroke} strokeWidth="1.5" style={{ transition: 'fill 150ms' }} />
+      <text x={W/2} y={H/2 - 8} textAnchor="middle" fontFamily="'Dela Gothic One', sans-serif" fontSize="14" fill={textCol}>{apt.rooms}-к</text>
+      <text x={W/2} y={H/2 + 8} textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="10" fill={isSelected ? 'rgba(255,255,255,0.8)' : '#7A746E'}>{apt.area} м²</text>
+      <text x={W/2} y={H/2 + 22} textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="9" fill={isSelected ? 'rgba(255,255,255,0.7)' : '#C0B8B0'}>кв. {apt.apt}</text>
+      {!apt.available && (
+        <text x={W/2} y={H - 12} textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="9" fill="#C0B8B0">бронь</text>
+      )}
+    </g>
+  );
+}
+
+/* ─── FLOOR SCHEMA — image with apartment polygons ─── */
+function FloorSchema({ schemaUrl, apartments, hoveredId, selectedApt, onSelect, onHover }) {
+  // Apartments without polygon are listed as a fallback panel below the schema
+  const withPolygon = apartments.filter(a => a.polygon && typeof a.polygon === 'string' && a.polygon.trim());
+  const noPolygon = apartments.filter(a => !a.polygon);
+
+  return (
+    <div>
+      <div style={{
+        position: 'relative', borderRadius: 14, overflow: 'hidden',
+        background: '#fafaf8', border: '1px solid #ece9e5',
+      }}>
+        <img src={schemaUrl} alt="Планировка этажа" style={{ width:'100%', display:'block' }} draggable={false} />
+        <svg viewBox="0 0 100 56.25" preserveAspectRatio="none"
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%' }}>
+          {withPolygon.map(apt => {
+            const isHover = hoveredId === apt.id;
+            const isSel = selectedApt?.id === apt.id;
+            const sold = !apt.available;
+            const fill = sold
+              ? 'rgba(120,120,120,0.32)'
+              : isSel
+                ? 'rgba(217,78,31,0.55)'
+                : isHover
+                  ? 'rgba(255,200,150,0.42)'
+                  : 'rgba(255,255,255,0.001)';
+            const stroke = sold
+              ? 'rgba(120,120,120,0.55)'
+              : isSel
+                ? '#E05520'
+                : isHover
+                  ? 'rgba(217,78,31,0.6)'
+                  : 'transparent';
+            return (
+              <polygon key={apt.id}
+                points={apt.polygon}
+                fill={fill}
+                stroke={stroke}
+                strokeWidth={isHover || isSel ? 0.35 : 0}
+                vectorEffect="non-scaling-stroke"
+                style={{
+                  cursor: sold ? 'not-allowed' : 'pointer',
+                  transition: 'fill 220ms cubic-bezier(.4,0,.2,1), stroke 220ms',
+                  filter: isHover && !sold ? 'drop-shadow(0 0 1.4px rgba(217,78,31,0.6))' : 'none',
+                  pointerEvents: sold ? 'none' : 'auto',
+                }}
+                onMouseEnter={() => !sold && onHover(apt.id)}
+                onMouseLeave={() => onHover(null)}
+                onClick={() => !sold && onSelect(apt)}
+              />
+            );
+          })}
+        </svg>
+
+        {/* Sold overlay tooltip on hover (skipped for cleanliness) */}
+        {hoveredId && (() => {
+          const apt = apartments.find(a => a.id === hoveredId);
+          if (!apt || !apt.polygon) return null;
+          const pts = apt.polygon.split(/\s+/).map(p => p.split(',').map(Number));
+          const cx = pts.reduce((s,p)=>s+p[0],0)/pts.length;
+          const cy = pts.reduce((s,p)=>s+p[1],0)/pts.length;
+          return (
+            <div style={{
+              position:'absolute', top:`${(cy/56.25)*100}%`, left:`${cx}%`,
+              transform:'translate(-50%, -120%)', pointerEvents:'none',
+              background:'rgba(20,17,14,0.96)', backdropFilter:'blur(12px)',
+              border:'1px solid rgba(217,78,31,0.4)', borderRadius:10,
+              padding:'10px 14px', boxShadow:'0 14px 30px rgba(0,0,0,0.35)',
+              animation:'fadeUp 160ms ease-out', minWidth:140, textAlign:'center',
+            }}>
+              <div style={{ fontFamily:'var(--font-display)', fontSize:16, color:'#fff', textTransform:'uppercase' }}>{apt.rooms}-комн · {apt.area} м²</div>
+              <div style={{ fontSize:12, color:'var(--c-brand)', fontWeight:700, marginTop:3 }}>{apt.price.toLocaleString('ru-RU')} ₽</div>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* Apartments without polygons — fallback list */}
+      {noPolygon.length > 0 && (
+        <div style={{ marginTop:12, padding:'12px 14px', background:'#fff7ee', border:'1px solid rgba(217,78,31,0.18)', borderRadius:10, fontSize:12, color:'var(--c-gray-500)' }}>
+          {noPolygon.length} квартир(а) на этом этаже без обведённого контура — обведите их в админке (Корпуса → Квартиры на этаже)
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FloorMap({ apartments, hoveredId, selectedApt, onSelect, onHover }) {
+  let xOffset = 20;
+  const positions = apartments.map(apt => {
+    const W = apt.rooms === 1 ? 70 : apt.rooms === 2 ? 100 : 130;
+    const pos = { ...apt, x: xOffset };
+    xOffset += W + 8;
+    return pos;
+  });
+  const totalW = Math.max(xOffset + 20, 200);
+
+  return (
+    <svg width="100%" viewBox={`0 0 ${totalW} 160`} style={{ overflow: 'visible' }}>
+      <rect x="10" y="20" width={totalW - 20} height={120} rx="8" fill="#F7F4F1" stroke="#EDE8E3" strokeWidth="1.5" />
+      <rect x="10" y="128" width={totalW - 20} height="12" rx="0" fill="#EDE8E3" />
+      <text x={totalW/2} y="137" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="9" fill="#C0B8B0" letterSpacing="2">КОРИДОР</text>
+      <rect x={totalW/2 - 16} y="24" width="32" height="100" rx="4" fill="#EDE8E3" stroke="#C0B8B0" strokeWidth="1" />
+      <text x={totalW/2} y="78" textAnchor="middle" fontFamily="'Inter', sans-serif" fontSize="8" fill="#C0B8B0">ЛИФТ</text>
+      {positions.map(apt => (
+        <g key={apt.id} transform={`translate(${apt.x}, 28)`}>
+          <AptShape apt={apt} isHovered={hoveredId === apt.id} isSelected={selectedApt?.id === apt.id} onClick={onSelect} onHover={onHover} />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/* Building elevation step — stylized SVG with hoverable floors */
+function FloorElevation({ korpus, hovered, onHover, onSelect }) {
+  const F = korpus.floors;
+  const W = 280, H = 480, top = 24;
+  const fh = (H - top) / F;
+  return (
+    <svg width="100%" height="100%" viewBox={`0 0 ${W + 60} ${H + 30}`} preserveAspectRatio="xMidYMid meet" style={{ maxHeight: 540 }}>
+      <defs>
+        <linearGradient id="bldgGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1f1a14" />
+          <stop offset="100%" stopColor="#15110d" />
+        </linearGradient>
+        <linearGradient id="winLit" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffd28a" />
+          <stop offset="100%" stopColor="#E3854D" />
+        </linearGradient>
+      </defs>
+      {/* Base/ground line */}
+      <line x1="20" y1={top + H} x2={W + 50} y2={top + H} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+      {/* Roof */}
+      <rect x="36" y={top - 8} width={W - 12} height="8" rx="2" fill="#0c0a08" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
+      {/* Building body */}
+      <rect x="40" y={top} width={W - 20} height={H} fill="url(#bldgGrad)" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
+
+      {/* Floors */}
+      {Array.from({ length: F }, (_, i) => {
+        const floorNum = F - i;
+        const y = top + i * fh;
+        const isHover = hovered === floorNum;
+        return (
+          <g key={floorNum}>
+            <rect
+              x="40" y={y} width={W - 20} height={fh - 0.5}
+              fill={isHover ? 'rgba(217,78,31,0.32)' : 'rgba(255,255,255,0)'}
+              stroke={isHover ? '#E05520' : 'rgba(255,255,255,0.04)'}
+              strokeWidth={isHover ? 1.5 : 0.5}
+              style={{ cursor: 'pointer', transition: 'all 220ms' }}
+              onMouseEnter={() => onHover(floorNum)}
+              onMouseLeave={() => onHover(null)}
+              onClick={() => onSelect(floorNum)}
+            />
+            {/* Windows row */}
+            {Array.from({ length: 6 }, (_, j) => (
+              <rect key={j}
+                x={56 + j * ((W - 50) / 6)} y={y + fh * 0.2}
+                width={(W - 50) / 6 - 6} height={fh * 0.55}
+                rx="1"
+                fill={isHover ? 'url(#winLit)' : 'rgba(255,255,255,0.18)'}
+                style={{ pointerEvents: 'none', transition: 'fill 220ms' }}
+              />
+            ))}
+            {/* Floor number */}
+            <text x="22" y={y + fh / 2 + 4} fontSize="11" fontWeight="600"
+              fill={isHover ? '#E05520' : 'rgba(255,255,255,0.5)'}
+              fontFamily="var(--font-body)" style={{ transition: 'fill 220ms' }}>{floorNum}</text>
+            {/* Floor separator */}
+            <line x1="40" y1={y + fh} x2={W + 20} y2={y + fh} stroke="rgba(255,255,255,0.06)" strokeWidth="0.4" />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function FloorPlan({ onSelectApt }) {
+  const [step, setStep] = useState(0);          // 0=korpus, 1=floor, 2=plan
+  const [korpus, setKorpus] = useState(null);
+  const [floor, setFloor] = useState(null);
+  const [hoveredKorpus, setHoveredKorpus] = useState(null);
+  const [hoveredFloor, setHoveredFloor] = useState(null);
+  const [hoveredId, setHoveredId] = useState(null);
+  const [selectedApt, setSelectedApt] = useState(null);
+  const [filterRooms, setFilterRooms] = useState(null);
+  const [filterAvail, setFilterAvail] = useState('all');
+  const FLOORS = 12;
+
+  const KORPUSES = KORPUSES_DATA;
+
+  const goKorpus = k => { setKorpus(k); setFloor(null); setSelectedApt(null); setStep(1); };
+  const goFloor  = f => { setFloor(f); setSelectedApt(null); setStep(2); };
+  const goBackTo = (s) => {
+    if (s <= 0) { setStep(0); setKorpus(null); setFloor(null); setSelectedApt(null); }
+    else if (s === 1 && korpus) { setStep(1); setFloor(null); setSelectedApt(null); }
+  };
+
+  // Step 2 data
+  // Use real apartments if floor schema exists, otherwise fall back to procedural FloorMap
+  const hasSchema = korpus && floor && korpus.floorSchemas && korpus.floorSchemas[floor];
+  const realApts = (floor && korpus)
+    ? APARTMENTS.filter(a => a.korpus === korpus.id && Number(a.floor) === Number(floor))
+    : [];
+  const allApts = floor && korpus
+    ? (hasSchema ? realApts : genFloor(floor, korpus.id))
+    : [];
+  const filtered = allApts.filter(a => {
+    if (filterRooms && a.rooms !== filterRooms) return false;
+    if (filterAvail === 'free' && !a.available) return false;
+    if (filterAvail === 'booked' && a.available) return false;
+    return true;
+  });
+  const stats = allApts.reduce((acc, a) => { acc.total++; if (a.available) acc.free++; else acc.booked++; return acc; }, { total: 0, free: 0, booked: 0 });
+
+  const Crumb = ({ n, label, value, isActive, isDone, clickable, onClick }) => (
+    <div onClick={clickable ? onClick : undefined} style={{
+      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px',
+      borderRadius: 12, cursor: clickable ? 'pointer' : 'default',
+      background: isActive ? 'rgba(217,78,31,0.06)' : isDone ? '#faf9f7' : '#fff',
+      border: '1px solid', borderColor: isActive ? 'rgba(217,78,31,0.4)' : isDone ? '#ece9e5' : '#f0eeea',
+      transition: 'all 200ms', flex: 1, minWidth: 160,
+    }}>
+      <div style={{
+        width: 30, height: 30, borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 700,
+        background: isActive ? 'linear-gradient(135deg,#E05520,#C43818)' : isDone ? 'rgba(217,78,31,0.14)' : '#f0eeea',
+        color: isActive ? '#fff' : isDone ? '#E3854D' : '#bbb',
+        boxShadow: isActive ? '0 4px 14px rgba(217,78,31,0.32)' : 'none',
+        flexShrink: 0,
+      }}>{isDone ? '✓' : n}</div>
+      <div style={{ overflow: 'hidden' }}>
+        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--c-gray-400)' }}>{label}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2, color: isActive || isDone ? 'var(--c-charcoal)' : '#bbb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {value || '—'}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <section id="floorplan" style={{ padding: '96px 0', background: '#fff', position: 'relative' }}>
+      <div className="container" style={{ position: 'relative' }}>
+        <div style={{ marginBottom: 36 }}>
+          <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-brand)', marginBottom: 12 }}>
+            Интерактивный выбор
+          </div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,4vw,48px)', textTransform: 'uppercase', color: 'var(--c-charcoal)', lineHeight: 1.05 }}>
+            Планировки по этажам
+          </h2>
+        </div>
+
+        {/* Breadcrumbs */}
+        <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
+          <Crumb n={1} label="Шаг 1 · Корпус"  value={korpus?.name}                     isActive={step === 0} isDone={step > 0}                          clickable={step > 0}              onClick={() => goBackTo(0)} />
+          <Crumb n={2} label="Шаг 2 · Этаж"    value={floor ? `${floor} этаж` : null}    isActive={step === 1} isDone={step > 1}                          clickable={step > 1 && !!korpus}  onClick={() => goBackTo(1)} />
+          <Crumb n={3} label="Шаг 3 · Квартира" value={selectedApt ? `Кв. ${selectedApt.apt}` : null} isActive={step === 2} isDone={false}            clickable={false} />
+        </div>
+
+        {/* ─── STEPS 0 & 1 — Cinematic photo with camera fly-in ─── */}
+        {(step === 0 || step === 1) && (() => {
+          // Camera transform: zoom into selected korpus polygon, centered in viewport
+          const cameraStyle = (k) => {
+            if (!k) return { transform: 'scale(1) translate(0%, 0%)', transformOrigin: '50% 50%' };
+            const pts = (k.polygon || '').split(/\s+/).map(p => p.split(',').map(Number)).filter(p => p.length === 2 && !isNaN(p[0]));
+            if (pts.length < 2) return { transform: 'scale(1) translate(0%, 0%)', transformOrigin: '50% 50%' };
+            const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+            const minX = Math.min(...xs), maxX = Math.max(...xs);
+            const minY = Math.min(...ys), maxY = Math.max(...ys);
+            const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+            const bw = Math.max(maxX - minX, 1), bh = Math.max(maxY - minY, 1);
+            const scaleX = 100 / (bw * 1.13 + 4);
+            const scaleY = 56.25 / (bh * 1.13 + 4);
+            const scale = Math.max(1, Math.min(scaleX, scaleY, 3.9));
+            // shift building center to viewport center (in % of image)
+            const tx = 50 - cx;                       // % of image width
+            const ty = 50 - (cy / 56.25) * 100;       // % of image height
+            return {
+              transform: `scale(${scale}) translate(${tx}%, ${ty}%)`,
+              transformOrigin: '50% 50%',
+            };
+          };
+          const camera = cameraStyle(step === 1 ? korpus : null);
+          return (
+            <div style={{ animation: step === 0 ? 'fadeUp 350ms ease-out' : 'none' }}>
+              <div style={{
+                position: 'relative', borderRadius: 18, overflow: 'hidden',
+                border: '1px solid #ece9e5',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+                background: '#f5f3ef',
+              }}>
+                {/* Back button — Step 1 only */}
+                {step === 1 && (
+                  <button onClick={() => goBackTo(0)} style={{
+                    position: 'absolute', top: 24, left: 24, zIndex: 6,
+                    padding: '10px 18px 10px 14px', borderRadius: 99,
+                    background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: '0 6px 22px rgba(0,0,0,0.14)',
+                    fontSize: 13, fontWeight: 600, color: 'var(--c-charcoal)',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                    fontFamily: 'var(--font-body)',
+                    transition: 'all 200ms cubic-bezier(0.4,0,0.2,1)',
+                    animation: 'fadeUp 500ms ease-out 800ms backwards',
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-2px)'; e.currentTarget.style.boxShadow = '0 8px 26px rgba(0,0,0,0.18)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(0,0,0,0.14)'; }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    К выбору корпуса
+                  </button>
+                )}
+                {/* Zoomable layer — camera transform applied here */}
+                <div style={{
+                  position: 'relative',
+                  ...camera,
+                  transition: 'transform 1200ms cubic-bezier(0.65, 0, 0.35, 1)',
+                  willChange: 'transform',
+                }}>
+                  <img src={SITE_RENDER} alt="" style={{ width: '100%', display: 'block' }} draggable={false} />
+                  <svg viewBox="0 0 100 56.25" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                    {/* STEP 0: korpus polygons */}
+                    {step === 0 && KORPUSES.map(k => {
+                      const isHover = hoveredKorpus === k.id;
+                      return (
+                        <polygon key={k.id}
+                          points={k.polygon}
+                          fill={isHover ? 'rgba(217,78,31,0.30)' : 'rgba(255,255,255,0.001)'}
+                          stroke={isHover ? '#E05520' : 'transparent'}
+                          strokeWidth={isHover ? 0.4 : 0}
+                          style={{ cursor: 'pointer', transition: 'all 220ms', filter: isHover ? 'drop-shadow(0 0 6px rgba(217,78,31,0.55))' : 'none' }}
+                          onMouseEnter={() => setHoveredKorpus(k.id)}
+                          onMouseLeave={() => setHoveredKorpus(null)}
+                          onClick={() => goKorpus(k)}
+                        />
+                      );
+                    })}
+
+                    {/* STEP 1: dim mask + floor polygons */}
+                    {step === 1 && korpus && (
+                      <>
+                        <defs>
+                          <mask id="korpusMask">
+                            <rect x="0" y="0" width="100" height="56.25" fill="white" />
+                            <polygon points={korpus.polygon} fill="black" />
+                          </mask>
+                        </defs>
+                        <rect x="0" y="0" width="100" height="56.25" fill="rgba(20,17,14,0.55)" mask="url(#korpusMask)" pointerEvents="none" style={{ transition: 'fill 600ms ease-out' }} />
+                        {(() => {
+                          const fp = korpus.floorPolygons || {};
+                          const floors = Array.from({ length: korpus.floors }, (_, i) => korpus.floors - i);
+                          return floors.map(f => {
+                            if (!fp[f]) return null;
+                            const isHover = hoveredFloor === f;
+                            return (
+                              <polygon key={f}
+                                points={fp[f]}
+                                fill={isHover ? 'rgba(255,240,220,0.38)' : 'rgba(255,255,255,0.04)'}
+                                stroke="none"
+                                style={{
+                                  cursor: 'pointer',
+                                  transition: 'fill 260ms cubic-bezier(.4,0,.2,1), filter 260ms',
+                                  filter: isHover ? 'drop-shadow(0 0 1.2px rgba(255,210,160,0.9)) drop-shadow(0 0 2.5px rgba(255,180,120,0.6))' : 'none',
+                                }}
+                                onMouseEnter={() => setHoveredFloor(f)}
+                                onMouseLeave={() => setHoveredFloor(null)}
+                                onClick={() => goFloor(f)}
+                              />
+                            );
+                          });
+                        })()}
+                      </>
+                    )}
+                  </svg>
+                </div>
+
+                {/* STEP 0: Hover tooltip — anchored to korpus */}
+                {step === 0 && hoveredKorpus && (() => {
+                  const k = KORPUSES.find(x => x.id === hoveredKorpus);
+                  return (
+                    <div style={{
+                      position: 'absolute', top: `${(k.cy / 56.25) * 100}%`, left: `${k.cx}%`,
+                      transform: 'translate(-50%, -120%)',
+                      background: 'rgba(20,17,14,0.96)', backdropFilter: 'blur(14px)',
+                      border: '1px solid rgba(217,78,31,0.45)', borderRadius: 12,
+                      padding: '14px 20px', pointerEvents: 'none',
+                      boxShadow: '0 16px 40px rgba(0,0,0,0.35), 0 0 22px rgba(217,78,31,0.22)',
+                      animation: 'fadeUp 180ms ease-out',
+                      minWidth: 180, textAlign: 'center', zIndex: 5,
+                    }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: '#fff', textTransform: 'uppercase', marginBottom: 6 }}>{k.name}</div>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>{k.floors} этажей · {k.total} квартир</div>
+                      <div style={{ fontSize: 12, color: '#4ade80', fontWeight: 600 }}>● {k.free} свободно</div>
+                    </div>
+                  );
+                })()}
+
+                {/* STEP 1: Floating info card — top-right corner, fades in after camera arrives */}
+                {step === 1 && korpus && (
+                  <div style={{
+                    position: 'absolute', top: 24, right: 24, width: 300,
+                    background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(16px)',
+                    borderRadius: 14, padding: '20px 22px',
+                    border: '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: '0 12px 36px rgba(0,0,0,0.18)',
+                    animation: 'fadeUp 600ms cubic-bezier(0.4,0,0.2,1) 700ms backwards',
+                    zIndex: 5,
+                  }}>
+                    <div style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-brand)', fontWeight: 700, marginBottom: 6 }}>{korpus.name}</div>
+                    {hoveredFloor ? (
+                      <>
+                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 56, color: 'var(--c-charcoal)', lineHeight: 1, marginBottom: 2 }}>{hoveredFloor}</div>
+                        <div style={{ fontSize: 12, color: 'var(--c-gray-500)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 18 }}>этаж</div>
+                        {(() => {
+                          const apts = genFloor(hoveredFloor, korpus.id);
+                          const free = apts.filter(a => a.available).length;
+                          const minP = Math.min(...apts.map(a => a.price));
+                          return (
+                            <div style={{ display: 'grid', gap: 10 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>Квартир</span>
+                                <span style={{ fontSize: 13, color: 'var(--c-charcoal)', fontWeight: 600 }}>{apts.length}</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>Свободных</span>
+                                <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 600 }}>{free}</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>От</span>
+                                <span style={{ fontSize: 14, color: 'var(--c-brand)', fontWeight: 700 }}>{(minP / 1000000).toFixed(2).replace(/\.?0+$/, '')} млн ₽</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--c-charcoal)', textTransform: 'uppercase', marginBottom: 8, lineHeight: 1.2 }}>Выберите этаж</div>
+                        <div style={{ fontSize: 12, color: 'var(--c-gray-500)', lineHeight: 1.5, marginBottom: 16 }}>
+                          Наведите на этаж на фотографии
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                          <div style={{ padding: '10px 12px', background: '#faf9f7', borderRadius: 8, border: '1px solid #ece9e5' }}>
+                            <div style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--c-gray-400)', marginBottom: 2 }}>Этажей</div>
+                            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--c-charcoal)' }}>{korpus.floors}</div>
+                          </div>
+                          <div style={{ padding: '10px 12px', background: '#faf9f7', borderRadius: 8, border: '1px solid #ece9e5' }}>
+                            <div style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--c-gray-400)', marginBottom: 2 }}>Квартир</div>
+                            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--c-charcoal)' }}>{korpus.total}</div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+              </div>
+
+              {/* Stylish step hint */}
+              <div style={{ marginTop: 28, textAlign: 'center' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ width: 32, height: 1, background: 'linear-gradient(90deg, transparent, var(--c-brand))' }} />
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--c-brand)' }}>
+                    {step === 0 ? '01 — Выберите корпус' : '02 — Выберите этаж'}
+                  </span>
+                  <span style={{ width: 32, height: 1, background: 'linear-gradient(90deg, var(--c-brand), transparent)' }} />
+                </div>
+                <div style={{ marginTop: 8, fontSize: 13, color: 'var(--c-gray-400)', letterSpacing: '0.02em', fontStyle: 'italic' }}>
+                  {step === 0 ? 'кликните на любое здание — камера приблизит к нему' : 'наведите курсор на нужный этаж и нажмите для просмотра квартир'}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ─── STEP 2 — Floor plan with apartments ─── */}
+        {step === 2 && korpus && floor && (
+          <div style={{ animation: 'fadeUp 350ms ease-out' }}>
+            {/* Back button */}
+            <div style={{ marginBottom: 16 }}>
+              <button onClick={() => goBackTo(1)} style={{
+                padding: '10px 18px 10px 14px', borderRadius: 99,
+                background: '#fff', border: '1.5px solid #ece9e5',
+                fontSize: 13, fontWeight: 600, color: 'var(--c-charcoal)',
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8,
+                fontFamily: 'var(--font-body)',
+                transition: 'all 200ms cubic-bezier(0.4,0,0.2,1)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-2px)'; e.currentTarget.style.borderColor = 'var(--c-brand)'; e.currentTarget.style.color = 'var(--c-brand)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.borderColor = '#ece9e5'; e.currentTarget.style.color = 'var(--c-charcoal)'; }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                К выбору этажа
+              </button>
+            </div>
+
+            {/* Filters bar */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--c-gray-500)', marginRight: 6 }}>Комнатность</span>
+              {[null, 1, 2, 3].map(r => (
+                <button key={r} onClick={() => setFilterRooms(r)} style={{
+                  padding: '7px 16px', borderRadius: 99, border: '1.5px solid',
+                  fontFamily: 'var(--font-body)', fontSize: 12, cursor: 'pointer', transition: 'all 160ms',
+                  background: filterRooms === r ? 'var(--c-brand)' : '#fff',
+                  borderColor: filterRooms === r ? 'var(--c-brand)' : '#ece9e5',
+                  color: filterRooms === r ? '#fff' : 'var(--c-gray-500)',
+                }}>{r === null ? 'Все' : `${r}к`}</button>
+              ))}
+              <span style={{ width: 1, height: 22, background: '#ece9e5', margin: '0 8px' }} />
+              <span style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--c-gray-500)', marginRight: 6 }}>Статус</span>
+              {[['all', 'Все'], ['free', 'Свободные'], ['booked', 'Бронь']].map(([v, l]) => (
+                <button key={v} onClick={() => setFilterAvail(v)} style={{
+                  padding: '7px 14px', borderRadius: 99, border: '1.5px solid',
+                  fontFamily: 'var(--font-body)', fontSize: 12, cursor: 'pointer', transition: 'all 160ms',
+                  background: filterAvail === v ? 'var(--c-charcoal)' : '#fff',
+                  borderColor: filterAvail === v ? 'var(--c-charcoal)' : '#ece9e5',
+                  color: filterAvail === v ? '#fff' : 'var(--c-gray-500)',
+                }}>{l}</button>
+              ))}
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, fontSize: 13 }}>
+                <span style={{ color: '#16a34a' }}>● Свободно: {stats.free}</span>
+                <span style={{ color: 'var(--c-gray-400)' }}>● Бронь: {stats.booked}</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
+              {/* Floor map area */}
+              <div style={{
+                background: '#fff', borderRadius: 16, padding: 24,
+                boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid #ece9e5',
+              }}>
+                <div style={{
+                  background: 'var(--c-surface)', borderRadius: 10, padding: '14px 20px', marginBottom: 16,
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--c-charcoal)', textTransform: 'uppercase' }}>
+                    {floor} ЭТАЖ · {korpus.name}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>
+                    Всего {stats.total} квартир
+                  </span>
+                </div>
+                {hasSchema
+                  ? <FloorSchema schemaUrl={korpus.floorSchemas[floor]} apartments={filtered} hoveredId={hoveredId} selectedApt={selectedApt} onSelect={setSelectedApt} onHover={setHoveredId} />
+                  : <FloorMap  apartments={filtered} hoveredId={hoveredId} selectedApt={selectedApt} onSelect={setSelectedApt} onHover={setHoveredId} />
+                }
+                {/* Legend */}
+                <div style={{ display: 'flex', gap: 20, marginTop: 14, fontSize: 12, color: 'var(--c-gray-500)' }}>
+                  {[
+                    { color: '#fff', border: '1.5px solid #C0B8B0', label: 'Свободна' },
+                    { color: '#D94E1F', border: 'none', label: 'Выбрана' },
+                    { color: '#EDE8E3', border: '1.5px solid #C0B8B0', label: 'Бронь' },
+                  ].map(({ color, border, label }) => (
+                    <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 12, height: 12, background: color, border, borderRadius: 3, display: 'inline-block' }} />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Apartment detail panel */}
+              <div>
+                {selectedApt ? (
+                  <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid #ece9e5', animation: 'fadeUp 250ms ease-out' }}>
+                    <div style={{ background: 'linear-gradient(135deg, #E05520, #C43818)', padding: '20px 22px 16px' }}>
+                      <div style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>Выбранная квартира</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: '#fff', textTransform: 'uppercase' }}>Кв. {selectedApt.apt}</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase' }}>{selectedApt.rooms}-комнатная</div>
+                    </div>
+                    <div style={{ padding: 22 }}>
+                      {[['Площадь', `${selectedApt.area} м²`], ['Этаж', `${selectedApt.floor} из ${korpus.floors}`], ['Корпус', selectedApt.korpus]].map(([l, v]) => (
+                        <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--c-gray-100)' }}>
+                          <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>{l}</span>
+                          <span style={{ fontSize: 13, color: 'var(--c-charcoal)', fontWeight: 600 }}>{v}</span>
+                        </div>
+                      ))}
+                      <div style={{ padding: '14px 0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>Стоимость</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--c-brand)' }}>{selectedApt.price.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--c-gray-300)', textAlign: 'right', marginBottom: 16 }}>
+                        {Math.round(selectedApt.price / selectedApt.area).toLocaleString('ru-RU')} ₽/м²
+                      </div>
+                      <button className="btn btn-primary" style={{ width: '100%', marginBottom: 8 }} onMouseDown={addRipple} onClick={() => onSelectApt && onSelectApt(selectedApt)}>
+                        Забронировать
+                      </button>
+                      <button className="btn btn-secondary" style={{ width: '100%' }} onMouseDown={addRipple}>Узнать цену</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{
+                    background: '#faf9f7', borderRadius: 16, padding: '32px 24px',
+                    textAlign: 'center', border: '2px dashed #ece9e5',
+                  }}>
+                    <svg width="42" height="42" viewBox="0 0 40 40" fill="none" style={{ display: 'block', margin: '0 auto 12px' }}>
+                      <rect x="4" y="4" width="32" height="32" rx="4" stroke="#C0B8B0" strokeWidth="1.5" fill="none"/>
+                      <rect x="9" y="9" width="10" height="14" rx="1.5" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+                      <rect x="21" y="9" width="10" height="6" rx="1.5" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+                      <rect x="21" y="17" width="10" height="6" rx="1.5" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+                      <rect x="9" y="25" width="22" height="6" rx="1.5" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+                    </svg>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, textTransform: 'uppercase', color: 'var(--c-charcoal)', marginBottom: 8 }}>
+                      Выберите квартиру
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--c-gray-500)', lineHeight: 1.6, marginBottom: 20 }}>
+                      Нажмите на квартиру на плане этажа
+                    </div>
+                    <div style={{ padding: '14px 16px', background: '#fff', borderRadius: 10, border: '1px solid #ece9e5' }}>
+                      <div style={{ fontSize: 11, color: 'var(--c-gray-400)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>На этаже доступно</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 32, color: 'var(--c-brand)', lineHeight: 1 }}>{stats.free}</div>
+                      <div style={{ fontSize: 12, color: 'var(--c-gray-500)', marginTop: 4 }}>из {stats.total} квартир</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+
+/* ─── FEATURES ─── */
+const FEATURES = [
+  { icon: '⬛', svg: true, title: 'Спорткомплекс',   desc: 'Собственная спортивная площадка и зоны для воркаута во дворе' },
+  { icon: '⬛', svg: true, title: 'Закрытый двор',    desc: 'Двор без машин — безопасное пространство для детей и отдыха' },
+  { icon: '⬛', svg: true, title: 'Коммерция',        desc: 'Магазины, кафе и сервисы на первом этаже без выхода на улицу' },
+  { icon: '⬛', svg: true, title: 'Парковка',          desc: 'Наземный паркинг с достаточным количеством мест для всех жильцов' },
+  { icon: '⬛', svg: true, title: 'Монолит',           desc: 'Монолитно-кирпичное строительство — надёжность и долговечность' },
+  { icon: '⬛', svg: true, title: 'Локация',           desc: 'Развитая инфраструктура района: школы, детсады, больницы' },
+];
+
+const FEATURE_ICONS = [
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="sport"><circle cx="16" cy="12" r="5" stroke="#C9A84C" strokeWidth="1.5"/><path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="yard"><path d="M4 28V14L16 4l12 10v14H4z" stroke="#C9A84C" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#C9A84C" strokeWidth="1.2"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="commerce"><rect x="4" y="12" width="24" height="16" rx="2" stroke="#C9A84C" strokeWidth="1.5"/><path d="M4 12l4-8h16l4 8" stroke="#C9A84C" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="18" width="8" height="10" rx="1" stroke="#C9A84C" strokeWidth="1.2"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="park"><rect x="3" y="16" width="26" height="12" rx="2" stroke="#C9A84C" strokeWidth="1.5"/><circle cx="9" cy="24" r="3" stroke="#C9A84C" strokeWidth="1.5"/><circle cx="23" cy="24" r="3" stroke="#C9A84C" strokeWidth="1.5"/><path d="M3 20h26" stroke="#C9A84C" strokeWidth="1"/><path d="M8 16V10M16 16V8M24 16V10" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="mono"><rect x="6" y="10" width="20" height="18" rx="1" stroke="#C9A84C" strokeWidth="1.5"/><path d="M2 10l14-7 14 7" stroke="#C9A84C" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#C9A84C" strokeWidth="1.2"/><path d="M10 10v18M22 10v18" stroke="#C9A84C" strokeWidth="1"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="loc"><path d="M16 28s-10-8.5-10-15a10 10 0 0120 0c0 6.5-10 15-10 15z" stroke="#C9A84C" strokeWidth="1.5"/><circle cx="16" cy="13" r="3" stroke="#C9A84C" strokeWidth="1.5"/></svg>,
+];
+
+function Features() {
+  return (
+    <section id="features" style={{ padding: '96px 0', background: 'var(--c-dark)', position: 'relative', overflow: 'hidden' }}>
+      {/* Pattern kept here — subtle texture on dark solid-color section */}
+      <div style={{
+        position: 'absolute', inset: 0, opacity: 0.05,
+        backgroundImage: 'url(assets/pattern-dark-gold.jpg)',
+        backgroundSize: '640px',
+      }} />
+      <div className="container" style={{ position: 'relative' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56, flexWrap: 'wrap', gap: 20 }}>
+          <div>
+            <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 12 }}>Преимущества</div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,4vw,48px)', textTransform: 'uppercase', color: '#fff', lineHeight: 1.05 }}>
+              Жить в Героях —{' '}
+              <span style={{ color: 'var(--c-brand)' }}>значит</span> жить лучше
+            </h2>
+          </div>
+          <p style={{ maxWidth: 320, fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7 }}>
+            Мы продумали каждую деталь, чтобы ваша жизнь в новом доме была комфортной с первого дня
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 1, border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, overflow: 'hidden' }}>
+          {FEATURES.map((f, i) => (
+            <div key={i} style={{
+              padding: '32px 28px',
+              background: 'rgba(255,255,255,0.02)',
+              borderRight: '1px solid rgba(255,255,255,0.07)',
+              borderBottom: '1px solid rgba(255,255,255,0.07)',
+              transition: 'background 200ms',
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(217,78,31,0.08)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+            >
+              <div style={{ marginBottom: 16 }}>{FEATURE_ICONS[i]}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, textTransform: 'uppercase', color: '#fff', marginBottom: 8 }}>{f.title}</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{f.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── GALLERY ─── */
+const RENDERS = [
+  { src: 'assets/render-aerial.jpg',    label: 'Вид с воздуха' },
+  { src: 'assets/render-courtyard.jpg', label: 'Внутренний двор' },
+  { src: 'assets/render-sunset.jpg',    label: 'Закат. Корпус 2' },
+  { src: 'assets/render-street.jpg',    label: 'Фасад со стороны улицы' },
+  { src: 'assets/render-sports.jpg',    label: 'Спортивная площадка' },
+  { src: 'assets/render-facade.jpg',    label: 'Коммерческий первый этаж' },
+  { src: 'assets/render-aerial2.jpg',   label: 'Генеральный план' },
+];
+
+function Gallery() {
+  const [active, setActive] = useState(0);
+  return (
+    <section id="progress" style={{ padding: '96px 0', background: '#fff' }}>
+      <div className="container">
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-brand)', marginBottom: 12 }}>Архитектура и масштаб</div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,4vw,48px)', textTransform: 'uppercase', color: 'var(--c-charcoal)', lineHeight: 1.05 }}>
+            Масштаб,<br/>который впечатляет
+          </h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16 }}>
+          <div style={{ borderRadius: 12, overflow: 'hidden', height: 420, position: 'relative' }}>
+            <img src={RENDERS[active].src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 300ms' }} />
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
+              padding: '24px 24px 20px',
+            }}>
+              <span style={{ color: '#fff', fontFamily: 'var(--font-display)', fontSize: 16, textTransform: 'uppercase' }}>{RENDERS[active].label}</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', maxHeight: 420 }}>
+            {RENDERS.map((r, i) => (
+              <div key={i} onClick={() => setActive(i)} style={{
+                height: 80, borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
+                border: active === i ? '2.5px solid var(--c-brand)' : '2.5px solid transparent',
+                transition: 'border-color 150ms', flexShrink: 0, position: 'relative',
+              }}>
+                <img src={r.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {active === i && <div style={{ position: 'absolute', inset: 0, background: 'rgba(217,78,31,0.15)' }} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── ABOUT COMPLEX ─── */
+function AboutComplex() {
+  const d = ABOUT_DATA;
+  const feats = Array.isArray(d.features) ? d.features : DEFAULT_ABOUT.features;
+  return (
+    <section id="about-complex" style={{ padding: '96px 0', background: '#18140f', position: 'relative', overflow: 'hidden' }}>
+      {/* Decorative pattern */}
+      <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:'url(assets/pattern-orange-maroon.jpg)', backgroundSize:'640px' }} />
+      {/* Gold vertical line accent */}
+      <div style={{ position:'absolute', left:0, top:'10%', bottom:'10%', width:3, background:'linear-gradient(to bottom, transparent, var(--c-gold), transparent)', opacity:0.6 }} />
+      <div className="container" style={{ position:'relative' }}>
+        {/* Header */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:80, alignItems:'start', marginBottom:72 }}>
+          <div>
+            <div style={{ fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:20 }}>{d.label || 'О комплексе'}</div>
+            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(36px,4.5vw,60px)', textTransform:'uppercase', color:'#fff', lineHeight:1, marginBottom:24, whiteSpace:'pre-line' }}>
+              {(d.title || '').replace('\\n', '\n')}
+            </h2>
+            <div style={{ width:48, height:2, background:'var(--c-brand)', marginBottom:28 }} />
+            <p style={{ fontSize:16, color:'rgba(255,255,255,0.55)', lineHeight:1.75, marginBottom:20 }}>{d.text1}</p>
+            <p style={{ fontSize:16, color:'rgba(255,255,255,0.4)', lineHeight:1.75 }}>{d.text2}</p>
+          </div>
+          {/* Photo + both floating cards */}
+          <div style={{ position:'relative' }}>
+            <div style={{ aspectRatio:'4/3', borderRadius:16, overflow:'hidden', position:'relative' }}>
+              <img src="assets/render-hero-2.jpg" alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, rgba(217,78,31,0.25) 0%, transparent 60%)' }} />
+            </div>
+            {/* Floating card — Олимп logo, top-right */}
+            <div style={{
+              position:'absolute', top:-24, right:-32,
+              background:'rgba(20,17,14,0.95)', border:'1px solid rgba(227,133,77,0.3)',
+              borderRadius:10, padding:'0 16px', backdropFilter:'blur(12px)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              overflow:'hidden',
+            }}>
+              <img
+                src="assets/logo-olimp.png"
+                alt="Олимп"
+                style={{ height:156, width:'auto', display:'block', mixBlendMode:'screen', filter:'brightness(1.15)', margin:'-8px 0 -18px 0' }}
+              />
+            </div>
+            {/* Floating stat card — year, bottom-left */}
+            <div style={{
+              position:'absolute', bottom:-24, left:-32,
+              background:'rgba(20,17,14,0.95)', border:'1px solid rgba(227,133,77,0.3)',
+              borderRadius:12, padding:'20px 28px', backdropFilter:'blur(12px)',
+            }}>
+              <div style={{ fontFamily:'var(--font-display)', fontSize:36, color:'var(--c-brand)', lineHeight:1 }}>{SITE.year}</div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)', marginTop:4, letterSpacing:'0.08em', textTransform:'uppercase' }}>Год сдачи</div>
+            </div>
+          </div>
+        </div>
+        {/* Feature cards */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:2 }}>
+          {feats.map((f, i) => (
+            <div key={i} style={{
+              padding:'32px 28px',
+              background: i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)',
+              borderTop:'1px solid rgba(255,255,255,0.07)',
+              borderLeft: i === 0 ? '1px solid rgba(255,255,255,0.07)' : 'none',
+              borderRight:'1px solid rgba(255,255,255,0.07)',
+              transition:'background 250ms',
+            }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(217,78,31,0.08)'}
+              onMouseLeave={e => e.currentTarget.style.background=(i%2===0?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.015)')}
+            >
+              <div style={{ fontSize:18, color:'var(--c-brand)', marginBottom:14, fontWeight:900, letterSpacing:'-0.05em' }}>0{i+1}</div>
+              <div style={{ fontFamily:'var(--font-display)', fontSize:15, color:'#fff', textTransform:'uppercase', marginBottom:10, lineHeight:1.2 }}>{f.title}</div>
+              <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.6 }}>{f.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── PROMOTIONS ─── */
+function Promos() {
+  const promos = PROMOS_DATA;
+  const accentMap = { '#4ade80':'rgba(74,222,128,0.12)', '#E3854D':'rgba(227,133,77,0.12)', '#818cf8':'rgba(129,140,248,0.12)', '#e879f9':'rgba(232,121,249,0.12)' };
+  return (
+    <section id="promos" style={{ padding:'96px 0', background:'#0e0c0a', position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:'url(assets/pattern-dark-gold.jpg)', backgroundSize:'640px' }} />
+      <div className="container" style={{ position:'relative' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:48 }}>
+          <div>
+            <div style={{ fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:14 }}>Специальные предложения</div>
+            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(32px,4vw,52px)', textTransform:'uppercase', color:'#fff', lineHeight:1 }}>Акции</h2>
+          </div>
+          <div style={{ fontSize:13, color:'rgba(255,255,255,0.3)', textAlign:'right' }}>Предложения ограничены<br/>по времени</div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+          {promos.map((p, i) => {
+            const accent = p.accent || '#E3854D';
+            const bg = accentMap[accent] || 'rgba(255,255,255,0.05)';
+            return (
+              <div key={p.id || i} style={{
+                background:`linear-gradient(135deg, ${bg} 0%, rgba(255,255,255,0.03) 100%)`,
+                border:`1px solid ${accent}28`,
+                borderRadius:16, padding:'36px 36px 32px',
+                position:'relative', overflow:'hidden',
+                transition:'transform 250ms, box-shadow 250ms',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow=`0 24px 48px ${accent}18`; }}
+                onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none'; }}
+              >
+                {/* Decorative circle */}
+                <div style={{ position:'absolute', right:-40, top:-40, width:180, height:180, borderRadius:'50%', background:`${accent}08`, border:`1px solid ${accent}15` }} />
+                <div style={{ position:'absolute', right:-20, top:-20, width:100, height:100, borderRadius:'50%', background:`${accent}10` }} />
+                {/* Badge */}
+                <div style={{ display:'inline-block', background:`${accent}22`, color:accent, fontSize:11, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', padding:'5px 12px', borderRadius:6, marginBottom:20 }}>{p.badge}</div>
+                {/* Content */}
+                <h3 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(22px,2.5vw,30px)', color:'#fff', textTransform:'uppercase', lineHeight:1.1, marginBottom:14 }}>{p.title}</h3>
+                <p style={{ fontSize:14, color:'rgba(255,255,255,0.5)', lineHeight:1.65, marginBottom:28 }}>{p.desc}</p>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  {p.showButton !== false ? (
+                    <button className="btn btn-primary" style={{ background:accent, fontSize:13, padding:'11px 22px' }} onMouseDown={addRipple}>Узнать подробнее</button>
+                  ) : <span />}
+                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', textAlign:'right' }}>До {p.expires}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── CONSTRUCTION PROGRESS ─── */
+function ConstructionProgress() {
+  const months = CONSTRUCTION_DATA;
+  const [idx, setIdx] = useState(months.length - 1);
+  const current = months[idx] || months[0];
+  const [lightbox, setLightbox] = useState(null);
+  if (!months.length) return null;
+  return (
+    <section id="construction" style={{ padding:'96px 0', background:'var(--c-charcoal)', position:'relative', overflow:'hidden' }}>
+      <div className="container">
+        <div style={{ marginBottom:40 }}>
+          <div style={{ fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--c-brand)', marginBottom:14 }}>Фотоотчёт</div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:20 }}>
+            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(32px,4vw,52px)', textTransform:'uppercase', color:'#fff', lineHeight:1 }}>Ход строительства</h2>
+            {/* Month selector */}
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+              {months.map((m, i) => (
+                <button key={i} onClick={() => setIdx(i)} style={{
+                  padding:'8px 18px', borderRadius:24, border:'1px solid', fontSize:13, cursor:'pointer', transition:'all 200ms',
+                  borderColor: i===idx ? 'var(--c-brand)' : 'rgba(255,255,255,0.15)',
+                  background: i===idx ? 'var(--c-brand)' : 'transparent',
+                  color: i===idx ? '#fff' : 'rgba(255,255,255,0.5)',
+                  fontFamily:'inherit',
+                }}>{m.month}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+        {current.photos && current.photos.length > 0 ? (
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12 }}>
+            {current.photos.map((ph, i) => (
+              <div key={i} onClick={() => setLightbox(ph)} style={{
+                borderRadius:10, overflow:'hidden', cursor:'pointer', position:'relative',
+                aspectRatio:'4/3', background:'rgba(255,255,255,0.04)',
+                transition:'transform 200ms', flexShrink:0,
+              }}
+                onMouseEnter={e => e.currentTarget.style.transform='scale(1.02)'}
+                onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}
+              >
+                <img src={ph.src} alt={ph.caption || ''} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+                {ph.caption && (
+                  <div style={{ position:'absolute', bottom:0, left:0, right:0, background:'linear-gradient(to top, rgba(0,0,0,0.7), transparent)', padding:'20px 16px 12px' }}>
+                    <div style={{ fontSize:13, color:'rgba(255,255,255,0.85)' }}>{ph.caption}</div>
+                  </div>
+                )}
+                <div style={{ position:'absolute', inset:0, background:'rgba(255,255,255,0)', transition:'background 200ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(217,78,31,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ textAlign:'center', padding:'80px 0', color:'rgba(255,255,255,0.25)', fontSize:15 }}>
+            Фотографии за {current.month} будут добавлены скоро
+          </div>
+        )}
+      </div>
+      {/* Lightbox */}
+      {lightbox && (
+        <div onClick={() => setLightbox(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.92)', zIndex:500, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth:900, width:'100%' }}>
+            <img src={lightbox.src} alt="" style={{ width:'100%', borderRadius:12, display:'block' }} />
+            {lightbox.caption && <div style={{ textAlign:'center', color:'rgba(255,255,255,0.6)', fontSize:14, marginTop:16 }}>{lightbox.caption}</div>}
+          </div>
+          <button onClick={() => setLightbox(null)} style={{ position:'absolute', top:24, right:32, background:'none', border:'none', color:'#fff', fontSize:32, cursor:'pointer', opacity:0.6 }}>✕</button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ─── INFRASTRUCTURE ─── */
+function Infrastructure() {
+  const d = INFRA_DATA;
+  const places = Array.isArray(d.places) ? d.places : DEFAULT_INFRA.places;
+  const catColors = { 'Образование':'#818cf8', 'Торговля':'#4ade80', 'Отдых':'#4ade80', 'Здоровье':'#f87171', 'Сервис':'#fbbf24' };
+  return (
+    <section id="infrastructure" style={{ padding:'96px 0 0', background:'#fff', overflow:'hidden' }}>
+      <div className="container" style={{ marginBottom:48 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:48, flexWrap:'wrap', gap:24 }}>
+          <div>
+            <div style={{ fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--c-brand)', marginBottom:14 }}>Расположение</div>
+            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(32px,4vw,52px)', textTransform:'uppercase', color:'var(--c-charcoal)', lineHeight:1 }}>Инфраструктура</h2>
+          </div>
+          <p style={{ fontSize:14, color:'rgba(0,0,0,0.45)', maxWidth:320, lineHeight:1.6 }}>
+            Всё необходимое — в шаговой доступности от вашего нового дома
+          </p>
+        </div>
+        {/* Places grid */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12, marginBottom:48 }}>
+          {places.map((pl, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 20px', background:'#f8f7f5', borderRadius:10, border:'1px solid rgba(0,0,0,0.05)' }}>
+              <div style={{ width:36, height:36, borderRadius:8, background: (catColors[pl.cat] || '#E3854D') + '18', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <div style={{ width:10, height:10, borderRadius:'50%', background: catColors[pl.cat] || '#E3854D' }} />
+              </div>
+              <div>
+                <div style={{ fontSize:14, fontWeight:500, color:'#1a1512', marginBottom:2 }}>{pl.name}</div>
+                <div style={{ fontSize:12, color:'rgba(0,0,0,0.4)' }}>{pl.cat} · {pl.dist}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Contained map */}
+      <div style={{ maxWidth:'var(--max-w)', margin:'0 auto', padding:'0 40px' }}>
+        <div style={{ height:480, position:'relative', borderRadius:16, overflow:'hidden' }}>
+        <iframe
+          src={d.mapUrl || DEFAULT_INFRA.mapUrl}
+          width="100%" height="100%"
+          style={{ border:'none', display:'block' }}
+          allowFullScreen
+          title="Карта"
+        />
+        {/* Overlay badge */}
+        <div style={{
+          position:'absolute', top:24, left:24,
+          background:'rgba(20,17,14,0.92)', backdropFilter:'blur(12px)',
+          borderRadius:10, padding:'14px 20px', border:'1px solid rgba(255,255,255,0.1)',
+        }}>
+          <div style={{ fontSize:11, color:'var(--c-gold)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>ЖК Герои</div>
+          <div style={{ fontSize:14, color:'#fff', fontWeight:500 }}>{SITE.address}</div>
+        </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── CONTACT FORM ─── */
+function ContactForm() {
+  const [form, setForm] = useState({ name: '', phone: '', rooms: '', comment: '' });
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = (e) => { e.preventDefault(); setSent(true); };
+
+  const inputStyle = {
+    fontFamily: 'var(--font-body)', fontSize: 14, padding: '12px 16px',
+    background: 'rgba(255,255,255,0.07)', border: '1.5px solid rgba(255,255,255,0.12)',
+    borderRadius: 6, color: '#fff', outline: 'none', transition: 'border-color 150ms',
+    width: '100%',
+  };
+
+  return (
+    <section id="contact" style={{ padding: '96px 0', background: 'var(--c-dark)', position: 'relative', overflow: 'hidden' }}>
+      <div className="container" style={{ position: 'relative' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 16 }}>Получить консультацию</div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px,3.5vw,44px)', textTransform: 'uppercase', color: '#fff', lineHeight: 1.1, marginBottom: 24 }}>
+              Узнайте цену на вашу квартиру
+            </h2>
+            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 40 }}>
+              Оставьте заявку — наш менеджер перезвонит в течение 15 минут и ответит на все вопросы
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {[
+                { v: SITE.phone,   l: SITE.phoneLabel },
+                { v: SITE.address, l: SITE.addressLabel },
+                { v: SITE.hours,   l: SITE.hoursLabel },
+              ].map(({ v, l }) => (
+                <div key={l}>
+                  <div style={{ color: '#fff', fontSize: 16 }}>{v}</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 2, letterSpacing: '0.04em' }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '40px 36px', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {sent ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style={{ marginBottom: 20 }}>
+                  <circle cx="28" cy="28" r="27" stroke="#4CAF50" strokeWidth="1.5"/>
+                  <path d="M17 28l8 8 14-16" stroke="#4CAF50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, color: '#fff', textTransform: 'uppercase', marginBottom: 12 }}>Заявка принята!</div>
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginBottom: 24 }}>Мы перезвоним вам в течение 15 минут</div>
+                <button className="btn btn-primary" onClick={() => setSent(false)}>Новая заявка</button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, textTransform: 'uppercase', color: '#fff', marginBottom: 8 }}>Оставить заявку</div>
+                <input type="text" placeholder="Ваше имя" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = 'var(--c-brand)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} required />
+                <input type="tel" placeholder="+7 (___) ___-__-__" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = 'var(--c-brand)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} required />
+                <select value={form.rooms} onChange={e => setForm(p => ({ ...p, rooms: e.target.value }))} style={{
+                  ...inputStyle, color: form.rooms ? '#fff' : 'rgba(255,255,255,0.4)',
+                }}>
+                  <option value="">Количество комнат</option>
+                  <option value="1">1-комнатная</option>
+                  <option value="2">2-комнатная</option>
+                  <option value="3">3-комнатная</option>
+                </select>
+                <textarea placeholder="Комментарий (необязательно)" value={form.comment} onChange={e => setForm(p => ({ ...p, comment: e.target.value }))} rows="3" style={{
+                  ...inputStyle, resize: 'none',
+                }}
+                  onFocus={e => e.target.style.borderColor = 'var(--c-brand)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} />
+                <button type="submit" className="btn btn-primary btn-lg" style={{ marginTop: 6, width: '100%' }} onMouseDown={addRipple}>
+                  Получить консультацию
+                </button>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', textAlign: 'center', lineHeight: 1.5 }}>
+                  Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── FOOTER ─── */
+function Footer() {
+  return (
+    <footer style={{ background: '#141210', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '48px 0 32px' }}>
+      <div className="container">
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 40 }}>
+          <div>
+            <div style={{ marginBottom: 16 }}>
+              <img
+                src="assets/logo-horizontal-white.png"
+                alt="Герои"
+                style={{ height: 52, width: 'auto', display: 'block' }}
+              />
+            </div>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, maxWidth: 240 }}>
+              Жилой комплекс «Герои» — современное жильё для активных людей в развитом районе города.
+            </p>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 16 }}>Квартиры</div>
+            {['1-комнатные', '2-комнатные', '3-комнатные', 'Планировки', 'Цены'].map(l => (
+              <div key={l} style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 8, cursor: 'pointer', transition: 'color 150ms' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+              >{l}</div>
+            ))}
+          </div>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 16 }}>Комплекс</div>
+            {['О проекте', 'Ход строительства', 'Инфраструктура', 'Документы', 'Новости'].map(l => (
+              <div key={l} style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 8, cursor: 'pointer', transition: 'color 150ms' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+              >{l}</div>
+            ))}
+          </div>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 16 }}>Контакты</div>
+            <div style={{ fontSize: 15, color: '#fff', marginBottom: 4 }}>{SITE.phone}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 16 }}>{SITE.phoneLabel}</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 4 }}>{SITE.address}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>{SITE.addressLabel}: {SITE.hours}</div>
+            <button className="btn btn-primary" style={{ fontSize: 12, padding: '10px 20px' }} onMouseDown={addRipple}>Записаться</button>
+          </div>
+        </div>
+        {/* Legal disclaimer */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 24, marginBottom: 16 }}>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', lineHeight: 1.7, maxWidth: 900 }}>{FOOTER_EXTRA.legalText}</p>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© {SITE.year} ЖК «Герои». Все права защищены.</div>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <a href={FOOTER_EXTRA.privacyUrl || '#'} style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.3)'}>
+              Политика конфиденциальности
+            </a>
+            <a href={FOOTER_EXTRA.declarationUrl || '#'} target="_blank" rel="noopener" style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.3)'}>
+              Проектная декларация на НАШ.ДОМ.РФ
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ─── APARTMENT MODAL ─── */
+function ApartmentModal({ apt, onClose }) {
+  if (!apt) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <div style={{ height: 300, overflow: 'hidden', position: 'relative', background: '#f5f3f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <img src={apt.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 12 }} />
+          <button onClick={onClose} style={{
+            position: 'absolute', top: 16, right: 16,
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'rgba(0,0,0,0.5)', border: 'none',
+            color: '#fff', fontSize: 20, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>×</button>
+          {apt.badge && (
+            <span style={{
+              position: 'absolute', top: 16, left: 16,
+              background: 'var(--c-brand)', color: '#fff',
+              fontSize: 11, padding: '4px 10px', borderRadius: 4,
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+            }}>{apt.badge}</span>
+          )}
+        </div>
+        <div style={{ padding: '28px 32px 32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 28, textTransform: 'uppercase', color: 'var(--c-charcoal)', marginBottom: 4 }}>
+                {apt.rooms}-комнатная квартира
+              </h3>
+              <div style={{ fontSize: 14, color: 'var(--c-gray-500)' }}>
+                Корпус {apt.korpus || 1} · {apt.floor} этаж · {apt.area} м²
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: 'var(--c-brand)' }}>
+                {apt.price.toLocaleString('ru-RU')} ₽
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--c-gray-300)', marginTop: 2 }}>
+                {Math.round(apt.price / apt.area).toLocaleString('ru-RU')} ₽/м²
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+            {[['Площадь', `${apt.area} м²`], ['Этаж', `${apt.floor} из 12`], ['Корпус', apt.korpus || 1], ['Статус', apt.available ? 'Свободна' : 'Бронь']].map(([l, v]) => (
+              <div key={l} style={{ background: 'var(--c-surface)', padding: '12px 16px', borderRadius: 8 }}>
+                <div style={{ fontSize: 11, color: 'var(--c-gray-300)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>{l}</div>
+                <div style={{ fontSize: 15, color: 'var(--c-charcoal)', fontWeight: 600 }}>{v}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            background: 'var(--c-surface)', borderRadius: 8, border: '1px solid var(--c-gray-100)',
+            height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexDirection: 'column', gap: 8, marginBottom: 24,
+          }}>
+            <svg width="80" height="70" viewBox="0 0 80 70" fill="none">
+              <rect x="2" y="2" width="76" height="66" rx="4" stroke="#C0B8B0" strokeWidth="1.5" fill="#F7F4F1"/>
+              {apt.rooms === 1 && <rect x="8" y="8" width="64" height="54" rx="2" stroke="#C0B8B0" strokeWidth="1" fill="none"/>}
+              {apt.rooms === 2 && <>
+                <rect x="8" y="8" width="36" height="54" rx="2" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+                <rect x="48" y="8" width="24" height="54" rx="2" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+              </>}
+              {apt.rooms === 3 && <>
+                <rect x="4" y="8" width="24" height="54" rx="2" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+                <rect x="32" y="8" width="20" height="25" rx="2" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+                <rect x="32" y="37" width="20" height="25" rx="2" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+                <rect x="56" y="8" width="20" height="54" rx="2" stroke="#C0B8B0" strokeWidth="1" fill="none"/>
+              </>}
+            </svg>
+            <span style={{ color: 'var(--c-gray-300)', fontFamily: 'var(--font-body)', fontSize: 13 }}>Планировка квартиры</span>
+            <span style={{ fontSize: 11, color: 'var(--c-gray-100)' }}>Доступна по запросу</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button className="btn btn-primary btn-lg" style={{ flex: 1 }}>Забронировать</button>
+            <button className="btn btn-secondary" style={{ flex: 1 }}>Узнать цену</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SCROLL REVEAL ─── */
+function useReveal() {
+  useEffect(() => {
+    const observe = () => {
+      const els = document.querySelectorAll('.reveal');
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+        });
+      }, { threshold: 0.12 });
+      els.forEach(el => io.observe(el));
+      return () => io.disconnect();
+    };
+    const cleanup = observe();
+    return cleanup;
+  }, []);
+}
+
+/* ─── APP ─── */
+function App() {
+  const [activeSection, setActiveSection] = useState('hero');
+  const [selectedApt, setSelectedApt] = useState(null);
+  const [view, setView] = useState(() => {
+    const p = (typeof window !== 'undefined' ? window.location.pathname : '/').replace(/\/$/, '') || '/';
+    return p === '/flat' ? 'apartments' : 'home';
+  });
+  useReveal();
+
+  const handleNav = useCallback((sectionId) => {
+    // On /flat — navigate to home with hash (full reload)
+    if (view === 'apartments') {
+      window.location.href = '/#' + sectionId;
+      return;
+    }
+    setActiveSection(sectionId);
+    const el = document.getElementById(sectionId);
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 72;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  }, [view]);
+
+  const goHome = () => { window.location.href = '/'; };
+
+  // On home, scroll to hash if present (after navigation from /flat)
+  useEffect(() => {
+    if (view !== 'home') return;
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+      setTimeout(() => {
+        const el = document.getElementById(hash);
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - 72;
+          window.scrollTo({ top, behavior: 'smooth' });
+          setActiveSection(hash);
+        }
+      }, 200);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (view !== 'home') return;
+    const sections = ['hero', 'about', 'about-complex', 'catalog', 'floorplan', 'promos', 'features', 'progress', 'construction', 'infrastructure', 'contact'];
+    const observer = new IntersectionObserver(
+      entries => { entries.forEach(entry => { if (entry.isIntersecting) setActiveSection(entry.target.id); }); },
+      { rootMargin: '-40% 0px -40% 0px' }
+    );
+    sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+    return () => observer.disconnect();
+  }, [view]);
+
+  if (view === 'apartments') {
+    return (
+      <div>
+        <Header activeSection="catalog" onNav={handleNav} forceScrolled />
+        <div style={{ paddingTop: 110, paddingBottom: 16, background: 'var(--c-surface)' }}>
+          <div className="container">
+            <button onClick={goHome} style={{
+              padding: '12px 26px 12px 18px', borderRadius: 99,
+              background: 'linear-gradient(135deg, #fff, #faf9f7)',
+              border: '1.5px solid #e8e5e1',
+              fontSize: 13, fontWeight: 700, color: 'var(--c-charcoal)',
+              cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 10,
+              fontFamily: 'var(--font-body)', letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              transition: 'all 240ms cubic-bezier(0.4,0,0.2,1)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)',
+              position: 'relative', overflow: 'hidden',
+            }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateX(-3px) translateY(-1px)';
+                e.currentTarget.style.borderColor = 'var(--c-brand)';
+                e.currentTarget.style.color = 'var(--c-brand)';
+                e.currentTarget.style.boxShadow = '0 8px 28px rgba(217,78,31,0.22), inset 0 1px 0 rgba(255,255,255,0.8)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateX(0) translateY(0)';
+                e.currentTarget.style.borderColor = '#e8e5e1';
+                e.currentTarget.style.color = 'var(--c-charcoal)';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)';
+              }}
+            >
+              <span style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #E05520, #C43818)', color: '#fff',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(217,78,31,0.4)',
+                flexShrink: 0,
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              На главную
+            </button>
+          </div>
+        </div>
+        <ApartmentCatalog onSelectApt={setSelectedApt} fullPage onBackHome={goHome} />
+        <Footer />
+        {selectedApt && <ApartmentModal apt={selectedApt} onClose={() => setSelectedApt(null)} />}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Header activeSection={activeSection} onNav={handleNav} />
+      <Hero onNav={handleNav} />
+      <div className="reveal"><AboutStrip /></div>
+      <div className="reveal"><AboutComplex /></div>
+      <div className="reveal"><ApartmentCatalog onSelectApt={setSelectedApt} /></div>
+      <div className="reveal"><FloorPlan onSelectApt={setSelectedApt} /></div>
+      <div className="reveal"><Promos /></div>
+      <div className="reveal"><Features /></div>
+      <div className="reveal"><Gallery /></div>
+      <div className="reveal"><ConstructionProgress /></div>
+      <div className="reveal"><Infrastructure /></div>
+      <div className="reveal"><ContactForm /></div>
+      <Footer />
+      {selectedApt && <ApartmentModal apt={selectedApt} onClose={() => setSelectedApt(null)} />}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+})();
+</script>
+</body>
+</html>

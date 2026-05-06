@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ЖК Герои — Панель управления</title>
+  <script>
+    /* Bootstrap from server before React loads */
+    (function () {
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/data', false);
+        xhr.timeout = 4000;
+        xhr.send();
+        if (xhr.status === 200) {
+          var data = JSON.parse(xhr.responseText || '{}');
+          Object.keys(data).forEach(function (k) {
+            try { localStorage.setItem(k, JSON.stringify(data[k])); } catch (e) {}
+          });
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+    /* Layout */
+    .admin-layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: #161b27; border-right: 1px solid rgba(255,255,255,0.06); padding: 24px 0; flex-shrink: 0; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+    .main-content { flex: 1; overflow: auto; }
+
+    /* Sidebar */
+    .sidebar-logo { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 16px; }
+    .sidebar-logo h1 { font-size: 16px; font-weight: 700; color: #fff; }
+    .sidebar-logo p { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 24px; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.55); transition: all 150ms; border-left: 3px solid transparent; }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+    .nav-item.active { color: #fff; background: rgba(227,133,77,0.12); border-left-color: #E3854D; }
+    .sidebar-bottom { margin-top: auto; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.06); }
+
+    /* Page */
+    .page-header { padding: 32px 40px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .page-title { font-size: 22px; font-weight: 700; color: #fff; }
+    .page-subtitle { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+    .page-body { padding: 32px 40px; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 150ms; text-decoration: none; }
+    .btn-primary { background: #E3854D; color: #fff; }
+    .btn-primary:hover { background: #d4713a; }
+    .btn-secondary { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-icon { padding: 7px 9px; border-radius: 6px; }
+
+    /* Table */
+    .table-wrap { background: #161b27; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 12px 16px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.06em; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: nowrap; }
+    td { padding: 12px 16px; font-size: 13px; color: rgba(255,255,255,0.75); border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Badge */
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .badge-green { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .badge-yellow { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .badge-red { background: rgba(239,68,68,0.15); color: #f87171; }
+    .badge-orange { background: rgba(227,133,77,0.2); color: #E3854D; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal { background: #1a2035; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 620px; max-height: 92vh; overflow-y: auto; }
+    .modal-header { padding: 24px 28px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: #1a2035; z-index: 1; }
+    .modal-header h3 { font-size: 17px; font-weight: 600; color: #fff; }
+    .modal-body { padding: 24px 28px; }
+    .modal-footer { padding: 16px 28px 24px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+
+    /* Form */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; }
+    input, select, textarea { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 14px; font-family: inherit; width: 100%; outline: none; transition: border-color 150ms; }
+    input:focus, select:focus, textarea:focus { border-color: #E3854D; background: rgba(255,255,255,0.08); }
+    select option { background: #1a2035; color: #fff; }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
+
+    /* Stats cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .stat-card { background: #161b27; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); padding: 18px 20px; }
+    .stat-card-value { font-size: 26px; font-weight: 700; color: #fff; }
+    .stat-card-label { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+
+    /* Toolbar */
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+    .toolbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .search-input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 14px; color: #fff; font-size: 13px; width: 240px; outline: none; font-family: inherit; }
+    .search-input::placeholder { color: rgba(255,255,255,0.3); }
+    .search-input:focus { border-color: #E3854D; }
+
+    /* Slides */
+    .slide-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .slide-card { background: #161b27; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+    .slide-preview { height: 160px; background: #0f1117; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+    .slide-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .slide-preview-empty { color: rgba(255,255,255,0.2); font-size: 12px; }
+    .slide-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .slide-num { font-size: 11px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* Settings */
+    .settings-section { background: #161b27; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); padding: 24px; margin-bottom: 20px; }
+    .settings-section h3 { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1e2a1e; border: 1px solid rgba(74,222,128,0.3); border-radius: 10px; padding: 14px 20px; font-size: 14px; color: #4ade80; z-index: 9999; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: toastIn 0.2s ease; }
+    @keyframes toastIn { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Login */
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-card { background: #161b27; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 44px 40px; width: 360px; }
+
+    /* Img */
+    .img-thumb { width: 52px; height: 38px; object-fit: cover; border-radius: 6px; background: #0f1117; display: block; }
+    .no-img { width: 52px; height: 38px; border-radius: 6px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 9px; color: rgba(255,255,255,0.2); }
+
+    /* Toggle */
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+    .toggle { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(255,255,255,0.12); border-radius: 11px; transition: 0.25s; }
+    .toggle-slider:before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.25s; }
+    .toggle input:checked + .toggle-slider { background: #4ade80; }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+    .toggle-label { font-size: 13px; }
+
+    /* Section divider */
+    .section-actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+
+    @media (max-width: 900px) {
+      .slide-cards { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ─── BOOTSTRAP FROM SERVER — deep merge, never wipe local data ─── */
+function __deepMerge(local, server) {
+  if (server == null) return local;
+  if (local == null) return server;
+  if (Array.isArray(local) && Array.isArray(server)) {
+    const byId = new Map();
+    for (const x of local) if (x && x.id != null) byId.set(x.id, x);
+    for (const x of server) {
+      if (x && x.id != null) {
+        const ex = byId.get(x.id);
+        byId.set(x.id, ex ? __deepMerge(ex, x) : x);
+      }
+    }
+    if (byId.size > 0) return Array.from(byId.values()).sort((a,b)=>(a.id||0)-(b.id||0));
+    return server;
+  }
+  if (typeof local === 'object' && typeof server === 'object' && !Array.isArray(local) && !Array.isArray(server)) {
+    const out = { ...local };
+    for (const k of Object.keys(server)) out[k] = __deepMerge(out[k], server[k]);
+    return out;
+  }
+  return server;
+}
+async function __bootstrapFromServer() {
+  let data = null;
+  try {
+    const r = await fetch('/api/data', { cache: 'no-store' });
+    if (!r.ok) return;
+    data = await r.json();
+  } catch (e) { return; }
+  if (!data || typeof data !== 'object') return;
+  Object.keys(data).forEach(k => {
+    try {
+      const existing = localStorage.getItem(k);
+      let merged = data[k];
+      if (existing) {
+        try {
+          const local = JSON.parse(existing);
+          merged = __deepMerge(local, data[k]);
+        } catch {}
+      }
+      localStorage.setItem(k, JSON.stringify(merged));
+    } catch (e) {}
+  });
+}
+
+(async () => {
+await __bootstrapFromServer();
+
+/* ─── CONSTANTS ─── */
+const ADMIN_PASSWORD = 'geroi2025';
+
+const DEFAULT_APARTMENTS = [
+  /* Корпус 1, Этаж 1 — 5 квартир по планировке */
+  { id:1,  korpus:1, rooms:3, area:97.95, floor:1,  price:9500000, available:true,  badge:null,      img:'assets/3-k.png', polygon:'5,3 30,3 30,30 5,30' },
+  { id:2,  korpus:1, rooms:1, area:46.65, floor:1,  price:4500000, available:true,  badge:null,      img:'assets/1-k.png', polygon:'58,3 78,3 78,30 58,30' },
+  { id:3,  korpus:1, rooms:1, area:46.25, floor:1,  price:4480000, available:true,  badge:'Акция',   img:'assets/1-k.png', polygon:'78,3 97,3 97,30 78,30' },
+  { id:4,  korpus:1, rooms:2, area:62.95, floor:1,  price:6100000, available:true,  badge:null,      img:'assets/2-k.png', polygon:'10,30 35,30 35,52 10,52' },
+  { id:5,  korpus:1, rooms:1, area:44.25, floor:1,  price:4290000, available:false, badge:null,      img:'assets/1-k.png', polygon:'57,30 79,30 79,52 57,52' },
+  /* Прочие квартиры в каталоге */
+  { id:6,  korpus:1, rooms:1, area:36, floor:3,  price:2900000, available:true,  badge:null,      img:'assets/1-k.png' },
+  { id:7,  korpus:2, rooms:1, area:42, floor:7,  price:3350000, available:true,  badge:'Акция',   img:'assets/1-k.png' },
+  { id:8,  korpus:1, rooms:2, area:58, floor:5,  price:4100000, available:true,  badge:null,      img:'assets/2-k.png' },
+  { id:9,  korpus:2, rooms:2, area:64, floor:10, price:4800000, available:false, badge:null,      img:'assets/2-k.png' },
+  { id:10, korpus:3, rooms:3, area:78, floor:8,  price:5900000, available:true,  badge:null,      img:'assets/3-k.png' },
+  { id:11, korpus:2, rooms:3, area:86, floor:11, price:6500000, available:true,  badge:'Премиум', img:'assets/3-k.png' },
+  { id:12, korpus:3, rooms:1, area:34, floor:2,  price:2750000, available:true,  badge:null,      img:'assets/1-k.png' },
+];
+
+const DEFAULT_SLIDES = [
+  { src: 'assets/render-hero-1.jpg', caption: 'Фасад со стороны улицы' },
+  { src: 'assets/render-hero-2.jpg', caption: 'Внутренний двор' },
+  { src: 'assets/render-hero-3.jpg', caption: 'Коммерческий первый этаж' },
+];
+
+const DEFAULT_SETTINGS = {
+  phone: '+7 (800) 123-45-67',
+  phoneLabel: 'Бесплатно по России',
+  address: 'г. Курган, ул. Героев, 1',
+  addressLabel: 'Офис продаж',
+  hours: 'Пн–Вс: 9:00 – 21:00',
+  hoursLabel: 'Время работы',
+  city: 'Курган',
+  tagline: 'Жилой комплекс нового поколения',
+  floors: '12',
+  korpuses: '4',
+  aptCount: '320',
+  year: '2027',
+  area: '34–86',
+};
+
+/* ─── STORAGE HELPERS ─── */
+const SYNC_KEYS = [
+  'geroi_apts','geroi_slides','geroi_settings','geroi_about',
+  'geroi_promos','geroi_construction','geroi_infra','geroi_footer',
+  'geroi_korpuses','geroi_site_render',
+];
+let __syncTimer = null;
+let __syncListeners = [];
+const setSyncStatus = (s) => { __syncListeners.forEach(fn => fn(s)); };
+const syncToServer = () => {
+  if (__syncTimer) clearTimeout(__syncTimer);
+  setSyncStatus('pending');
+  __syncTimer = setTimeout(() => {
+    const payload = {};
+    SYNC_KEYS.forEach(k => {
+      try { const v = localStorage.getItem(k); if (v) payload[k] = JSON.parse(v); } catch {}
+    });
+    setSyncStatus('saving');
+    fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify(payload),
+    }).then(r => {
+      if (r.ok) setSyncStatus('saved');
+      else setSyncStatus('error');
+    }).catch(() => setSyncStatus('error'));
+  }, 700);
+};
+
+const ls = {
+  load: (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; } },
+  save: (key, val) => {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch { return false; }
+    syncToServer();
+    return true;
+  },
+  remove: key => {
+    try { localStorage.removeItem(key); } catch {}
+    syncToServer();
+  },
+};
+
+/* ─── TOAST ─── */
+function Toast({ message, onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, 2800); return () => clearTimeout(t); }, []);
+  return <div className="toast">✓ {message}</div>;
+}
+
+/* ─── SYNC STATUS — server sync indicator (top-right) ─── */
+function SyncStatus() {
+  const [status, setStatus] = useState('idle');
+  useEffect(() => {
+    __syncListeners.push(setStatus);
+    return () => { __syncListeners = __syncListeners.filter(f => f !== setStatus); };
+  }, []);
+  useEffect(() => {
+    if (status === 'saved') {
+      const t = setTimeout(() => setStatus('idle'), 1800);
+      return () => clearTimeout(t);
+    }
+  }, [status]);
+  if (status === 'idle') return null;
+  const cfg = {
+    pending: { icon: '⏳', text: 'Ожидание...',     bg: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' },
+    saving:  { icon: '🔄', text: 'Синхронизация...', bg: 'rgba(227,133,77,0.18)', color: '#E3854D' },
+    saved:   { icon: '✓',  text: 'Сохранено на сервере', bg: 'rgba(74,222,128,0.16)', color: '#4ade80' },
+    error:   { icon: '⚠',  text: 'Ошибка синхронизации', bg: 'rgba(239,68,68,0.16)', color: '#f87171' },
+  }[status] || { icon: '', text: '', bg: 'transparent', color: '#fff' };
+  return (
+    <div style={{
+      position: 'fixed', top: 16, right: 20, zIndex: 999,
+      padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
+      background: cfg.bg, color: cfg.color,
+      border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)',
+      display: 'flex', alignItems: 'center', gap: 8,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+    }}>
+      <span>{cfg.icon}</span>
+      <span>{cfg.text}</span>
+    </div>
+  );
+}
+
+/* ─── LOGIN ─── */
+function LoginScreen({ onLogin }) {
+  const [pw, setPw] = useState('');
+  const [err, setErr] = useState(false);
+  const submit = e => {
+    e.preventDefault();
+    if (pw === ADMIN_PASSWORD) { sessionStorage.setItem('geroi_admin', '1'); onLogin(); }
+    else { setErr(true); setPw(''); }
+  };
+  return (
+    <div className="login-screen">
+      <div className="login-card">
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10 }}>Панель управления</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>ЖК Герои</div>
+        </div>
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <input
+            type="password" placeholder="Введите пароль" value={pw} autoFocus
+            onChange={e => { setPw(e.target.value); setErr(false); }}
+            style={{ textAlign: 'center', letterSpacing: '0.15em', ...(err ? { borderColor: '#f87171' } : {}) }}
+          />
+          {err && <div style={{ fontSize: 12, color: '#f87171', textAlign: 'center' }}>Неверный пароль</div>}
+          <button type="submit" className="btn btn-primary" style={{ justifyContent: 'center', marginTop: 4 }}>Войти</button>
+        </form>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.18)', textAlign: 'center', marginTop: 24 }}>По умолчанию: geroi2025</div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── APARTMENT MODAL ─── */
+const EMPTY_APT = { rooms: 1, area: '', floor: '', korpus: 1, price: '', available: true, badge: '', img: '', polygon: '' };
+
+function AptModal({ apt, onSave, onClose }) {
+  const [form, setForm] = useState(apt ? { ...apt, badge: apt.badge || '' } : EMPTY_APT);
+  const [imgErr, setImgErr] = useState(false);
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  useEffect(() => { setImgErr(false); }, [form.img]);
+
+  const submit = e => {
+    e.preventDefault();
+    onSave({
+      ...form,
+      area: parseFloat(form.area) || 0,
+      floor: parseInt(form.floor) || 1,
+      korpus: parseInt(form.korpus) || 1,
+      price: parseInt(form.price) || 0,
+      badge: form.badge || null,
+    });
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <h3>{apt ? 'Редактировать квартиру' : 'Добавить квартиру'}</h3>
+          <button className="btn btn-secondary btn-icon" onClick={onClose} style={{ fontSize: 16 }}>✕</button>
+        </div>
+        <form onSubmit={submit}>
+          <div className="modal-body">
+            <div className="form-grid">
+
+              <div className="form-group">
+                <span className="form-label">Количество комнат</span>
+                <select value={form.rooms} onChange={e => set('rooms', Number(e.target.value))}>
+                  <option value={1}>1-комнатная</option>
+                  <option value={2}>2-комнатная</option>
+                  <option value={3}>3-комнатная</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <span className="form-label">Площадь, м²</span>
+                <input type="number" value={form.area} onChange={e => set('area', e.target.value)} placeholder="38.5" required min={10} max={200} step={0.1} />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label">Этаж</span>
+                <input type="number" value={form.floor} onChange={e => set('floor', e.target.value)} placeholder="5" required min={1} max={25} />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label">Корпус</span>
+                <select value={form.korpus || 1} onChange={e => set('korpus', Number(e.target.value))}>
+                  {[1,2,3,4].map(n => <option key={n} value={n}>Корпус {n}</option>)}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <span className="form-label">Цена, ₽</span>
+                <input type="number" value={form.price} onChange={e => set('price', e.target.value)} placeholder="3 200 000" required min={0} step={1000} />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label">Специальная метка</span>
+                <select value={form.badge || ''} onChange={e => set('badge', e.target.value)}>
+                  <option value="">Без метки</option>
+                  <option value="Акция">Акция</option>
+                  <option value="Хит">Хит</option>
+                  <option value="Новинка">Новинка</option>
+                  <option value="Премиум">Премиум</option>
+                  <option value="Последняя">Последняя</option>
+                </select>
+              </div>
+
+              <div className="form-group full">
+                <ImageUploader
+                  label="Планировка квартиры (фото)"
+                  value={form.img}
+                  onChange={url => { set('img', url); setImgErr(false); }}
+                  placeholder="assets/1-k.png"
+                />
+              </div>
+
+              {form.img && (
+                <div className="form-group full">
+                  <span className="form-label">Предпросмотр фото</span>
+                  {!imgErr
+                    ? <img src={form.img} onError={() => setImgErr(true)} alt="" style={{ width: '100%', height: 160, objectFit: 'contain', background: '#0c0a08', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }} />
+                    : <div style={{ height: 80, background: 'rgba(255,255,255,0.04)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Не удалось загрузить фото</div>
+                  }
+                </div>
+              )}
+
+              <div className="form-group full">
+                <span className="form-label">Статус продажи</span>
+                <div className="toggle-wrap">
+                  <label className="toggle">
+                    <input type="checkbox" checked={form.available} onChange={e => set('available', e.target.checked)} />
+                    <span className="toggle-slider"></span>
+                  </label>
+                  <span className="toggle-label" style={{ color: form.available ? '#4ade80' : '#f87171' }}>
+                    {form.available ? 'Свободна — можно купить' : 'Продана / Забронирована'}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Отмена</button>
+            <button type="submit" className="btn btn-primary">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ─── APARTMENTS TAB ─── */
+/* ─── EXCEL HELPERS for apartments ─── */
+const XLS_COLUMNS = [
+  { key: 'id',        label: 'ID',           example: 1,    type: 'int' },
+  { key: 'korpus',    label: 'Корпус',       example: 1,    type: 'int' },
+  { key: 'floor',     label: 'Этаж',         example: 1,    type: 'int' },
+  { key: 'rooms',     label: 'Комнат',       example: 2,    type: 'int' },
+  { key: 'area',      label: 'Площадь м²',   example: 62.95, type: 'float' },
+  { key: 'price',     label: 'Цена ₽',       example: 6100000, type: 'int' },
+  { key: 'available', label: 'Статус',       example: 'свободна', type: 'status' },
+  { key: 'badge',     label: 'Метка',        example: '',   type: 'text' },
+  { key: 'img',       label: 'Картинка',     example: 'assets/2-k.png', type: 'text' },
+  { key: 'polygon',   label: 'Полигон',      example: '', type: 'text' },
+];
+
+function aptToRow(a) {
+  return {
+    'ID': a.id,
+    'Корпус': a.korpus ?? 1,
+    'Этаж': a.floor ?? '',
+    'Комнат': a.rooms ?? 1,
+    'Площадь м²': a.area ?? '',
+    'Цена ₽': a.price ?? '',
+    'Статус': a.available ? 'свободна' : 'продана',
+    'Метка': a.badge ?? '',
+    'Картинка': a.img ?? '',
+    'Полигон': a.polygon ?? '',
+  };
+}
+function rowToApt(r, idx) {
+  const status = String(r['Статус'] || '').toLowerCase().trim();
+  const sold = ['продана', 'продано', 'бронь', 'забронирована', 'sold', 'booked', 'no', 'нет', 'false'].includes(status);
+  const id = Number(r['ID']) || (Date.now() + idx);
+  return {
+    id,
+    korpus:  Number(r['Корпус']) || 1,
+    floor:   Number(r['Этаж'])   || 1,
+    rooms:   Number(r['Комнат']) || 1,
+    area:    Number(r['Площадь м²']) || 0,
+    price:   Number(r['Цена ₽']) || 0,
+    available: !sold,
+    badge:   String(r['Метка'] || '').trim() || null,
+    img:     String(r['Картинка'] || '').trim(),
+    polygon: String(r['Полигон'] || '').trim(),
+  };
+}
+
+function downloadExcelTemplate(currentApts) {
+  if (typeof XLSX === 'undefined') { alert('Библиотека XLSX не загружена. Перезагрузите страницу.'); return; }
+  const rows = currentApts && currentApts.length
+    ? currentApts.map(aptToRow)
+    : [Object.fromEntries(XLS_COLUMNS.map(c => [c.label, c.example]))];
+  const ws = XLSX.utils.json_to_sheet(rows, { header: XLS_COLUMNS.map(c => c.label) });
+  // Column widths
+  ws['!cols'] = XLS_COLUMNS.map(c => ({ wch: Math.max(c.label.length, 12) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Квартиры');
+  // Add a hint sheet with allowed values
+  const hints = [
+    ['Поле', 'Допустимые значения'],
+    ['Корпус', '1, 2, 3, 4'],
+    ['Статус', 'свободна / продана / бронь'],
+    ['Метка', 'Акция, Хит, Премиум, Новинка, Последняя, или пусто'],
+    ['Картинка', 'путь к файлу assets/... или полный URL https://...'],
+    ['Полигон', 'координаты x,y x,y x,y... в виде строки (необязательно)'],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(hints);
+  ws2['!cols'] = [{ wch: 12 }, { wch: 60 }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Подсказки');
+  XLSX.writeFile(wb, 'apartments-template.xlsx');
+}
+
+async function readExcelFile(file) {
+  if (typeof XLSX === 'undefined') throw new Error('Библиотека XLSX не загружена');
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: 'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+  return rows.map((r, i) => rowToApt(r, i)).filter(a => a.area > 0);
+}
+
+function ApartmentsTab({ toast }) {
+  const [apts, setApts] = useState(() => ls.load('geroi_apts', DEFAULT_APARTMENTS));
+  const [modal, setModal] = useState(null); // null | 'add' | apt object
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('id');
+  const xlsInputRef = useRef(null);
+
+  const persist = next => { setApts(next); ls.save('geroi_apts', next); };
+
+  const handleImportXlsx = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const newApts = await readExcelFile(file);
+      if (!newApts.length) { alert('В файле нет ни одной строки с данными'); return; }
+      const choice = confirm(
+        `Найдено ${newApts.length} квартир в файле.\n\n` +
+        `OK = ЗАМЕНИТЬ все ${apts.length} текущих квартир на эти ${newApts.length}\n` +
+        `Cancel = ОБЪЕДИНИТЬ (обновить совпадающие по ID, добавить новые)`
+      );
+      if (choice) {
+        persist(newApts);
+        toast(`Импортировано ${newApts.length} квартир (заменено)`);
+      } else {
+        const byId = new Map(apts.map(a => [a.id, a]));
+        for (const a of newApts) byId.set(a.id, { ...byId.get(a.id), ...a });
+        const merged = Array.from(byId.values()).sort((a, b) => (a.id || 0) - (b.id || 0));
+        persist(merged);
+        toast(`Импортировано: ${newApts.length}, всего теперь: ${merged.length}`);
+      }
+    } catch (err) {
+      alert('Ошибка импорта: ' + err.message);
+    } finally {
+      if (xlsInputRef.current) xlsInputRef.current.value = '';
+    }
+  };
+
+  const handleSave = form => {
+    if (modal === 'add') {
+      persist([...apts, { ...form, id: Date.now() }]);
+      toast('Квартира добавлена');
+    } else {
+      persist(apts.map(a => a.id === modal.id ? { ...form, id: modal.id } : a));
+      toast('Изменения сохранены');
+    }
+    setModal(null);
+  };
+
+  const del = id => {
+    if (!confirm('Удалить эту квартиру? Действие нельзя отменить.')) return;
+    persist(apts.filter(a => a.id !== id));
+    toast('Квартира удалена');
+  };
+
+  const toggleAvail = id => {
+    persist(apts.map(a => a.id === id ? { ...a, available: !a.available } : a));
+    toast('Статус обновлён');
+  };
+
+  const reset = () => {
+    if (!confirm('Сбросить все квартиры к исходным данным? Все изменения будут удалены.')) return;
+    persist(DEFAULT_APARTMENTS);
+    toast('Данные сброшены');
+  };
+
+  const fmt = n => n ? n.toLocaleString('ru') : '—';
+
+  const filtered = apts
+    .filter(a => {
+      if (filter === 'available' && !a.available) return false;
+      if (filter === 'sold' && a.available) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return `${a.rooms}к ${a.area} ${a.floor} к${a.korpus || 1} ${a.price} ${a.badge || ''}`.toLowerCase().includes(q);
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'area') return a.area - b.area;
+      if (sortBy === 'floor') return a.floor - b.floor;
+      return a.id - b.id;
+    });
+
+  return (
+    <div>
+      <div className="page-header">
+        <div className="page-title">Квартиры</div>
+        <div className="page-subtitle">{apts.length} квартир в базе · {apts.filter(a=>a.available).length} свободных</div>
+      </div>
+      <div className="page-body">
+
+        {/* Stats */}
+        <div className="stats-grid">
+          {[
+            { v: apts.length, l: 'Всего квартир' },
+            { v: apts.filter(a=>a.available).length, l: 'Свободных' },
+            { v: apts.filter(a=>!a.available).length, l: 'Продано/Бронь' },
+            { v: apts.filter(a=>a.rooms===1).length, l: '1-комнатных' },
+            { v: apts.filter(a=>a.rooms===2).length, l: '2-комнатных' },
+            { v: apts.filter(a=>a.rooms===3).length, l: '3-комнатных' },
+          ].map(({v,l}) => (
+            <div key={l} className="stat-card">
+              <div className="stat-card-value">{v}</div>
+              <div className="stat-card-label">{l}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Toolbar */}
+        <div className="toolbar">
+          <div className="toolbar-left">
+            <input className="search-input" placeholder="Поиск по площади, этажу, цене..." value={search} onChange={e => setSearch(e.target.value)} />
+            <select style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '8px 12px', color: '#fff', fontSize: 13, outline: 'none', cursor: 'pointer' }}
+              value={filter} onChange={e => setFilter(e.target.value)}>
+              <option value="all">Все статусы</option>
+              <option value="available">Свободные</option>
+              <option value="sold">Проданные</option>
+            </select>
+            <select style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '8px 12px', color: '#fff', fontSize: 13, outline: 'none', cursor: 'pointer' }}
+              value={sortBy} onChange={e => setSortBy(e.target.value)}>
+              <option value="id">По добавлению</option>
+              <option value="price-asc">Цена ↑</option>
+              <option value="price-desc">Цена ↓</option>
+              <option value="area">По площади</option>
+              <option value="floor">По этажу</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => downloadExcelTemplate([])} title="Скачать пустой шаблон с примером">📋 Шаблон</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => downloadExcelTemplate(apts)} title="Выгрузить текущие квартиры в Excel">📤 Выгрузить</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => xlsInputRef.current?.click()} title="Импорт из Excel">📥 Импорт</button>
+            <input ref={xlsInputRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleImportXlsx} />
+            <button className="btn btn-secondary btn-sm" onClick={reset}>Сбросить</button>
+            <button className="btn btn-primary" onClick={() => setModal('add')}>+ Добавить квартиру</button>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Фото</th>
+                <th>Тип</th>
+                <th>Площадь</th>
+                <th>Этаж</th>
+                <th>Корпус</th>
+                <th>Цена</th>
+                <th>Статус</th>
+                <th>Метка</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(a => (
+                <tr key={a.id}>
+                  <td>
+                    {a.img
+                      ? <img src={a.img} className="img-thumb" alt="" onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                      : null
+                    }
+                    <div className="no-img" style={{ display: a.img ? 'none' : 'flex' }}>нет</div>
+                  </td>
+                  <td style={{ color: '#fff', fontWeight: 600 }}>{a.rooms}-комн.</td>
+                  <td>{a.area} м²</td>
+                  <td>{a.floor} эт.</td>
+                  <td>Корп. {a.korpus || 1}</td>
+                  <td style={{ color: '#fff' }}>{fmt(a.price)} ₽</td>
+                  <td>
+                    <span
+                      className={`badge ${a.available ? 'badge-green' : 'badge-red'}`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => toggleAvail(a.id)}
+                      title="Нажмите для смены статуса"
+                    >
+                      {a.available ? 'Свободна' : 'Продана'}
+                    </span>
+                  </td>
+                  <td>
+                    {a.badge
+                      ? <span className="badge badge-orange">{a.badge}</span>
+                      : <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>—</span>
+                    }
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button className="btn btn-secondary btn-sm btn-icon" onClick={() => setModal(a)} title="Редактировать">✎</button>
+                      <button className="btn btn-danger btn-sm btn-icon" onClick={() => del(a.id)} title="Удалить">✕</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px', color: 'rgba(255,255,255,0.2)', fontSize: 14 }}>
+                    Квартиры не найдены
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {modal && (
+        <AptModal
+          apt={modal === 'add' ? null : modal}
+          onSave={handleSave}
+          onClose={() => setModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─── SLIDER TAB ─── */
+function SliderTab({ toast }) {
+  const [slides, setSlides] = useState(() => ls.load('geroi_slides', DEFAULT_SLIDES));
+  const [changed, setChanged] = useState(false);
+
+  const set = (i, k, v) => {
+    setSlides(prev => prev.map((s, j) => j === i ? { ...s, [k]: v } : s));
+    setChanged(true);
+  };
+
+  const save = () => {
+    ls.save('geroi_slides', slides);
+    setChanged(false);
+    toast('Слайдер сохранён');
+  };
+
+  const reset = () => {
+    if (!confirm('Сбросить слайдер к исходным настройкам?')) return;
+    setSlides(DEFAULT_SLIDES);
+    ls.save('geroi_slides', DEFAULT_SLIDES);
+    setChanged(false);
+    toast('Сброшено');
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div className="page-title">Слайдер главной страницы</div>
+            <div className="page-subtitle">3 изображения, меняются автоматически с эффектом перехода</div>
+          </div>
+          {changed && <div style={{ fontSize: 12, color: '#fbbf24', marginTop: 4 }}>● Есть несохранённые изменения</div>}
+        </div>
+      </div>
+      <div className="page-body">
+        <div className="slide-cards">
+          {slides.map((slide, i) => (
+            <div key={i} className="slide-card">
+              <div className="slide-preview">
+                {slide.src
+                  ? <img src={slide.src} alt="" onError={e => e.target.style.display = 'none'} />
+                  : <span className="slide-preview-empty">Нет фото</span>
+                }
+              </div>
+              <div className="slide-body">
+                <div className="slide-num">Слайд {i + 1}</div>
+                <div className="form-group">
+                  <span className="form-label">Путь к фото или URL</span>
+                  <input value={slide.src} onChange={e => set(i, 'src', e.target.value)} placeholder="assets/render-hero-1.jpg" />
+                </div>
+                <div className="form-group">
+                  <span className="form-label">Подпись на слайде</span>
+                  <input value={slide.caption} onChange={e => set(i, 'caption', e.target.value)} placeholder="Описание вида" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="section-actions">
+          <button className="btn btn-primary" onClick={save}>Сохранить слайдер</button>
+          <button className="btn btn-secondary" onClick={reset}>Сбросить</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SETTINGS TAB ─── */
+function SettingsTab({ toast }) {
+  const [s, setS] = useState(() => ({ ...DEFAULT_SETTINGS, ...ls.load('geroi_settings', {}) }));
+  const set = (k, v) => setS(p => ({ ...p, [k]: v }));
+
+  const saveAll = () => {
+    ls.save('geroi_settings', s);
+    toast('Настройки сохранены');
+  };
+
+  const reset = () => {
+    if (!confirm('Сбросить все настройки к исходным?')) return;
+    setS(DEFAULT_SETTINGS);
+    ls.save('geroi_settings', DEFAULT_SETTINGS);
+    toast('Настройки сброшены');
+  };
+
+  const Field = ({ label, k, placeholder, type = 'text', hint }) => (
+    <div className="form-group">
+      <span className="form-label">{label}</span>
+      <input type={type} value={s[k] || ''} onChange={e => set(k, e.target.value)} placeholder={placeholder} />
+      {hint && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 3 }}>{hint}</div>}
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="page-header">
+        <div className="page-title">Настройки сайта</div>
+        <div className="page-subtitle">Контакты, адрес, показатели жилого комплекса</div>
+      </div>
+      <div className="page-body">
+
+        <div className="settings-section">
+          <h3>Контактная информация</h3>
+          <div className="form-grid">
+            <Field label="Телефон" k="phone" placeholder="+7 (800) 123-45-67" hint="Отображается в шапке и подвале" />
+            <Field label="Подпись под телефоном" k="phoneLabel" placeholder="Бесплатно по России" />
+            <Field label="Адрес офиса продаж" k="address" placeholder="г. Курган, ул. Героев, 1" />
+            <Field label="Подпись под адресом" k="addressLabel" placeholder="Офис продаж" />
+            <Field label="Часы работы" k="hours" placeholder="Пн–Вс: 9:00 – 21:00" />
+            <Field label="Подпись под часами" k="hoursLabel" placeholder="Время работы" />
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3>Общая информация</h3>
+          <div className="form-grid">
+            <Field label="Город" k="city" placeholder="Курган" hint="Используется в бейдже на главной странице" />
+            <Field label="Слоган" k="tagline" placeholder="Жилой комплекс нового поколения" />
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3>Показатели комплекса (полоса с цифрами)</h3>
+          <div className="form-grid">
+            <Field label="Количество этажей" k="floors" placeholder="12" />
+            <Field label="Количество корпусов" k="korpuses" placeholder="4" />
+            <Field label="Квартир всего" k="aptCount" placeholder="320" />
+            <Field label="Год сдачи" k="year" placeholder="2027" />
+            <Field label="Площадь, м²" k="area" placeholder="34–86" hint="Например: 34–86" />
+          </div>
+        </div>
+
+        <div className="section-actions">
+          <button className="btn btn-primary" onClick={saveAll}>Сохранить настройки</button>
+          <button className="btn btn-secondary" onClick={reset}>Сбросить к исходным</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── EXPORT TAB ─── */
+function ExportTab({ toast }) {
+  const exportAll = () => {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      apartments: ls.load('geroi_apts', DEFAULT_APARTMENTS),
+      slides: ls.load('geroi_slides', DEFAULT_SLIDES),
+      settings: ls.load('geroi_settings', DEFAULT_SETTINGS),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `geroi-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    toast('Резервная копия скачана');
+  };
+
+  const importFile = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.apartments) ls.save('geroi_apts', data.apartments);
+        if (data.slides) ls.save('geroi_slides', data.slides);
+        if (data.settings) ls.save('geroi_settings', data.settings);
+        toast('Данные импортированы — обновите страницу');
+      } catch {
+        alert('Ошибка: файл повреждён или имеет неверный формат');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const clearAll = () => {
+    if (!confirm('Удалить ВСЕ данные из браузера?\n\nСайт вернётся к исходным настройкам.\nЭто действие нельзя отменить.')) return;
+    ls.remove('geroi_apts');
+    ls.remove('geroi_slides');
+    ls.remove('geroi_settings');
+    toast('Все данные очищены');
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <div className="page-title">Экспорт и импорт</div>
+        <div className="page-subtitle">Резервное копирование всех данных сайта</div>
+      </div>
+      <div className="page-body">
+
+        <div className="settings-section">
+          <h3>Резервная копия</h3>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginBottom: 20, lineHeight: 1.7 }}>
+            Скачайте все данные — квартиры, слайдер и настройки — в JSON-файл.<br/>
+            При необходимости загрузите этот файл, чтобы восстановить данные.
+          </p>
+          <div className="section-actions">
+            <button className="btn btn-primary" onClick={exportAll}>⬇ Скачать резервную копию</button>
+            <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+              ⬆ Загрузить резервную копию
+              <input type="file" accept=".json" style={{ display: 'none' }} onChange={importFile} />
+            </label>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3>Сброс данных</h3>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginBottom: 20, lineHeight: 1.7 }}>
+            Полная очистка всех сохранённых данных. Сайт вернётся к исходным настройкам.
+          </p>
+          <button className="btn btn-danger" onClick={clearAll}>✕ Удалить все данные</button>
+        </div>
+
+        <div className="settings-section">
+          <h3>Как это работает</h3>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.8 }}>
+            Все изменения хранятся в браузере (localStorage).<br/>
+            Сохранённые данные загружаются автоматически при открытии <a href="index.html" style={{ color: '#E3854D' }} target="_blank">сайта</a>.<br/>
+            Чтобы перенести данные на другое устройство — скачайте резервную копию и загрузите её там.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+/* ─── SIDEBAR NAVIGATION ─── */
+/* ─── ABOUT COMPLEX TAB ─── */
+const DEFAULT_ABOUT = {
+  label: 'О комплексе', title: 'Жилой комплекс\nнового поколения', subtitle: 'Созданный для тех, кто ценит качество жизни',
+  text1: 'ЖК «Герои» — это современный жилой комплекс в Кургане, построенный по передовым технологиям.',
+  text2: 'Каждая деталь продумана: от энергоэффективных материалов до закрытого двора без машин.',
+  features: [
+    { icon: '◆', title: 'Монолитный каркас', desc: 'Надёжная конструкция с высоким классом сейсмостойкости' },
+    { icon: '◆', title: 'Закрытый двор', desc: 'Безопасное пространство без машин для отдыха и прогулок' },
+    { icon: '◆', title: 'Энергоэффективность', desc: 'Тёплые вентфасады и высококачественное утепление' },
+    { icon: '◆', title: 'Безопасность 24/7', desc: 'Видеонаблюдение, домофоны, охраняемая территория' },
+  ],
+};
+
+function AboutTab({ toast }) {
+  const [d, setD] = useState(() => ({ ...DEFAULT_ABOUT, ...ls.load('geroi_about', {}) }));
+  const set = (k, v) => setD(p => ({ ...p, [k]: v }));
+  const setFeat = (i, k, v) => setD(p => { const f = [...p.features]; f[i] = { ...f[i], [k]: v }; return { ...p, features: f }; });
+  const saveAll = () => { ls.save('geroi_about', d); toast('Раздел «О комплексе» сохранён'); };
+  return (
+    <div>
+      <div className="page-header"><div className="page-title">О комплексе</div><div className="page-subtitle">Текст, описание и преимущества</div></div>
+      <div className="page-body">
+        <div className="settings-section">
+          <h3>Основной текст</h3>
+          <div className="form-grid">
+            <div className="form-group"><span className="form-label">Метка над заголовком</span><input value={d.label||''} onChange={e=>set('label',e.target.value)} placeholder="О комплексе"/></div>
+            <div className="form-group"><span className="form-label">Подзаголовок</span><input value={d.subtitle||''} onChange={e=>set('subtitle',e.target.value)} /></div>
+            <div className="form-group full"><span className="form-label">Заголовок (\\n = новая строка)</span><input value={d.title||''} onChange={e=>set('title',e.target.value)} /></div>
+            <div className="form-group full"><span className="form-label">Первый абзац</span><textarea rows={3} value={d.text1||''} onChange={e=>set('text1',e.target.value)} /></div>
+            <div className="form-group full"><span className="form-label">Второй абзац</span><textarea rows={3} value={d.text2||''} onChange={e=>set('text2',e.target.value)} /></div>
+          </div>
+        </div>
+        <div className="settings-section">
+          <h3>Преимущества (4 блока)</h3>
+          {(d.features||[]).map((f,i) => (
+            <div key={i} style={{marginBottom:16,padding:'16px',background:'rgba(255,255,255,0.04)',borderRadius:8}}>
+              <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>Блок {i+1}</div>
+              <div className="form-grid">
+                <div className="form-group"><span className="form-label">Заголовок</span><input value={f.title||''} onChange={e=>setFeat(i,'title',e.target.value)}/></div>
+                <div className="form-group"><span className="form-label">Описание</span><input value={f.desc||''} onChange={e=>setFeat(i,'desc',e.target.value)}/></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="section-actions"><button className="btn btn-primary" onClick={saveAll}>Сохранить</button></div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── PROMOS TAB ─── */
+const DEFAULT_PROMOS = [
+  { id:1, title:'Ипотека от 0,1%', desc:'Специальные условия от ведущих банков-партнёров', badge:'Выгодно', accent:'#4ade80', expires:'31 мая 2025' },
+  { id:2, title:'Паркинг в подарок', desc:'При покупке квартиры от 60 м² — машиноместо бесплатно', badge:'Акция', accent:'#E3854D', expires:'30 июня 2025' },
+  { id:3, title:'Рассрочка 0%', desc:'Беспроцентная рассрочка на весь период строительства', badge:'Новинка', accent:'#818cf8', expires:'15 июня 2025' },
+  { id:4, title:'Trade-in квартиры', desc:'Зачтём старую квартиру по рыночной цене', badge:'Обмен', accent:'#e879f9', expires:'31 мая 2025' },
+];
+const ACCENT_OPTIONS = ['#4ade80','#E3854D','#818cf8','#e879f9','#fbbf24','#f87171','#38bdf8'];
+
+function PromosTab({ toast }) {
+  const [promos, setPromos] = useState(() => ls.load('geroi_promos', DEFAULT_PROMOS));
+  const set = (i, k, v) => setPromos(p => p.map((x,j) => j===i ? {...x,[k]:v} : x));
+  const saveAll = () => { ls.save('geroi_promos', promos); toast('Акции сохранены'); };
+  const reset = () => { if(!confirm('Сбросить?')) return; setPromos(DEFAULT_PROMOS); ls.save('geroi_promos', DEFAULT_PROMOS); toast('Сброшено'); };
+  return (
+    <div>
+      <div className="page-header"><div className="page-title">Акции</div><div className="page-subtitle">4 промо-баннера на главной странице</div></div>
+      <div className="page-body">
+        {promos.map((p, i) => (
+          <div key={i} className="settings-section">
+            <h3 style={{borderLeft:`3px solid ${p.accent}`,paddingLeft:10}}>Баннер {i+1}</h3>
+            <div className="form-grid">
+              <div className="form-group"><span className="form-label">Заголовок</span><input value={p.title||''} onChange={e=>set(i,'title',e.target.value)}/></div>
+              <div className="form-group"><span className="form-label">Метка</span><input value={p.badge||''} onChange={e=>set(i,'badge',e.target.value)} placeholder="Акция"/></div>
+              <div className="form-group full"><span className="form-label">Описание</span><textarea rows={2} value={p.desc||''} onChange={e=>set(i,'desc',e.target.value)}/></div>
+              <div className="form-group"><span className="form-label">Действует до</span><input value={p.expires||''} onChange={e=>set(i,'expires',e.target.value)} placeholder="31 мая 2025"/></div>
+              <div className="form-group">
+                <span className="form-label">Цвет акцента</span>
+                <div style={{display:'flex',gap:8,marginTop:4,flexWrap:'wrap'}}>
+                  {ACCENT_OPTIONS.map(c => (
+                    <div key={c} onClick={()=>set(i,'accent',c)} style={{width:28,height:28,borderRadius:'50%',background:c,cursor:'pointer',border:p.accent===c?'3px solid #fff':'3px solid transparent',boxSizing:'border-box'}}/>
+                  ))}
+                </div>
+              </div>
+              <div className="form-group full">
+                <span className="form-label">Кнопка «Узнать подробнее»</span>
+                <div className="toggle-wrap">
+                  <label className="toggle">
+                    <input type="checkbox" checked={p.showButton !== false} onChange={e=>set(i,'showButton', e.target.checked)} />
+                    <span className="toggle-slider"></span>
+                  </label>
+                  <span className="toggle-label" style={{ color: p.showButton !== false ? '#4ade80' : 'rgba(255,255,255,0.4)' }}>
+                    {p.showButton !== false ? 'Кнопка показывается' : 'Кнопка скрыта'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+        <div className="section-actions"><button className="btn btn-primary" onClick={saveAll}>Сохранить акции</button><button className="btn btn-secondary" onClick={reset}>Сбросить</button></div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── CONSTRUCTION TAB ─── */
+const DEFAULT_CONSTRUCTION = [
+  { id:1, month:'Апрель 2025', photos:[{src:'assets/render-aerial.jpg',caption:'Вид с воздуха'},{src:'assets/render-facade.jpg',caption:'Фасад'},{src:'assets/render-street.jpg',caption:'Улица'}] },
+];
+
+function ConstructionTab({ toast }) {
+  const [months, setMonths] = useState(() => ls.load('geroi_construction', DEFAULT_CONSTRUCTION));
+  const [openIdx, setOpenIdx] = useState(null);
+  const persist = next => { setMonths(next); ls.save('geroi_construction', next); };
+  const addMonth = () => {
+    const m = prompt('Название месяца (например: Май 2025)');
+    if (!m) return;
+    persist([...months, { id: Date.now(), month: m, photos: [] }]);
+    toast('Месяц добавлен');
+  };
+  const delMonth = i => { if(!confirm('Удалить этот месяц?')) return; persist(months.filter((_,j)=>j!==i)); toast('Месяц удалён'); };
+  const renameMonth = i => { const m = prompt('Новое название', months[i].month); if(!m) return; persist(months.map((x,j)=>j===i?{...x,month:m}:x)); };
+  const addPhoto = i => {
+    const src = prompt('Путь к фото (например: assets/photo.jpg)');
+    if (!src) return;
+    const cap = prompt('Подпись к фото (необязательно)') || '';
+    persist(months.map((x,j) => j===i ? {...x, photos:[...x.photos,{src,caption:cap}]} : x));
+    toast('Фото добавлено');
+  };
+  const delPhoto = (mi, pi) => persist(months.map((x,j) => j===mi ? {...x, photos:x.photos.filter((_,k)=>k!==pi)} : x));
+  const setPhotoField = (mi, pi, k, v) => persist(months.map((x,j) => j===mi ? {...x, photos:x.photos.map((p,k2)=>k2===pi?{...p,[k]:v}:p)} : x));
+
+  return (
+    <div>
+      <div className="page-header">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div><div className="page-title">Ход строительства</div><div className="page-subtitle">Фотоотчёты по месяцам</div></div>
+          <button className="btn btn-primary" onClick={addMonth}>+ Добавить месяц</button>
+        </div>
+      </div>
+      <div className="page-body">
+        {months.length === 0 && <div style={{textAlign:'center',padding:'60px',color:'rgba(255,255,255,0.25)'}}>Нет месяцев. Нажмите «Добавить месяц»</div>}
+        {months.map((m, i) => (
+          <div key={m.id||i} className="settings-section">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+              <h3 style={{margin:0}}>{m.month}</h3>
+              <div style={{display:'flex',gap:8}}>
+                <button className="btn btn-secondary btn-sm" onClick={()=>renameMonth(i)}>Переименовать</button>
+                <button className="btn btn-secondary btn-sm" onClick={()=>addPhoto(i)}>+ Фото</button>
+                <button className="btn btn-danger btn-sm" onClick={()=>delMonth(i)}>Удалить</button>
+              </div>
+            </div>
+            {m.photos.length === 0 && <div style={{color:'rgba(255,255,255,0.25)',fontSize:13,marginBottom:12}}>Нет фотографий</div>}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
+              {m.photos.map((ph, pi) => (
+                <div key={pi} style={{background:'rgba(255,255,255,0.04)',borderRadius:10,overflow:'hidden'}}>
+                  {ph.src && <img src={ph.src} alt="" style={{width:'100%',height:120,objectFit:'cover',display:'block'}} onError={e=>e.target.style.display='none'}/>}
+                  <div style={{padding:'10px 12px',display:'flex',flexDirection:'column',gap:6}}>
+                    <input value={ph.src||''} onChange={e=>setPhotoField(i,pi,'src',e.target.value)} placeholder="assets/photo.jpg" style={{fontSize:12,padding:'6px 8px'}}/>
+                    <input value={ph.caption||''} onChange={e=>setPhotoField(i,pi,'caption',e.target.value)} placeholder="Подпись" style={{fontSize:12,padding:'6px 8px'}}/>
+                    <button className="btn btn-danger btn-sm" onClick={()=>delPhoto(i,pi)} style={{alignSelf:'flex-start'}}>Удалить</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── INFRASTRUCTURE TAB ─── */
+const DEFAULT_INFRA = {
+  mapUrl: 'https://yandex.ru/map-widget/v1/?ll=65.3654%2C55.4408&z=15&pt=65.3654%2C55.4408%2Cpm2rdl&l=map',
+  places: [
+    {name:'Школа',dist:'350 м',cat:'Образование'},{name:'Детский сад',dist:'200 м',cat:'Образование'},
+    {name:'Торговый центр',dist:'1.2 км',cat:'Торговля'},{name:'Парк',dist:'800 м',cat:'Отдых'},
+    {name:'Поликлиника',dist:'500 м',cat:'Здоровье'},{name:'МФЦ',dist:'1 км',cat:'Сервис'},
+  ],
+};
+const CATS = ['Образование','Торговля','Отдых','Здоровье','Сервис','Транспорт','Другое'];
+
+function InfraTab({ toast }) {
+  const [d, setD] = useState(() => ({ ...DEFAULT_INFRA, ...ls.load('geroi_infra', {}) }));
+  const setField = (k,v) => setD(p=>({...p,[k]:v}));
+  const setPlace = (i,k,v) => setD(p=>{ const pl=[...p.places]; pl[i]={...pl[i],[k]:v}; return {...p,places:pl}; });
+  const addPlace = () => setD(p=>({...p,places:[...p.places,{name:'',dist:'',cat:'Другое'}]}));
+  const delPlace = i => setD(p=>({...p,places:p.places.filter((_,j)=>j!==i)}));
+  const saveAll = () => { ls.save('geroi_infra', d); toast('Инфраструктура сохранена'); };
+  return (
+    <div>
+      <div className="page-header"><div className="page-title">Инфраструктура</div><div className="page-subtitle">Яндекс карта и список объектов рядом</div></div>
+      <div className="page-body">
+        <div className="settings-section">
+          <h3>Яндекс карта</h3>
+          <div className="form-group" style={{marginBottom:16}}>
+            <span className="form-label">URL карты (iframe src)</span>
+            <input value={d.mapUrl||''} onChange={e=>setField('mapUrl',e.target.value)} placeholder="https://yandex.ru/map-widget/v1/?..."/>
+          </div>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.3)',lineHeight:1.6}}>
+            Откройте <a href="https://yandex.ru/maps" target="_blank" style={{color:'#E3854D'}}>yandex.ru/maps</a>, найдите нужное место, нажмите «Поделиться» → «Встроить карту» и скопируйте URL из атрибута src.
+          </div>
+        </div>
+        <div className="settings-section">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+            <h3 style={{margin:0}}>Объекты рядом</h3>
+            <button className="btn btn-secondary btn-sm" onClick={addPlace}>+ Добавить</button>
+          </div>
+          {d.places.map((pl,i) => (
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 100px 140px 36px',gap:8,marginBottom:10,alignItems:'center'}}>
+              <input value={pl.name||''} onChange={e=>setPlace(i,'name',e.target.value)} placeholder="Название" style={{padding:'8px 10px',fontSize:13}}/>
+              <input value={pl.dist||''} onChange={e=>setPlace(i,'dist',e.target.value)} placeholder="300 м" style={{padding:'8px 10px',fontSize:13}}/>
+              <select value={pl.cat||'Другое'} onChange={e=>setPlace(i,'cat',e.target.value)} style={{padding:'8px 10px',fontSize:13}}>
+                {CATS.map(c=><option key={c} value={c}>{c}</option>)}
+              </select>
+              <button className="btn btn-danger btn-icon btn-sm" onClick={()=>delPlace(i)}>✕</button>
+            </div>
+          ))}
+        </div>
+        <div className="section-actions"><button className="btn btn-primary" onClick={saveAll}>Сохранить</button></div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── FOOTER TAB ─── */
+const DEFAULT_FOOTER_EXTRA = {
+  legalText: 'Любая информация, представленная на данном сайте, носит исключительно информационный характер, не является публичной офертой, определяемой положениями статьи 437 ГК РФ.',
+  privacyUrl: '#', declarationUrl: '#',
+};
+
+function FooterTab({ toast }) {
+  const [d, setD] = useState(() => ({ ...DEFAULT_FOOTER_EXTRA, ...ls.load('geroi_footer', {}) }));
+  const set = (k,v) => setD(p=>({...p,[k]:v}));
+  const saveAll = () => { ls.save('geroi_footer', d); toast('Подвал сохранён'); };
+  return (
+    <div>
+      <div className="page-header"><div className="page-title">Подвал сайта</div><div className="page-subtitle">Юридический текст и ссылки</div></div>
+      <div className="page-body">
+        <div className="settings-section">
+          <h3>Юридический дисклеймер</h3>
+          <div className="form-group"><span className="form-label">Текст</span><textarea rows={4} value={d.legalText||''} onChange={e=>set('legalText',e.target.value)}/></div>
+        </div>
+        <div className="settings-section">
+          <h3>Ссылки</h3>
+          <div className="form-grid">
+            <div className="form-group"><span className="form-label">URL политики конфиденциальности</span><input value={d.privacyUrl||''} onChange={e=>set('privacyUrl',e.target.value)} placeholder="#"/></div>
+            <div className="form-group"><span className="form-label">URL проектной декларации (НАШ.ДОМ.РФ)</span><input value={d.declarationUrl||''} onChange={e=>set('declarationUrl',e.target.value)} placeholder="#"/></div>
+          </div>
+        </div>
+        <div className="section-actions"><button className="btn btn-primary" onClick={saveAll}>Сохранить подвал</button></div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── KORPUSES TAB — polygon editor ─── */
+const DEFAULT_KORPUSES_ADMIN = [
+  { id: 1, name: 'Корпус 1', floors: 9,  total: 72, free: 28,
+    polygon: '10,28 36,38 36,53 33,53 33,72 22,72 22,55 6,48',
+    floorPolygons: {}, cx: 18, cy: 50 },
+  { id: 2, name: 'Корпус 2', floors: 12, total: 96, free: 41,
+    polygon: '44,16 60,19 58,42 44,40',
+    floorPolygons: {}, cx: 52, cy: 28 },
+  { id: 3, name: 'Корпус 3', floors: 10, total: 80, free: 33,
+    polygon: '60,32 92,42 92,55 88,55 88,72 75,72 75,53 60,52',
+    floorPolygons: {}, cx: 80, cy: 50 },
+  { id: 4, name: 'Корпус 4', floors: 11, total: 84, free: 29,
+    polygon: '38,52 62,58 62,82 38,76',
+    floorPolygons: {}, cx: 49, cy: 68 },
+];
+
+function PolygonEditor({ value, onChange, imgSrc }) {
+  const svgRef = useRef(null);
+  const [draggingIdx, setDraggingIdx] = useState(null);
+  const points = (value || '').trim()
+    ? value.trim().split(/\s+/).map(p => p.split(',').map(Number)).filter(p => p.length === 2 && !isNaN(p[0]) && !isNaN(p[1]))
+    : [];
+
+  const toSvgCoords = e => {
+    const svg = svgRef.current;
+    if (!svg) return [0, 0];
+    const rect = svg.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 56.25;
+    return [Math.max(0, Math.min(100, x)), Math.max(0, Math.min(56.25, y))];
+  };
+
+  const setPoints = pts => onChange(pts.map(p => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' '));
+
+  const handleSvgClick = e => {
+    if (draggingIdx !== null) return;
+    if (e.target.tagName === 'circle') return;
+    const [x, y] = toSvgCoords(e);
+    setPoints([...points, [x, y]]);
+  };
+
+  const handleVertexMouseDown = (i, e) => {
+    e.stopPropagation();
+    setDraggingIdx(i);
+  };
+
+  const handleVertexRightClick = (i, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPoints(points.filter((_, j) => j !== i));
+  };
+
+  useEffect(() => {
+    if (draggingIdx === null) return;
+    const onMove = e => {
+      const [x, y] = toSvgCoords(e);
+      setPoints(points.map((p, j) => j === draggingIdx ? [x, y] : p));
+    };
+    const onUp = () => setDraggingIdx(null);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [draggingIdx, points]);
+
+  return (
+    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#0a0907' }}>
+      <img src={imgSrc} alt="" style={{ width: '100%', display: 'block', userSelect: 'none', pointerEvents: 'none' }} draggable={false} />
+      <svg
+        ref={svgRef}
+        viewBox="0 0 100 56.25"
+        preserveAspectRatio="none"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'crosshair' }}
+        onClick={handleSvgClick}
+      >
+        {points.length >= 3 && (
+          <polygon
+            points={points.map(p => p.join(',')).join(' ')}
+            fill="rgba(217,78,31,0.32)"
+            stroke="#E05520"
+            strokeWidth="0.3"
+            pointerEvents="none"
+          />
+        )}
+        {points.length === 2 && (
+          <line x1={points[0][0]} y1={points[0][1]} x2={points[1][0]} y2={points[1][1]} stroke="#E05520" strokeWidth="0.3" pointerEvents="none" />
+        )}
+        {points.map((p, i) => (
+          <circle
+            key={i}
+            cx={p[0]}
+            cy={p[1]}
+            r="0.8"
+            fill={draggingIdx === i ? '#fff' : '#E05520'}
+            stroke="#fff"
+            strokeWidth="0.25"
+            style={{ cursor: 'grab' }}
+            onMouseDown={e => handleVertexMouseDown(i, e)}
+            onContextMenu={e => handleVertexRightClick(i, e)}
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+/* Image upload helper — sends raw bytes to /api/upload and returns the public URL */
+async function uploadImageFile(file) {
+  if (!file) throw new Error('Нет файла');
+  if (file.size > 7.5 * 1024 * 1024) throw new Error('Файл слишком большой (макс 7.5 MB)');
+  const r = await fetch('/api/upload', {
+    method: 'POST',
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-admin-password': ADMIN_PASSWORD,
+      'x-filename': encodeURIComponent(file.name || 'upload'),
+    },
+    body: file,
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${r.status}`);
+  }
+  const data = await r.json();
+  return data.url;
+}
+
+/* Reusable file-picker that uploads to Vercel Blob and gives back the URL */
+function ImageUploader({ value, onChange, label, accept = 'image/*', placeholder = 'или вставьте URL картинки' }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const ref = useRef(null);
+  const onPick = async e => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setBusy(true); setErr('');
+    try {
+      const url = await uploadImageFile(f);
+      onChange(url);
+    } catch (e2) {
+      setErr(e2.message || 'Ошибка');
+    } finally {
+      setBusy(false);
+      if (ref.current) ref.current.value = '';
+    }
+  };
+  return (
+    <div>
+      {label && <div className="form-label" style={{ marginBottom: 6 }}>{label}</div>}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => ref.current?.click()} disabled={busy}
+          className="btn btn-primary" style={{ flexShrink: 0, opacity: busy ? 0.6 : 1, cursor: busy ? 'wait' : 'pointer' }}>
+          {busy ? '⏳ Загрузка...' : '📤 Загрузить файл'}
+        </button>
+        <input ref={ref} type="file" accept={accept} style={{ display: 'none' }} onChange={onPick} />
+        <input type="text" value={value || ''} onChange={e => onChange(e.target.value)}
+          placeholder={placeholder} style={{ flex: 1, minWidth: 200 }} />
+      </div>
+      {value && (
+        <div style={{ marginTop: 8 }}>
+          <img src={value} alt="" style={{ maxHeight: 80, borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)' }} onError={e => { e.currentTarget.style.display = 'none'; }} />
+        </div>
+      )}
+      {err && <div style={{ marginTop: 6, fontSize: 12, color: '#f87171' }}>⚠ {err}</div>}
+    </div>
+  );
+}
+
+/* Editor for apartment polygons over a floor-schema image.
+   Shows all apartment polygons (read-only translucent) plus an editable one for activeId. */
+function AptSchemaEditor({ imgSrc, apts, activeId, onChange }) {
+  const svgRef = useRef(null);
+  const [draggingIdx, setDraggingIdx] = useState(null);
+  const active = apts.find(a => a.id === activeId);
+  const points = (active?.polygon || '').trim()
+    ? active.polygon.trim().split(/\s+/).map(p => p.split(',').map(Number)).filter(p => p.length === 2 && !isNaN(p[0]))
+    : [];
+
+  const toCoords = e => {
+    const svg = svgRef.current;
+    if (!svg) return [0, 0];
+    const r = svg.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 100;
+    const y = ((e.clientY - r.top) / r.height) * 56.25;
+    return [Math.max(0, Math.min(100, x)), Math.max(0, Math.min(56.25, y))];
+  };
+  const setPoints = pts => onChange(pts.map(p => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' '));
+
+  const handleSvgClick = e => {
+    if (draggingIdx !== null) return;
+    if (e.target.tagName === 'circle') return;
+    if (active == null) return;
+    const c = toCoords(e);
+    setPoints([...points, c]);
+  };
+  const handleVertexDown = (i, e) => { e.stopPropagation(); setDraggingIdx(i); };
+  const handleVertexRight = (i, e) => { e.preventDefault(); e.stopPropagation(); setPoints(points.filter((_, j) => j !== i)); };
+
+  useEffect(() => {
+    if (draggingIdx === null) return;
+    const onMove = e => { const c = toCoords(e); setPoints(points.map((p, j) => j === draggingIdx ? c : p)); };
+    const onUp = () => setDraggingIdx(null);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [draggingIdx, points]);
+
+  return (
+    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#0a0907' }}>
+      <img src={imgSrc} alt="" style={{ width: '100%', display: 'block', userSelect: 'none', pointerEvents: 'none' }} draggable={false} />
+      <svg ref={svgRef} viewBox="0 0 100 56.25" preserveAspectRatio="none"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: active ? 'crosshair' : 'default' }}
+        onClick={handleSvgClick}>
+        {/* read-only existing polygons */}
+        {apts.filter(a => a.id !== activeId && a.polygon).map(a => (
+          <polygon key={a.id} points={a.polygon}
+            fill="rgba(120,200,255,0.18)" stroke="rgba(120,200,255,0.55)" strokeWidth="0.2"
+            vectorEffect="non-scaling-stroke" pointerEvents="none" />
+        ))}
+        {/* active polygon */}
+        {points.length >= 3 && (
+          <polygon points={points.map(p => p.join(',')).join(' ')}
+            fill="rgba(217,78,31,0.34)" stroke="#E05520" strokeWidth="0.3"
+            vectorEffect="non-scaling-stroke" pointerEvents="none" />
+        )}
+        {points.length === 2 && (
+          <line x1={points[0][0]} y1={points[0][1]} x2={points[1][0]} y2={points[1][1]} stroke="#E05520" strokeWidth="0.3" pointerEvents="none" />
+        )}
+        {points.map((p, i) => (
+          <circle key={i} cx={p[0]} cy={p[1]} r="0.8"
+            fill={draggingIdx === i ? '#fff' : '#E05520'} stroke="#fff" strokeWidth="0.25"
+            style={{ cursor: 'grab' }}
+            onMouseDown={e => handleVertexDown(i, e)}
+            onContextMenu={e => handleVertexRight(i, e)} />
+        ))}
+      </svg>
+      {!active && (
+        <div style={{
+          position: 'absolute', top: 14, left: 14, padding: '8px 12px',
+          background: 'rgba(20,17,14,0.92)', backdropFilter: 'blur(8px)',
+          color: '#fff', fontSize: 12, borderRadius: 8, pointerEvents: 'none',
+        }}>← Выберите квартиру слева, чтобы начать обводить контур</div>
+      )}
+    </div>
+  );
+}
+
+function KorpusesTab({ toast }) {
+  const [korpuses, setKorpuses] = useState(() => ls.load('geroi_korpuses', DEFAULT_KORPUSES_ADMIN));
+  const [siteRender, setSiteRender] = useState(() => ls.load('geroi_site_render', 'assets/site-render.jpg'));
+  const [apts, setApts] = useState(() => ls.load('geroi_apts', DEFAULT_APARTMENTS));
+  const [selId, setSelId] = useState(korpuses[0]?.id || 1);
+  const [mode, setMode] = useState('korpus'); // 'korpus' | 'floor' | 'apts'
+  const [floorNum, setFloorNum] = useState(1);
+  const [activeAptId, setActiveAptId] = useState(null);
+
+  const sel = korpuses.find(k => k.id === selId) || korpuses[0];
+  const persist = next => { setKorpuses(next); ls.save('geroi_korpuses', next); };
+  const saveAll = () => { ls.save('geroi_korpuses', korpuses); ls.save('geroi_apts', apts); toast('Полигоны и квартиры сохранены'); };
+  const resetAll = () => { if (confirm('Восстановить полигоны по умолчанию?')) { persist(DEFAULT_KORPUSES_ADMIN); toast('Сброшено'); } };
+  const updateSel = patch => persist(korpuses.map(k => k.id === selId ? { ...k, ...patch } : k));
+
+  const onChangeKorpusPolygon = pts => updateSel({ polygon: pts });
+  const onChangeFloorPolygon = pts => updateSel({ floorPolygons: { ...sel.floorPolygons, [floorNum]: pts } });
+  const clearKorpusPolygon = () => updateSel({ polygon: '' });
+  const clearFloorPolygon = () => {
+    const fp = { ...sel.floorPolygons }; delete fp[floorNum];
+    updateSel({ floorPolygons: fp });
+  };
+  const clearAllFloors = () => { if (confirm('Удалить разметку всех этажей этого корпуса?')) updateSel({ floorPolygons: {} }); };
+
+  /* Apartments mode helpers */
+  const floorSchemaUrl = (sel.floorSchemas && sel.floorSchemas[floorNum]) || '';
+  const setFloorSchemaUrl = url => updateSel({ floorSchemas: { ...(sel.floorSchemas || {}), [floorNum]: url } });
+  const aptsOnFloor = apts.filter(a => a.korpus === selId && Number(a.floor) === Number(floorNum));
+  const persistApts = next => { setApts(next); ls.save('geroi_apts', next); };
+  const updateApt = (id, patch) => persistApts(apts.map(a => a.id === id ? { ...a, ...patch } : a));
+  const onChangeAptPolygon = pts => { if (activeAptId != null) updateApt(activeAptId, { polygon: pts }); };
+  const clearAptPolygon = () => { if (activeAptId != null) updateApt(activeAptId, { polygon: '' }); };
+
+  return (
+    <>
+      <div className="page-header">
+        <div className="page-title">Корпуса и этажи</div>
+        <div className="page-subtitle">Обводите контуры корпусов и этажей прямо на фотографии комплекса</div>
+      </div>
+      <div className="page-body">
+
+        {/* Korpus selector cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+          {korpuses.map(k => (
+            <div key={k.id} onClick={() => { setSelId(k.id); setMode('korpus'); }}
+              style={{
+                padding: '14px 16px', borderRadius: 10, cursor: 'pointer',
+                background: selId === k.id ? 'rgba(227,133,77,0.15)' : '#161b27',
+                border: '1.5px solid', borderColor: selId === k.id ? '#E3854D' : 'rgba(255,255,255,0.06)',
+                transition: 'all 150ms',
+              }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 4 }}>{k.name}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+                {k.floors} эт · {k.total} кв · {Object.keys(k.floorPolygons || {}).length}/{k.floors} этажей размечено
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Korpus settings inputs */}
+        <div className="form-grid" style={{ marginBottom: 20 }}>
+          <div className="form-group">
+            <span className="form-label">Название</span>
+            <input value={sel.name} onChange={e => updateSel({ name: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <span className="form-label">Количество этажей</span>
+            <input type="number" min={1} max={50} value={sel.floors} onChange={e => updateSel({ floors: Math.max(1, Number(e.target.value) || 1) })} />
+          </div>
+          <div className="form-group">
+            <span className="form-label">Всего квартир</span>
+            <input type="number" min={0} value={sel.total} onChange={e => updateSel({ total: Number(e.target.value) || 0 })} />
+          </div>
+          <div className="form-group">
+            <span className="form-label">Свободно (для подсказки)</span>
+            <input type="number" min={0} value={sel.free} onChange={e => updateSel({ free: Number(e.target.value) || 0 })} />
+          </div>
+        </div>
+
+        {/* Mode toggle */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button className={mode === 'korpus' ? 'btn btn-primary' : 'btn btn-secondary'} onClick={() => setMode('korpus')}>
+            Контур корпуса
+          </button>
+          <button className={mode === 'floor' ? 'btn btn-primary' : 'btn btn-secondary'} onClick={() => setMode('floor')}>
+            Контуры этажей
+          </button>
+          <button className={mode === 'apts' ? 'btn btn-primary' : 'btn btn-secondary'} onClick={() => setMode('apts')}>
+            Квартиры на этаже
+          </button>
+          {(mode === 'floor' || mode === 'apts') && (
+            <>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginLeft: 12 }}>Этаж:</span>
+              <select value={floorNum} onChange={e => { setFloorNum(Number(e.target.value)); setActiveAptId(null); }}
+                style={{ width: 100, padding: '7px 10px', fontSize: 13 }}>
+                {Array.from({ length: sel.floors }, (_, i) => sel.floors - i).map(f => (
+                  <option key={f} value={f}>{f} этаж {mode==='floor' ? (sel.floorPolygons?.[f] ? '✓' : '') : (sel.floorSchemas?.[f] ? '🖼' : '')}</option>
+                ))}
+              </select>
+            </>
+          )}
+          {mode === 'floor' && (
+            <>
+              <button className="btn btn-danger btn-sm" onClick={clearFloorPolygon}>Очистить этаж</button>
+              <button className="btn btn-danger btn-sm" onClick={clearAllFloors}>Очистить все этажи</button>
+            </>
+          )}
+          {mode === 'apts' && activeAptId != null && (
+            <button className="btn btn-danger btn-sm" onClick={clearAptPolygon}>Очистить контур квартиры</button>
+          )}
+          {mode === 'korpus' && (
+            <button className="btn btn-danger btn-sm" onClick={clearKorpusPolygon} style={{ marginLeft: 12 }}>Очистить контур</button>
+          )}
+        </div>
+
+        {/* Hint */}
+        <div style={{ background: 'rgba(227,133,77,0.08)', border: '1px solid rgba(227,133,77,0.25)', padding: '10px 14px', borderRadius: 8, marginBottom: 16, fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+          <b>Как пользоваться:</b> кликните по фотографии, чтобы добавить точку контура. Перетаскивайте точки для коррекции. Правый клик по точке — удалить.
+          {mode === 'floor' && ' Обведите контур каждого этажа отдельно — переключайте этажи в выпадающем списке выше.'}
+          {mode === 'apts' && ' Выберите квартиру слева, потом обведите её контур на схеме этажа.'}
+        </div>
+
+        {/* Editor: korpus / floor mode uses site render; apts mode uses floor schema */}
+        {mode !== 'apts' ? (
+          <PolygonEditor
+            imgSrc={siteRender}
+            value={mode === 'korpus' ? (sel.polygon || '') : (sel.floorPolygons?.[floorNum] || '')}
+            onChange={mode === 'korpus' ? onChangeKorpusPolygon : onChangeFloorPolygon}
+          />
+        ) : (
+          <div>
+            {/* Floor schema upload */}
+            <div style={{ marginBottom: 12, padding: 12, background: '#161b27', borderRadius: 10 }}>
+              <ImageUploader
+                label={`Фото-планировка этажа ${floorNum}`}
+                value={floorSchemaUrl}
+                onChange={url => setFloorSchemaUrl(url)}
+                placeholder="assets/floor-k1-f1.jpg"
+              />
+            </div>
+
+            {!floorSchemaUrl ? (
+              <div style={{ padding: 24, background: '#161b27', borderRadius: 10, textAlign: 'center', color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>
+                Укажите путь к фото-планировке выше, чтобы начать обводить квартиры
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 14 }}>
+                {/* Apartment list (filter by korpus + floor) */}
+                <div style={{ background: '#161b27', borderRadius: 10, padding: 12, maxHeight: 520, overflowY: 'auto' }}>
+                  <div className="form-label" style={{ marginBottom: 8 }}>Квартиры на этаже {floorNum} ({aptsOnFloor.length})</div>
+                  {aptsOnFloor.length === 0 ? (
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
+                      Нет квартир с korpus={selId}, floor={floorNum}. Добавьте их во вкладке «Квартиры», указав корпус и этаж.
+                    </div>
+                  ) : aptsOnFloor.map(a => {
+                    const active = activeAptId === a.id;
+                    const has = a.polygon && a.polygon.trim();
+                    return (
+                      <div key={a.id} onClick={() => setActiveAptId(a.id)}
+                        style={{
+                          padding: '10px 12px', marginBottom: 6, borderRadius: 8,
+                          cursor: 'pointer', transition: 'all 150ms',
+                          background: active ? 'rgba(227,133,77,0.18)' : 'rgba(255,255,255,0.04)',
+                          border: '1.5px solid', borderColor: active ? '#E3854D' : 'rgba(255,255,255,0.06)',
+                        }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Кв. {a.id} · {a.rooms}-к · {a.area}м²</span>
+                          <span style={{ fontSize: 14, color: has ? '#4ade80' : 'rgba(255,255,255,0.3)' }}>{has ? '✓' : '○'}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
+                          {a.available ? 'Свободна' : 'Бронь/Продана'} · {a.price?.toLocaleString('ru-RU')} ₽
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Editor — schema with all polys overlaid, only active is editable */}
+                <AptSchemaEditor
+                  imgSrc={floorSchemaUrl}
+                  apts={aptsOnFloor}
+                  activeId={activeAptId}
+                  onChange={onChangeAptPolygon}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Save */}
+        <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
+          <button className="btn btn-primary" onClick={saveAll}>Сохранить всё</button>
+          <button className="btn btn-secondary" onClick={resetAll}>Сбросить к стандартным</button>
+        </div>
+
+        {/* Site render upload */}
+        <div style={{ marginTop: 28, padding: 16, background: '#161b27', borderRadius: 10 }}>
+          <ImageUploader
+            label="Фотография комплекса (вид сверху)"
+            value={siteRender}
+            onChange={url => { setSiteRender(url); ls.save('geroi_site_render', url); toast('Фото комплекса обновлено'); }}
+            placeholder="assets/site-render.jpg"
+          />
+        </div>
+
+      </div>
+    </>
+  );
+}
+
+const TABS = [
+  { id: 'apartments',   label: 'Квартиры',       icon: '🏠' },
+  { id: 'korpuses',     label: 'Корпуса',         icon: '🏢' },
+  { id: 'slider',       label: 'Слайдер',         icon: '🖼' },
+  { id: 'about',        label: 'О комплексе',     icon: '📋' },
+  { id: 'promos',       label: 'Акции',           icon: '🎁' },
+  { id: 'construction', label: 'Строительство',   icon: '🏗️' },
+  { id: 'infra',        label: 'Инфраструктура',  icon: '🗺️' },
+  { id: 'settings',     label: 'Настройки',       icon: '⚙️' },
+  { id: 'footer',       label: 'Подвал',          icon: '📄' },
+  { id: 'export',       label: 'Экспорт',         icon: '💾' },
+];
+
+/* ─── ADMIN PANEL ─── */
+function AdminPanel() {
+  const [tab, setTab] = useState('apartments');
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = msg => setToastMsg(msg);
+
+  const logout = () => {
+    sessionStorage.removeItem('geroi_admin');
+    window.location.reload();
+  };
+
+  return (
+    <div className="admin-layout">
+      {/* Sidebar */}
+      <div className="sidebar">
+        <div className="sidebar-logo">
+          <h1>ЖК Герои</h1>
+          <p>Панель управления</p>
+        </div>
+        {TABS.map(t => (
+          <div key={t.id} className={`nav-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+            <span style={{ fontSize: 15 }}>{t.icon}</span>
+            <span>{t.label}</span>
+          </div>
+        ))}
+        <div className="sidebar-bottom">
+          <a href="index.html" target="_blank" style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 12, textDecoration: 'none' }}>
+            ↗ Открыть сайт
+          </a>
+          <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', fontSize: 12 }} onClick={logout}>
+            Выйти
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="main-content">
+        {tab === 'apartments'   && <ApartmentsTab toast={showToast} />}
+        {tab === 'korpuses'     && <KorpusesTab toast={showToast} />}
+        {tab === 'slider'       && <SliderTab toast={showToast} />}
+        {tab === 'about'        && <AboutTab toast={showToast} />}
+        {tab === 'promos'       && <PromosTab toast={showToast} />}
+        {tab === 'construction' && <ConstructionTab toast={showToast} />}
+        {tab === 'infra'        && <InfraTab toast={showToast} />}
+        {tab === 'settings'     && <SettingsTab toast={showToast} />}
+        {tab === 'footer'       && <FooterTab toast={showToast} />}
+        {tab === 'export'       && <ExportTab toast={showToast} />}
+      </div>
+
+      {toastMsg && <Toast message={toastMsg} onDone={() => setToastMsg(null)} />}
+      <SyncStatus />
+    </div>
+  );
+}
+
+/* ─── ROOT ─── */
+function App() {
+  const [auth, setAuth] = useState(() => sessionStorage.getItem('geroi_admin') === '1');
+  if (!auth) return <LoginScreen onLogin={() => setAuth(true)} />;
+  return <AdminPanel />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+})();
+</script>
+</body>
+</html>
