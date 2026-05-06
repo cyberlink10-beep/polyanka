@@ -1,32 +1,19 @@
-import { createClient } from 'redis';
+/**
+ * Site data API — Supabase Postgres backend.
+ * Stores everything as a single row in `kv` table: { key: 'site-data', value: jsonb }.
+ *
+ * Required env vars (set in Vercel):
+ *   SUPABASE_URL          https://xxxxx.supabase.co
+ *   SUPABASE_SERVICE_KEY  service_role JWT
+ */
 
 const KEY = 'site-data';
 const ADMIN_PASSWORD = 'geroi2025';
 
-let _client = null;
-let _err = null;
-
-async function getClient() {
-  if (_client && _client.isOpen) return _client;
-  const url = process.env.REDIS_URL || process.env.KV_URL;
-  if (!url) {
-    _err = 'REDIS_URL not set. Available: ' + (Object.keys(process.env).filter(k => /KV|REDIS|UPSTASH|STORAGE/i.test(k)).join(', ') || '(none)');
-    return null;
-  }
-  try {
-    _client = createClient({
-      url,
-      socket: { connectTimeout: 7000, reconnectStrategy: false },
-    });
-    _client.on('error', e => { console.error('Redis error:', e?.message); });
-    await _client.connect();
-    _err = null;
-    return _client;
-  } catch (e) {
-    _err = String(e?.message || e);
-    _client = null;
-    return null;
-  }
+function getEnv() {
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return { url, key };
 }
 
 const noStore = (res) => {
@@ -34,20 +21,39 @@ const noStore = (res) => {
 };
 
 async function readState() {
-  const c = await getClient();
-  if (!c) return {};
+  const { url, key } = getEnv();
+  if (!url || !key) return {};
   try {
-    const raw = await c.get(KEY);
-    if (!raw) return {};
-    return JSON.parse(raw);
+    const r = await fetch(`${url}/rest/v1/kv?key=eq.${KEY}&select=value`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (!r.ok) return {};
+    const rows = await r.json();
+    if (!rows.length) return {};
+    return rows[0].value || {};
   } catch (e) {
     return {};
   }
 }
+
 async function writeState(obj) {
-  const c = await getClient();
-  if (!c) throw new Error(_err || 'Redis not configured');
-  await c.set(KEY, JSON.stringify(obj));
+  const { url, key } = getEnv();
+  if (!url || !key) throw new Error('Supabase env not set');
+  // Upsert via Prefer: resolution=merge-duplicates
+  const r = await fetch(`${url}/rest/v1/kv`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal',
+    },
+    body: JSON.stringify([{ key: KEY, value: obj }]),
+  });
+  if (!r.ok) {
+    const text = await r.text();
+    throw new Error(`Supabase upsert failed: ${r.status} ${text}`);
+  }
 }
 
 export default async function handler(req, res) {
@@ -56,17 +62,14 @@ export default async function handler(req, res) {
       noStore(res);
       const url0 = new URL(req.url, 'http://x');
       if (url0.searchParams.get('debug') === '1') {
-        const c = await getClient();
-        const envKeys = Object.keys(process.env).filter(k => /KV|REDIS|UPSTASH|STORAGE/i.test(k));
-        const data = c ? await readState() : {};
+        const { url, key } = getEnv();
+        const data = await readState();
         return res.status(200).json({
-          backend: 'node-redis',
-          key: KEY,
-          redisConfigured: !!c,
-          redisError: _err,
-          envKeys,
-          keyCount: Object.keys(data).length,
+          backend: 'supabase',
+          configured: !!(url && key),
+          envKeys: Object.keys(process.env).filter(k => /SUPABASE|REDIS|KV|UPSTASH|STORAGE/i.test(k)),
           keys: Object.keys(data),
+          keyCount: Object.keys(data).length,
         });
       }
       const data = await readState();
@@ -92,7 +95,7 @@ export default async function handler(req, res) {
         const ex = existing[k];
         const inc = incoming[k];
         if (k === 'geroi_korpuses' && Array.isArray(ex) && Array.isArray(inc)) {
-          // Korpuses: merge by id, deep-merge floorPolygons
+          // Korpuses: merge by id, deep-merge floorPolygons + floorSchemas
           const byId = new Map(ex.map(x => [x.id, x]));
           for (const x of inc) {
             const old = byId.get(x.id);
@@ -109,10 +112,9 @@ export default async function handler(req, res) {
           }
           merged[k] = Array.from(byId.values()).sort((a, b) => (a.id || 0) - (b.id || 0));
         } else if (ex && typeof ex === 'object' && !Array.isArray(ex) && inc && typeof inc === 'object' && !Array.isArray(inc)) {
-          // Plain objects (e.g. geroi_settings, geroi_about, geroi_infra, geroi_footer): shallow merge
+          // Plain objects: shallow merge
           merged[k] = { ...ex, ...inc };
         } else {
-          // Arrays without id semantics, primitives, etc — replace
           merged[k] = inc;
         }
       }
@@ -121,7 +123,7 @@ export default async function handler(req, res) {
       noStore(res);
       return res.status(200).json({
         ok: true,
-        backend: 'node-redis',
+        backend: 'supabase',
         keys: Object.keys(merged),
       });
     }

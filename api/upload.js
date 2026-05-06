@@ -1,13 +1,15 @@
 /**
- * Image upload via ImgBB API.
- * Free, no Vercel Blob limits.
+ * Image upload via Supabase Storage.
  *
- * To rotate the API key without code change:
- *   set env var IMGBB_API_KEY in Vercel project settings.
+ * Required env vars:
+ *   SUPABASE_URL
+ *   SUPABASE_SERVICE_KEY  (service_role JWT)
+ * Optional:
+ *   SUPABASE_BUCKET       (default: 'images')
  */
 
 const ADMIN_PASSWORD = 'geroi2025';
-const FALLBACK_IMGBB_KEY = 'e80e4c453cc59e425c38554f9917236d';
+const DEFAULT_BUCKET = 'images';
 
 export const config = {
   api: {
@@ -27,9 +29,11 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const apiKey = process.env.IMGBB_API_KEY || FALLBACK_IMGBB_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'IMGBB_API_KEY not configured' });
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const bucket = process.env.SUPABASE_BUCKET || DEFAULT_BUCKET;
+  if (!url || !key) {
+    return res.status(500).json({ error: 'Supabase env not set (SUPABASE_URL / SUPABASE_SERVICE_KEY)' });
   }
 
   // Read raw body
@@ -42,44 +46,41 @@ export default async function handler(req, res) {
   const body = Buffer.concat(chunks);
   if (!body.length) return res.status(400).json({ error: 'Empty body' });
 
-  // Suggested filename from header
+  // Filename
   let suggested = req.headers['x-filename'];
   try { suggested = suggested ? decodeURIComponent(suggested) : ''; } catch { suggested = ''; }
   const safeName = String(suggested || 'upload')
     .replace(/[^A-Za-z0-9._\-]/g, '_')
     .slice(-80) || 'upload';
-
-  // ImgBB expects base64 in URL-encoded form body
-  const base64 = body.toString('base64');
-  const form = new URLSearchParams();
-  form.append('image', base64);
-  form.append('name', safeName.replace(/\.[^.]+$/, '')); // strip extension
+  const ext = safeName.includes('.') ? safeName.slice(safeName.lastIndexOf('.')) : '';
+  const base = ext ? safeName.slice(0, safeName.lastIndexOf('.')) : safeName;
+  const path = `uploads/${base}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+  const contentType = req.headers['content-type'] || 'application/octet-stream';
 
   try {
-    const r = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+    // Upload to bucket
+    const r = await fetch(`${url}/storage/v1/object/${bucket}/${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: form,
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': contentType,
+        'Cache-Control': '3600',
+      },
+      body,
     });
-    const j = await r.json();
-    if (!r.ok || !j?.success) {
-      return res.status(502).json({
-        error: 'ImgBB upload failed',
-        status: r.status,
-        details: j?.error?.message || j?.status_txt || 'unknown',
-      });
+    if (!r.ok) {
+      const text = await r.text();
+      return res.status(502).json({ error: 'Supabase storage upload failed', status: r.status, details: text });
     }
-    // Use the original `url` (highest-resolution direct link)
-    const url = j.data?.url || j.data?.display_url || j.data?.image?.url;
-    if (!url) {
-      return res.status(502).json({ error: 'ImgBB response missing url', response: j.data });
-    }
+    const publicUrl = `${url}/storage/v1/object/public/${bucket}/${path}`;
     return res.status(200).json({
       ok: true,
-      url,
-      thumbnail: j.data?.thumb?.url,
+      url: publicUrl,
+      path,
+      bucket,
       size: body.length,
-      provider: 'imgbb',
+      provider: 'supabase',
     });
   } catch (e) {
     return res.status(500).json({ error: String(e?.message || e) });
