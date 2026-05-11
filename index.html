@@ -78,12 +78,34 @@
     body {
       font-family: var(--font-body);
       font-weight: 400;
-      background: var(--c-bone);
+      background: var(--c-bone) url('assets/patterns/01-whisper-clear.svg');
+      background-size: 320px 320px;
       color: var(--c-ink-soft);
       line-height: 1.65;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
+
+    /* Premium hero double frame — внешняя рамка champagne, внутренняя в 14px от первой */
+    .hero-double-frame {
+      position: absolute; inset: 24px; pointer-events: none; z-index: 4;
+      border: 1px solid rgba(239,228,196,0.32);
+    }
+    .hero-double-frame::after {
+      content: '';
+      position: absolute; inset: 14px;
+      border: 1px solid rgba(239,228,196,0.18);
+    }
+
+    /* Tendril divider — горизонтальный разделитель между секциями */
+    .tendril-divider {
+      height: 64px;
+      background: url('assets/patterns/05-tendril-clear.svg') repeat-x center center;
+      background-size: auto 60px;
+      opacity: 0.7;
+    }
+    .tendril-divider.on-bone { background-color: var(--c-bone); }
+    .tendril-divider.on-cream { background-color: var(--c-cream); }
     /* Cormorant Garamond Light тонкий — поднимаем дефолт display-шрифта до Regular,
        читается лучше на экранах при средних размерах */
     h1, h2, h3, h4, .display { font-weight: 400; }
@@ -514,13 +536,13 @@ const _DEFAULT_SETTINGS = {
 const SITE = { ..._DEFAULT_SETTINGS, ..._lsLoad('geroi_settings', {}) };
 
 const DEFAULT_ABOUT = {
-  label: 'О комплексе', title: 'Жилой комплекс\nнового поколения', subtitle: 'Созданный для тех, кто ценит качество жизни',
-  text1: 'ЖК «Полянка» — это современный жилой комплекс, где архитектура встречает природу. Тёплая палитра фасадов, продуманное благоустройство и развитая инфраструктура создают идеальное место для спокойной жизни без потери городских удобств.',
-  text2: 'Каждая деталь продумана: от энергоэффективных материалов до закрытого двора без машин. Мы строим не просто дома — мы создаём сообщество активных людей.',
+  label: 'О комплексе · About', title: 'Архитектура,\nкоторая _дышит_ природой', subtitle: '— тихий адрес для тех, кто умеет слышать —',
+  text1: 'ЖК «Полянка» — это место, где гармонично соединяются спокойствие, тишина, чистый воздух и уютная жизнь без потери городских удобств. Тёплая палитра фасадов, продуманное благоустройство и развитая инфраструктура — каждая деталь продумана так, чтобы создать ощущение покоя и принадлежности.',
+  text2: 'От мягких округлостей знака до тёплых природных тонов фирменной палитры — бренд говорит спокойным, уверенным голосом. Закрытый двор без машин, энергоэффективные материалы, дворы-сады — пространство для долгой и неторопливой жизни.',
   features: [
-    { icon: '◆', title: 'Монолитный каркас', desc: 'Надёжная конструкция с высоким классом сейсмостойкости' },
-    { icon: '◆', title: 'Закрытый двор', desc: 'Безопасное пространство без машин для отдыха и прогулок' },
-    { icon: '◆', title: 'Энергоэффективность', desc: 'Тёплые вентфасады и высококачественное утепление' },
+    { icon: '◆', title: 'Монолитный каркас', desc: 'Надёжная конструкция, рассчитанная на десятилетия' },
+    { icon: '◆', title: 'Закрытый двор', desc: 'Двор-сад без машин — для прогулок и тишины' },
+    { icon: '◆', title: 'Энергоэффективность', desc: 'Тёплые вентфасады и качественное утепление' },
     { icon: '◆', title: 'Безопасность 24/7', desc: 'Видеонаблюдение, домофоны, охраняемая территория' },
   ],
 };
@@ -583,9 +605,9 @@ const SITE_RENDER = _lsLoad('geroi_site_render', 'assets/site-render.jpg');
 
 /* ─── HERO SLIDER ─── */
 const SLIDES = _lsLoad('geroi_slides', [
-  { src: 'assets/render-hero-1.jpg', caption: 'Фасад со стороны улицы' },
-  { src: 'assets/render-hero-2.jpg', caption: 'Внутренний двор' },
-  { src: 'assets/render-hero-3.jpg', caption: 'Коммерческий первый этаж' },
+  { src: 'assets/render-hero-1.jpg', caption: 'Главный фасад · вид со стороны улицы' },
+  { src: 'assets/render-hero-2.jpg', caption: 'Угловой фасад · витрины первого этажа' },
+  { src: 'assets/render-hero-3.jpg', caption: 'Архитектурный фрагмент · вход в дом' },
 ]);
 
 function Hero({ onNav }) {
@@ -707,6 +729,9 @@ function Hero({ onNav }) {
         background: 'linear-gradient(to top, rgba(16,12,8,0.78) 0%, rgba(16,12,8,0.30) 52%, rgba(16,12,8,0.05) 100%)',
       }} />
 
+      {/* Premium double frame */}
+      <div className="hero-double-frame" />
+
       {/* Accent line */}
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4, height: 3,
@@ -792,7 +817,7 @@ function Hero({ onNav }) {
             fontSize: 15, fontWeight: 400, color: 'rgba(255,255,255,0.78)', marginBottom: 36,
             lineHeight: 1.7, maxWidth: 440,
           }}>
-            Современные квартиры с продуманной планировкой. Закрытый двор, собственный спорткомплекс, коммерческие помещения.
+            Каждое утро вы просыпаетесь у себя на поляне. Закрытый двор-сад, тёплые фасады, неспешная архитектура для долгой жизни.
           </p>
 
           <div className="hero-line hero-line-4" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -989,10 +1014,10 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
       <div className="container">
         <div style={{ marginBottom: 48 }}>
           <div style={{ fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', marginBottom: 12, fontWeight: 600 }}>
-            Каталог квартир
+            — II · Каталог квартир —
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px, 4vw, 48px)', textTransform: 'uppercase', color: 'var(--c-charcoal)', lineHeight: 1.05 }}>
-            Выберите квартиру
+          <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(36px, 4.5vw, 56px)', color: 'var(--c-charcoal)', lineHeight: 1.05, letterSpacing: '-0.005em' }}>
+            Выберите <em style={{ fontStyle: 'italic', color: 'var(--c-olive-deep)' }}>свою</em> квартиру<em style={{ fontStyle: 'italic', color: 'var(--c-terracotta)', fontWeight: 500 }}>.</em>
           </h2>
         </div>
 
@@ -1504,7 +1529,7 @@ function FloorPlan({ onSelectApt }) {
       <div className="container" style={{ position: 'relative' }}>
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', marginBottom: 12, fontWeight: 600 }}>
-            Интерактивный выбор
+            — III · Интерактивный выбор —
           </div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,4vw,48px)', textTransform: 'uppercase', color: 'var(--c-charcoal)', lineHeight: 1.05 }}>
             Планировки по этажам
@@ -1914,16 +1939,15 @@ function Features() {
       {/* Pattern kept here — subtle texture on dark solid-color section */}
       <div style={{
         position: 'absolute', inset: 0, opacity: 0.05,
-        backgroundImage: 'url(assets/pattern-dark-gold.jpg)',
+        backgroundImage: 'url(assets/patterns/06-darkbloom-clear.svg)',
         backgroundSize: '640px',
       }} />
       <div className="container" style={{ position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56, flexWrap: 'wrap', gap: 20 }}>
           <div>
-            <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 12 }}>Преимущества</div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,4vw,48px)', textTransform: 'uppercase', color: '#fff', lineHeight: 1.05 }}>
-              Жить в Героях —{' '}
-              <span style={{ color: 'var(--c-brand)' }}>значит</span> жить лучше
+            <div style={{ fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 14, fontWeight: 600 }}>— V · Преимущества · Privileges —</div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(36px,4.5vw,56px)', color: 'var(--c-champagne)', lineHeight: 1.05, letterSpacing: '-0.005em' }}>
+              Жизнь <em style={{ fontStyle: 'italic', color: 'var(--c-gold)' }}>на своей</em> поляне<em style={{ fontStyle: 'italic', color: 'var(--c-terracotta)', fontWeight: 500 }}>.</em>
             </h2>
           </div>
           <p style={{ maxWidth: 320, fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7 }}>
@@ -1971,7 +1995,7 @@ function Gallery() {
     <section id="progress" style={{ padding: '96px 0', background: '#fff' }}>
       <div className="container">
         <div style={{ marginBottom: 48 }}>
-          <div style={{ fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', marginBottom: 12, fontWeight: 600 }}>Архитектура и масштаб</div>
+          <div style={{ fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', marginBottom: 12, fontWeight: 600 }}>— VI · Галерея · Gallery —</div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,4vw,48px)', textTransform: 'uppercase', color: 'var(--c-charcoal)', lineHeight: 1.05 }}>
             Масштаб,<br/>который впечатляет
           </h2>
@@ -2010,22 +2034,28 @@ function AboutComplex() {
   const d = ABOUT_DATA;
   const feats = Array.isArray(d.features) ? d.features : DEFAULT_ABOUT.features;
   return (
-    <section id="about-complex" style={{ padding: '96px 0', background: '#18140f', position: 'relative', overflow: 'hidden' }}>
-      {/* Decorative pattern */}
-      <div style={{ position:'absolute', inset:0, opacity:0.04, backgroundImage:'url(assets/pattern-orange-maroon.jpg)', backgroundSize:'640px' }} />
+    <section id="about-complex" style={{ padding: '120px 0', background: 'var(--c-ink)', position: 'relative', overflow: 'hidden' }}>
+      {/* Decorative pattern — Polyanka Garden */}
+      <div style={{ position:'absolute', inset:0, opacity:0.06, backgroundImage:'url(assets/patterns/03-garden-clear.svg)', backgroundSize:'520px' }} />
       {/* Gold vertical line accent */}
-      <div style={{ position:'absolute', left:0, top:'10%', bottom:'10%', width:3, background:'linear-gradient(to bottom, transparent, var(--c-gold), transparent)', opacity:0.6 }} />
+      <div style={{ position:'absolute', left:0, top:'10%', bottom:'10%', width:1, background:'linear-gradient(to bottom, transparent, var(--c-gold), transparent)', opacity:0.8 }} />
       <div className="container" style={{ position:'relative' }}>
         {/* Header */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:80, alignItems:'start', marginBottom:72 }}>
           <div>
-            <div style={{ fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:20 }}>{d.label || 'О комплексе'}</div>
-            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(36px,4.5vw,60px)', textTransform:'uppercase', color:'#fff', lineHeight:1, marginBottom:24, whiteSpace:'pre-line' }}>
-              {(d.title || '').replace('\\n', '\n')}
-            </h2>
-            <div style={{ width:48, height:2, background:'var(--c-brand)', marginBottom:28 }} />
-            <p style={{ fontSize:16, color:'rgba(255,255,255,0.55)', lineHeight:1.75, marginBottom:20 }}>{d.text1}</p>
-            <p style={{ fontSize:16, color:'rgba(255,255,255,0.4)', lineHeight:1.75 }}>{d.text2}</p>
+            <div style={{ fontSize:12, letterSpacing:'0.32em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:18, fontWeight:600 }}>
+              — {d.label || 'О комплексе'} —
+            </div>
+            <h2
+              style={{ fontFamily:'var(--font-display)', fontWeight:400, fontSize:'clamp(36px,4.5vw,60px)', color:'var(--c-champagne)', lineHeight:1.05, marginBottom:18, whiteSpace:'pre-line', letterSpacing:'-0.005em' }}
+              dangerouslySetInnerHTML={{ __html: (d.title || '').replace(/\\n/g,'\n').replace(/_([^_]+)_/g, '<em style="font-style:italic;color:#EFE4C4;font-weight:500">$1</em>') }}
+            />
+            <div style={{ fontFamily:'var(--font-display)', fontStyle:'italic', fontSize:20, color:'var(--c-gold)', marginBottom:28, lineHeight:1.4 }}>
+              {d.subtitle}
+            </div>
+            <div style={{ width:60, height:1, background:'var(--c-gold)', marginBottom:28 }} />
+            <p style={{ fontSize:16, color:'rgba(239,228,196,0.78)', lineHeight:1.75, marginBottom:20 }}>{d.text1}</p>
+            <p style={{ fontSize:16, color:'rgba(239,228,196,0.62)', lineHeight:1.75 }}>{d.text2}</p>
           </div>
           {/* Photo + both floating cards */}
           <div style={{ position:'relative' }}>
@@ -2036,7 +2066,7 @@ function AboutComplex() {
             {/* Floating card — Олимп logo, top-right */}
             <div style={{
               position:'absolute', top:-24, right:-32,
-              background:'rgba(20,17,14,0.95)', border:'1px solid rgba(227,133,77,0.3)',
+              background:'rgba(20,17,14,0.95)', border:'1px solid rgba(184,153,104,0.45)',
               borderRadius:10, padding:'0 16px', backdropFilter:'blur(12px)',
               display:'flex', alignItems:'center', justifyContent:'center',
               overflow:'hidden',
@@ -2050,11 +2080,11 @@ function AboutComplex() {
             {/* Floating stat card — year, bottom-left */}
             <div style={{
               position:'absolute', bottom:-24, left:-32,
-              background:'rgba(20,17,14,0.95)', border:'1px solid rgba(227,133,77,0.3)',
+              background:'rgba(20,17,14,0.95)', border:'1px solid rgba(184,153,104,0.45)',
               borderRadius:12, padding:'20px 28px', backdropFilter:'blur(12px)',
             }}>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:36, color:'var(--c-brand)', lineHeight:1 }}>{SITE.year}</div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,0.5)', marginTop:4, letterSpacing:'0.08em', textTransform:'uppercase' }}>Год сдачи</div>
+              <div style={{ fontFamily:'var(--font-display)', fontWeight:500, fontSize:42, color:'var(--c-champagne)', lineHeight:1, letterSpacing:'-0.01em' }}>{SITE.year}</div>
+              <div style={{ fontSize:12, color:'var(--c-gold)', marginTop:6, letterSpacing:'0.2em', textTransform:'uppercase', fontWeight:600 }}>Год сдачи</div>
             </div>
           </div>
         </div>
@@ -2089,12 +2119,12 @@ function Promos() {
   const accentMap = { '#4ade80':'rgba(74,222,128,0.12)', '#A85D3F':'rgba(227,133,77,0.12)', '#818cf8':'rgba(129,140,248,0.12)', '#e879f9':'rgba(232,121,249,0.12)' };
   return (
     <section id="promos" style={{ padding:'96px 0', background:'#0e0c0a', position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:'url(assets/pattern-dark-gold.jpg)', backgroundSize:'640px' }} />
+      <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:'url(assets/patterns/06-darkbloom-clear.svg)', backgroundSize:'640px' }} />
       <div className="container" style={{ position:'relative' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:48 }}>
           <div>
-            <div style={{ fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:14 }}>Специальные предложения</div>
-            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(32px,4vw,52px)', textTransform:'uppercase', color:'#fff', lineHeight:1 }}>Акции</h2>
+            <div style={{ fontSize:12, letterSpacing:'0.32em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:14, fontWeight:600 }}>— IV · Акции · Promotions —</div>
+            <h2 style={{ fontFamily:'var(--font-display)', fontWeight:400, fontSize:'clamp(36px,4.5vw,56px)', color:'var(--c-champagne)', lineHeight:1.05, letterSpacing:'-0.005em' }}>Специальные <em style={{ fontStyle:'italic', color:'var(--c-gold)' }}>условия</em></h2>
           </div>
           <div style={{ fontSize:13, color:'rgba(255,255,255,0.3)', textAlign:'right' }}>Предложения ограничены<br/>по времени</div>
         </div>
@@ -2147,9 +2177,9 @@ function ConstructionProgress() {
     <section id="construction" style={{ padding:'96px 0', background:'var(--c-charcoal)', position:'relative', overflow:'hidden' }}>
       <div className="container">
         <div style={{ marginBottom:40 }}>
-          <div style={{ fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--c-brand)', marginBottom:14 }}>Фотоотчёт</div>
+          <div style={{ fontSize:12, letterSpacing:'0.32em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:14, fontWeight:600 }}>— VII · Фотоотчёт · Progress —</div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:20 }}>
-            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(32px,4vw,52px)', textTransform:'uppercase', color:'#fff', lineHeight:1 }}>Ход строительства</h2>
+            <h2 style={{ fontFamily:'var(--font-display)', fontWeight:400, fontSize:'clamp(36px,4.5vw,56px)', color:'var(--c-champagne)', lineHeight:1.05, letterSpacing:'-0.005em' }}>Ход <em style={{ fontStyle:'italic', color:'var(--c-gold)' }}>строительства</em></h2>
             {/* Month selector */}
             <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
               {months.map((m, i) => (
@@ -2218,11 +2248,11 @@ function Infrastructure() {
       <div className="container" style={{ marginBottom:48 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:48, flexWrap:'wrap', gap:24 }}>
           <div>
-            <div style={{ fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--c-brand)', marginBottom:14 }}>Расположение</div>
-            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(32px,4vw,52px)', textTransform:'uppercase', color:'var(--c-charcoal)', lineHeight:1 }}>Инфраструктура</h2>
+            <div style={{ fontSize:12, letterSpacing:'0.32em', textTransform:'uppercase', color:'var(--c-olive)', marginBottom:14, fontWeight:600 }}>— VIII · Расположение · Location —</div>
+            <h2 style={{ fontFamily:'var(--font-display)', fontWeight:400, fontSize:'clamp(36px,4.5vw,56px)', color:'var(--c-charcoal)', lineHeight:1.05, letterSpacing:'-0.005em' }}>Город <em style={{ fontStyle:'italic', color:'var(--c-olive-deep)' }}>в шаговой</em> доступности</h2>
           </div>
-          <p style={{ fontSize:14, color:'rgba(0,0,0,0.45)', maxWidth:320, lineHeight:1.6 }}>
-            Всё необходимое — в шаговой доступности от вашего нового дома
+          <p style={{ fontSize:15, color:'var(--c-ink-soft)', maxWidth:340, lineHeight:1.7, fontStyle:'italic' }}>
+            Тихая улица, дворы-сады, а в десяти минутах — всё, что нужно для жизни.
           </p>
         </div>
         {/* Places grid */}
@@ -2356,7 +2386,13 @@ function ContactForm() {
 /* ─── FOOTER ─── */
 function Footer() {
   return (
-    <footer style={{ background: '#141210', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '48px 0 32px' }}>
+    <footer style={{
+      background: 'var(--c-olive-deep) url(\'assets/patterns/06-darkbloom-clear.svg\')',
+      backgroundSize: '420px 420px',
+      borderTop: '1px solid rgba(239,228,196,0.18)',
+      padding: '72px 0 36px',
+      position: 'relative',
+    }}>
       <div className="container">
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 40 }}>
           <div>
@@ -2403,7 +2439,9 @@ function Footer() {
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', lineHeight: 1.7, maxWidth: 900 }}>{FOOTER_EXTRA.legalText}</p>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>© {SITE.year} ЖК «Полянка». Все права защищены.</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.02em' }}>
+            © {SITE.year} ЖК «Полянка» · <span style={{ fontStyle: 'italic', color: 'var(--c-gold)' }}>Anno MMXXVI</span> · Все права защищены
+          </div>
           <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
             <a href={FOOTER_EXTRA.privacyUrl || '#'} style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', textDecoration: 'none', transition: 'color 150ms' }}
               onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.45)'}>
@@ -2636,10 +2674,12 @@ function App() {
       <Hero onNav={handleNav} />
       <div className="reveal"><AboutStrip /></div>
       <div className="reveal"><AboutComplex /></div>
+      <div className="tendril-divider on-bone" aria-hidden="true" />
       <div className="reveal"><ApartmentCatalog onSelectApt={setSelectedApt} /></div>
       <div className="reveal"><FloorPlan onSelectApt={setSelectedApt} /></div>
       <div className="reveal"><Promos /></div>
       <div className="reveal"><Features /></div>
+      <div className="tendril-divider on-bone" aria-hidden="true" />
       <div className="reveal"><Gallery /></div>
       <div className="reveal"><ConstructionProgress /></div>
       <div className="reveal"><Infrastructure /></div>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <pattern id="whisper" x="0" y="0" width="240" height="240" patternUnits="userSpaceOnUse">
+      
+      <g fill="none" stroke="#4E5538" stroke-width="1.2" stroke-linecap="round" opacity="0.16">
+        <g transform="translate(40,50) scale(0.18) rotate(15)"><path d="M 0 -20 C -55 -85, -95 -145, -55 -195 C -15 -218, 30 -195, 35 -140 C 40 -85, 15 -40, 0 -20 Z"/></g>
+        <g transform="translate(170,30) scale(0.14) rotate(-25)"><path d="M 0 -20 C -55 -85, -95 -145, -55 -195 C -15 -218, 30 -195, 35 -140 C 40 -85, 15 -40, 0 -20 Z"/></g>
+        <g transform="translate(105,110) scale(0.22) rotate(60)"><path d="M 0 -20 C -55 -85, -95 -145, -55 -195 C -15 -218, 30 -195, 35 -140 C 40 -85, 15 -40, 0 -20 Z"/></g>
+        <g transform="translate(200,150) scale(0.16) rotate(-10)"><path d="M 0 -20 C -55 -85, -95 -145, -55 -195 C -15 -218, 30 -195, 35 -140 C 40 -85, 15 -40, 0 -20 Z"/></g>
+        <g transform="translate(60,190) scale(0.20) rotate(120)"><path d="M 0 -20 C -55 -85, -95 -145, -55 -195 C -15 -218, 30 -195, 35 -140 C 40 -85, 15 -40, 0 -20 Z"/></g>
+        <g transform="translate(160,220) scale(0.15) rotate(40)"><path d="M 0 -20 C -55 -85, -95 -145, -55 -195 C -15 -218, 30 -195, 35 -140 C 40 -85, 15 -40, 0 -20 Z"/></g>
+        <g transform="translate(20,130) scale(0.13) rotate(-70)"><path d="M 0 -20 C -55 -85, -95 -145, -55 -195 C -15 -218, 30 -195, 35 -140 C 40 -85, 15 -40, 0 -20 Z"/></g>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="240" height="240" fill="url(#whisper)"/>
+</svg>

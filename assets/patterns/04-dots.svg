@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#FAF6EC"/>
+      <circle cx="10" cy="10" r="1.2" fill="#4E5538" fill-opacity="0.28"/>
+      <circle cx="30" cy="30" r="1.2" fill="#4E5538" fill-opacity="0.28"/>
+      <circle cx="30" cy="10" r="0.8" fill="#B89968" fill-opacity="0.45"/>
+      <circle cx="10" cy="30" r="0.8" fill="#B89968" fill-opacity="0.45"/>
+    </pattern>
+  </defs>
+  <rect width="40" height="40" fill="url(#dots)"/>
+</svg>

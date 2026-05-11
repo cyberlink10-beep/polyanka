@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80">
+  <defs>
+    <pattern id="tendril" x="0" y="0" width="200" height="80" patternUnits="userSpaceOnUse">
+      
+      <path d="M 0 40 Q 25 15, 50 40 T 100 40 T 150 40 T 200 40"
+            fill="none" stroke="#4E5538" stroke-width="1" stroke-opacity="0.45" stroke-linecap="round"/>
+      <circle cx="25" cy="22" r="1.8" fill="#A85D3F" fill-opacity="0.7"/>
+      <circle cx="75" cy="58" r="1.8" fill="#A85D3F" fill-opacity="0.7"/>
+      <circle cx="125" cy="22" r="1.8" fill="#A85D3F" fill-opacity="0.7"/>
+      <circle cx="175" cy="58" r="1.8" fill="#A85D3F" fill-opacity="0.7"/>
+      <circle cx="50" cy="40" r="1" fill="#B89968"/>
+      <circle cx="100" cy="40" r="1" fill="#B89968"/>
+      <circle cx="150" cy="40" r="1" fill="#B89968"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="80" fill="url(#tendril)"/>
+</svg>
