@@ -1714,7 +1714,7 @@ function FloorPlan({ onSelectApt }) {
               <div style={{ marginTop: 28, textAlign: 'center' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ width: 48, height: 1, background: 'linear-gradient(90deg, transparent, var(--c-gold))' }} />
-                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500, fontSize: 16, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--c-olive-deep)' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 14, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--c-olive-deep)' }}>
                     {step === 0 ? '— I — Выберите корпус' : '— II — Выберите этаж'}
                   </span>
                   <span style={{ width: 48, height: 1, background: 'linear-gradient(90deg, var(--c-gold), transparent)' }} />
@@ -1935,8 +1935,8 @@ function Features() {
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
             >
               <div style={{ marginBottom: 16 }}>{FEATURE_ICONS[i]}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, textTransform: 'uppercase', color: '#fff', marginBottom: 8 }}>{f.title}</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{f.desc}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#fff', marginBottom: 10 }}>{f.title}</div>
+              <div style={{ fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>{f.desc}</div>
             </div>
           ))}
         </div>
@@ -2064,8 +2064,8 @@ function AboutComplex() {
               onMouseLeave={e => e.currentTarget.style.background=(i%2===0?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.015)')}
             >
               <div style={{ fontSize:18, color:'var(--c-brand)', marginBottom:14, fontWeight:900, letterSpacing:'-0.05em' }}>0{i+1}</div>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:15, color:'#fff', textTransform:'uppercase', marginBottom:10, lineHeight:1.2 }}>{f.title}</div>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:1.6 }}>{f.desc}</div>
+              <div style={{ fontFamily:'var(--font-body)', fontSize:15, fontWeight:700, letterSpacing:'0.04em', color:'#fff', textTransform:'uppercase', marginBottom:10, lineHeight:1.25 }}>{f.title}</div>
+              <div style={{ fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.72)', lineHeight:1.6 }}>{f.desc}</div>
             </div>
           ))}
         </div>
