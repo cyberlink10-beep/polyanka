@@ -745,8 +745,8 @@ function Hero({ onNav }) {
       {/* Slide counter */}
       <div style={{
         position: 'absolute', top: 96, right: 40, zIndex: 5,
-        fontFamily: 'var(--font-display)', fontSize: 13,
-        color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em',
+        fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16,
+        color: 'rgba(255,255,255,0.6)', letterSpacing: '0.14em',
       }}>
         {String(current + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
       </div>
@@ -768,8 +768,8 @@ function Hero({ onNav }) {
                 <circle cx="6" cy="6" r="2" fill="white"/>
               </svg>
               <span style={{
-                fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: '#E8D8A8', fontWeight: 500,
+                fontFamily: 'var(--font-body)', fontSize: 13, letterSpacing: '0.22em',
+                textTransform: 'uppercase', color: '#E8D8A8', fontWeight: 600,
               }}>{`Жилой комплекс · ${SITE.city}`}</span>
             </span>
           </div>
@@ -877,17 +877,17 @@ function ApartmentCard({ apt, onSelect }) {
       </div>
       <div style={{ padding: '16px 16px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, textTransform: 'uppercase', color: 'var(--c-charcoal)' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 24, textTransform: 'uppercase', color: 'var(--c-charcoal)' }}>
             {apt.rooms}-комн.
           </span>
-          <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>{apt.floor} этаж</span>
+          <span style={{ fontSize: 14, color: 'var(--c-gray-500)' }}>{apt.floor} этаж</span>
         </div>
-        <div style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>{apt.area} м² · Корпус {apt.korpus || 1}</div>
-        <div style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid var(--c-gray-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--c-brand)' }}>
+        <div style={{ fontSize: 15, color: 'var(--c-gray-500)' }}>{apt.area} м² · Корпус {apt.korpus || 1}</div>
+        <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid var(--c-gray-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 24, color: 'var(--c-brand)', letterSpacing: '-0.01em' }}>
             {apt.price.toLocaleString('ru-RU')} ₽
           </span>
-          <span style={{ fontSize: 11, color: 'var(--c-gray-300)' }}>
+          <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>
             {Math.round(apt.price / apt.area).toLocaleString('ru-RU')} ₽/м²
           </span>
         </div>
@@ -1482,17 +1482,17 @@ function FloorPlan({ onSelectApt }) {
       transition: 'all 200ms', flex: 1, minWidth: 160,
     }}>
       <div style={{
-        width: 30, height: 30, borderRadius: '50%',
+        width: 34, height: 34, borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 700,
+        fontFamily: 'var(--font-body)', fontSize: 15, fontWeight: 700,
         background: isActive ? 'linear-gradient(135deg,#B86B4D,#8E4A30)' : isDone ? 'rgba(168,93,63,0.14)' : '#f0eeea',
         color: isActive ? '#fff' : isDone ? '#A85D3F' : '#bbb',
         boxShadow: isActive ? '0 4px 14px rgba(168,93,63,0.32)' : 'none',
         flexShrink: 0,
       }}>{isDone ? '✓' : n}</div>
       <div style={{ overflow: 'hidden' }}>
-        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--c-gray-400)' }}>{label}</div>
-        <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2, color: isActive || isDone ? 'var(--c-charcoal)' : '#bbb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gray-500)' }}>{label}</div>
+        <div style={{ fontSize: 15, fontWeight: 600, marginTop: 3, color: isActive || isDone ? 'var(--c-charcoal)' : '#bbb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {value || '—'}
         </div>
       </div>
@@ -1651,9 +1651,9 @@ function FloorPlan({ onSelectApt }) {
                       animation: 'fadeUp 180ms ease-out',
                       minWidth: 180, textAlign: 'center', zIndex: 5,
                     }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: '#fff', textTransform: 'uppercase', marginBottom: 6 }}>{k.name}</div>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>{k.floors} этажей · {k.total} квартир</div>
-                      <div style={{ fontSize: 12, color: '#4ade80', fontWeight: 600 }}>● {k.free} свободно</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 22, color: '#fff', textTransform: 'uppercase', marginBottom: 8 }}>{k.name}</div>
+                      <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>{k.floors} этажей · {k.total} квартир</div>
+                      <div style={{ fontSize: 14, color: '#4ade80', fontWeight: 600 }}>● {k.free} свободно</div>
                     </div>
                   );
                 })()}
@@ -1672,25 +1672,25 @@ function FloorPlan({ onSelectApt }) {
                     <div style={{ fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', fontWeight: 600, marginBottom: 6 }}>{korpus.name}</div>
                     {hoveredFloor ? (
                       <>
-                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 56, color: 'var(--c-charcoal)', lineHeight: 1, marginBottom: 2 }}>{hoveredFloor}</div>
-                        <div style={{ fontSize: 12, color: 'var(--c-gray-500)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 18 }}>этаж</div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 64, color: 'var(--c-charcoal)', lineHeight: 1, marginBottom: 4 }}>{hoveredFloor}</div>
+                        <div style={{ fontSize: 13, color: 'var(--c-gray-500)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 20 }}>этаж</div>
                         {(() => {
                           const apts = genFloor(hoveredFloor, korpus.id);
                           const free = apts.filter(a => a.available).length;
                           const minP = Math.min(...apts.map(a => a.price));
                           return (
-                            <div style={{ display: 'grid', gap: 10 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>Квартир</span>
-                                <span style={{ fontSize: 13, color: 'var(--c-charcoal)', fontWeight: 600 }}>{apts.length}</span>
+                            <div style={{ display: 'grid', gap: 12 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>Квартир</span>
+                                <span style={{ fontSize: 17, color: 'var(--c-charcoal)', fontWeight: 700 }}>{apts.length}</span>
                               </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>Свободных</span>
-                                <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 600 }}>{free}</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>Свободных</span>
+                                <span style={{ fontSize: 17, color: '#16a34a', fontWeight: 700 }}>{free}</span>
                               </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>От</span>
-                                <span style={{ fontSize: 14, color: 'var(--c-brand)', fontWeight: 700 }}>{(minP / 1000000).toFixed(2).replace(/\.?0+$/, '')} млн ₽</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                                <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>От</span>
+                                <span style={{ fontSize: 18, color: 'var(--c-brand)', fontWeight: 700 }}>{(minP / 1000000).toFixed(2).replace(/\.?0+$/, '')} млн ₽</span>
                               </div>
                             </div>
                           );
@@ -1698,18 +1698,18 @@ function FloorPlan({ onSelectApt }) {
                       </>
                     ) : (
                       <>
-                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--c-charcoal)', textTransform: 'uppercase', marginBottom: 8, lineHeight: 1.2 }}>Выберите этаж</div>
-                        <div style={{ fontSize: 12, color: 'var(--c-gray-500)', lineHeight: 1.5, marginBottom: 16 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 22, color: 'var(--c-charcoal)', textTransform: 'uppercase', marginBottom: 10, lineHeight: 1.2 }}>Выберите этаж</div>
+                        <div style={{ fontSize: 13, color: 'var(--c-gray-500)', lineHeight: 1.5, marginBottom: 18 }}>
                           Наведите на этаж на фотографии
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                          <div style={{ padding: '10px 12px', background: '#faf9f7', borderRadius: 8, border: '1px solid #ece9e5' }}>
-                            <div style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--c-gray-400)', marginBottom: 2 }}>Этажей</div>
-                            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--c-charcoal)' }}>{korpus.floors}</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                          <div style={{ padding: '12px 14px', background: '#faf9f7', borderRadius: 8, border: '1px solid #ece9e5' }}>
+                            <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--c-gray-500)', marginBottom: 4 }}>Этажей</div>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 26, color: 'var(--c-charcoal)', lineHeight: 1 }}>{korpus.floors}</div>
                           </div>
-                          <div style={{ padding: '10px 12px', background: '#faf9f7', borderRadius: 8, border: '1px solid #ece9e5' }}>
-                            <div style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--c-gray-400)', marginBottom: 2 }}>Квартир</div>
-                            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--c-charcoal)' }}>{korpus.total}</div>
+                          <div style={{ padding: '12px 14px', background: '#faf9f7', borderRadius: 8, border: '1px solid #ece9e5' }}>
+                            <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--c-gray-500)', marginBottom: 4 }}>Квартир</div>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 26, color: 'var(--c-charcoal)', lineHeight: 1 }}>{korpus.total}</div>
                           </div>
                         </div>
                       </>
@@ -1841,11 +1841,11 @@ function FloorPlan({ onSelectApt }) {
                           <span style={{ fontSize: 13, color: 'var(--c-charcoal)', fontWeight: 600 }}>{v}</span>
                         </div>
                       ))}
-                      <div style={{ padding: '14px 0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>Стоимость</span>
-                        <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--c-brand)' }}>{selectedApt.price.toLocaleString('ru-RU')} ₽</span>
+                      <div style={{ padding: '18px 0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <span style={{ fontSize: 14, color: 'var(--c-gray-500)' }}>Стоимость</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 32, color: 'var(--c-brand)', letterSpacing: '-0.01em', lineHeight: 1 }}>{selectedApt.price.toLocaleString('ru-RU')} ₽</span>
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--c-gray-300)', textAlign: 'right', marginBottom: 16 }}>
+                      <div style={{ fontSize: 13, color: 'var(--c-gray-500)', textAlign: 'right', marginBottom: 18 }}>
                         {Math.round(selectedApt.price / selectedApt.area).toLocaleString('ru-RU')} ₽/м²
                       </div>
                       <button className="btn btn-primary" style={{ width: '100%', marginBottom: 8 }} onMouseDown={addRipple} onClick={() => onSelectApt && onSelectApt(selectedApt)}>
@@ -2367,35 +2367,35 @@ function Footer() {
                 style={{ height: 52, width: 'auto', display: 'block' }}
               />
             </div>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, maxWidth: 240 }}>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: 260 }}>
               Жилой комплекс «Полянка» — где архитектура встречает природу. Тёплые тона, тишина и комфорт в шаге от города.
             </p>
           </div>
           <div>
-            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 16 }}>Квартиры</div>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 18 }}>Квартиры</div>
             {['1-комнатные', '2-комнатные', '3-комнатные', 'Планировки', 'Цены'].map(l => (
-              <div key={l} style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 8, cursor: 'pointer', transition: 'color 150ms' }}
+              <div key={l} style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 10, cursor: 'pointer', transition: 'color 150ms' }}
                 onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
               >{l}</div>
             ))}
           </div>
           <div>
-            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 16 }}>Комплекс</div>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 18 }}>Комплекс</div>
             {['О проекте', 'Ход строительства', 'Инфраструктура', 'Документы', 'Новости'].map(l => (
-              <div key={l} style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 8, cursor: 'pointer', transition: 'color 150ms' }}
+              <div key={l} style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 10, cursor: 'pointer', transition: 'color 150ms' }}
                 onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
               >{l}</div>
             ))}
           </div>
           <div>
-            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 16 }}>Контакты</div>
-            <div style={{ fontSize: 15, color: '#fff', marginBottom: 4 }}>{SITE.phone}</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 16 }}>{SITE.phoneLabel}</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 4 }}>{SITE.address}</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 20 }}>{SITE.addressLabel}: {SITE.hours}</div>
-            <button className="btn btn-primary" style={{ fontSize: 12, padding: '10px 20px' }} onMouseDown={addRipple}>Записаться</button>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 18 }}>Контакты</div>
+            <div style={{ fontSize: 17, color: '#fff', marginBottom: 4, fontWeight: 500 }}>{SITE.phone}</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 18 }}>{SITE.phoneLabel}</div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 4 }}>{SITE.address}</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 22 }}>{SITE.addressLabel}: {SITE.hours}</div>
+            <button className="btn btn-primary" style={{ fontSize: 13, padding: '12px 22px' }} onMouseDown={addRipple}>Записаться</button>
           </div>
         </div>
         {/* Legal disclaimer */}
@@ -2403,14 +2403,14 @@ function Footer() {
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', lineHeight: 1.7, maxWidth: 900 }}>{FOOTER_EXTRA.legalText}</p>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© {SITE.year} ЖК «Полянка». Все права защищены.</div>
-          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-            <a href={FOOTER_EXTRA.privacyUrl || '#'} style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.3)'}>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>© {SITE.year} ЖК «Полянка». Все права защищены.</div>
+          <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
+            <a href={FOOTER_EXTRA.privacyUrl || '#'} style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', textDecoration: 'none', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.45)'}>
               Политика конфиденциальности
             </a>
-            <a href={FOOTER_EXTRA.declarationUrl || '#'} target="_blank" rel="noopener" style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.3)'}>
+            <a href={FOOTER_EXTRA.declarationUrl || '#'} target="_blank" rel="noopener" style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', textDecoration: 'none', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.45)'}>
               Проектная декларация на НАШ.ДОМ.РФ
             </a>
           </div>
