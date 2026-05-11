@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ЖК Герои — Панель управления</title>
+  <title>ЖК Полянка — Панель управления</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <script>
     /* Bootstrap from server before React loads */
     (function () {
@@ -40,7 +41,7 @@
     .sidebar-logo p { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
     .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 24px; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.55); transition: all 150ms; border-left: 3px solid transparent; }
     .nav-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
-    .nav-item.active { color: #fff; background: rgba(227,133,77,0.12); border-left-color: #E3854D; }
+    .nav-item.active { color: #fff; background: rgba(168,93,63,0.12); border-left-color: #A85D3F; }
     .sidebar-bottom { margin-top: auto; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.06); }
 
     /* Page */
@@ -51,8 +52,8 @@
 
     /* Buttons */
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 150ms; text-decoration: none; }
-    .btn-primary { background: #E3854D; color: #fff; }
-    .btn-primary:hover { background: #d4713a; }
+    .btn-primary { background: #A85D3F; color: #fff; }
+    .btn-primary:hover { background: #8E4A30; }
     .btn-secondary { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
     .btn-secondary:hover { background: rgba(255,255,255,0.12); }
     .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; }
@@ -73,7 +74,7 @@
     .badge-green { background: rgba(74,222,128,0.15); color: #4ade80; }
     .badge-yellow { background: rgba(251,191,36,0.15); color: #fbbf24; }
     .badge-red { background: rgba(239,68,68,0.15); color: #f87171; }
-    .badge-orange { background: rgba(227,133,77,0.2); color: #E3854D; }
+    .badge-orange { background: rgba(168,93,63,0.2); color: #A85D3F; }
 
     /* Modal */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
@@ -89,7 +90,7 @@
     .form-group.full { grid-column: 1 / -1; }
     .form-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; }
     input, select, textarea { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 14px; font-family: inherit; width: 100%; outline: none; transition: border-color 150ms; }
-    input:focus, select:focus, textarea:focus { border-color: #E3854D; background: rgba(255,255,255,0.08); }
+    input:focus, select:focus, textarea:focus { border-color: #A85D3F; background: rgba(255,255,255,0.08); }
     select option { background: #1a2035; color: #fff; }
     input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
 
@@ -104,7 +105,7 @@
     .toolbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .search-input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 14px; color: #fff; font-size: 13px; width: 240px; outline: none; font-family: inherit; }
     .search-input::placeholder { color: rgba(255,255,255,0.3); }
-    .search-input:focus { border-color: #E3854D; }
+    .search-input:focus { border-color: #A85D3F; }
 
     /* Slides */
     .slide-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -311,7 +312,7 @@ function SyncStatus() {
   if (status === 'idle') return null;
   const cfg = {
     pending: { icon: '⏳', text: 'Ожидание...',     bg: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' },
-    saving:  { icon: '🔄', text: 'Синхронизация...', bg: 'rgba(227,133,77,0.18)', color: '#E3854D' },
+    saving:  { icon: '🔄', text: 'Синхронизация...', bg: 'rgba(168,93,63,0.18)', color: '#A85D3F' },
     saved:   { icon: '✓',  text: 'Сохранено на сервере', bg: 'rgba(74,222,128,0.16)', color: '#4ade80' },
     error:   { icon: '⚠',  text: 'Ошибка синхронизации', bg: 'rgba(239,68,68,0.16)', color: '#f87171' },
   }[status] || { icon: '', text: '', bg: 'transparent', color: '#fff' };
@@ -344,7 +345,7 @@ function LoginScreen({ onLogin }) {
       <div className="login-card">
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10 }}>Панель управления</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>ЖК Герои</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>ЖК Полянка</div>
         </div>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input
@@ -1000,7 +1001,7 @@ function ExportTab({ toast }) {
           <h3>Как это работает</h3>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.8 }}>
             Все изменения хранятся в браузере (localStorage).<br/>
-            Сохранённые данные загружаются автоматически при открытии <a href="index.html" style={{ color: '#E3854D' }} target="_blank">сайта</a>.<br/>
+            Сохранённые данные загружаются автоматически при открытии <a href="index.html" style={{ color: '#A85D3F' }} target="_blank">сайта</a>.<br/>
             Чтобы перенести данные на другое устройство — скачайте резервную копию и загрузите её там.
           </p>
         </div>
@@ -1014,7 +1015,7 @@ function ExportTab({ toast }) {
 /* ─── ABOUT COMPLEX TAB ─── */
 const DEFAULT_ABOUT = {
   label: 'О комплексе', title: 'Жилой комплекс\nнового поколения', subtitle: 'Созданный для тех, кто ценит качество жизни',
-  text1: 'ЖК «Герои» — это современный жилой комплекс в Кургане, построенный по передовым технологиям.',
+  text1: 'ЖК «Полянка» — это современный жилой комплекс, где архитектура встречает природу.',
   text2: 'Каждая деталь продумана: от энергоэффективных материалов до закрытого двора без машин.',
   features: [
     { icon: '◆', title: 'Монолитный каркас', desc: 'Надёжная конструкция с высоким классом сейсмостойкости' },
@@ -1064,11 +1065,11 @@ function AboutTab({ toast }) {
 /* ─── PROMOS TAB ─── */
 const DEFAULT_PROMOS = [
   { id:1, title:'Ипотека от 0,1%', desc:'Специальные условия от ведущих банков-партнёров', badge:'Выгодно', accent:'#4ade80', expires:'31 мая 2025' },
-  { id:2, title:'Паркинг в подарок', desc:'При покупке квартиры от 60 м² — машиноместо бесплатно', badge:'Акция', accent:'#E3854D', expires:'30 июня 2025' },
+  { id:2, title:'Паркинг в подарок', desc:'При покупке квартиры от 60 м² — машиноместо бесплатно', badge:'Акция', accent:'#A85D3F', expires:'30 июня 2025' },
   { id:3, title:'Рассрочка 0%', desc:'Беспроцентная рассрочка на весь период строительства', badge:'Новинка', accent:'#818cf8', expires:'15 июня 2025' },
   { id:4, title:'Trade-in квартиры', desc:'Зачтём старую квартиру по рыночной цене', badge:'Обмен', accent:'#e879f9', expires:'31 мая 2025' },
 ];
-const ACCENT_OPTIONS = ['#4ade80','#E3854D','#818cf8','#e879f9','#fbbf24','#f87171','#38bdf8'];
+const ACCENT_OPTIONS = ['#4ade80','#A85D3F','#818cf8','#e879f9','#fbbf24','#f87171','#38bdf8'];
 
 function PromosTab({ toast }) {
   const [promos, setPromos] = useState(() => ls.load('geroi_promos', DEFAULT_PROMOS));
@@ -1212,7 +1213,7 @@ function InfraTab({ toast }) {
             <input value={d.mapUrl||''} onChange={e=>setField('mapUrl',e.target.value)} placeholder="https://yandex.ru/map-widget/v1/?..."/>
           </div>
           <div style={{fontSize:12,color:'rgba(255,255,255,0.3)',lineHeight:1.6}}>
-            Откройте <a href="https://yandex.ru/maps" target="_blank" style={{color:'#E3854D'}}>yandex.ru/maps</a>, найдите нужное место, нажмите «Поделиться» → «Встроить карту» и скопируйте URL из атрибута src.
+            Откройте <a href="https://yandex.ru/maps" target="_blank" style={{color:'#A85D3F'}}>yandex.ru/maps</a>, найдите нужное место, нажмите «Поделиться» → «Встроить карту» и скопируйте URL из атрибута src.
           </div>
         </div>
         <div className="settings-section">
@@ -1564,8 +1565,8 @@ function KorpusesTab({ toast }) {
             <div key={k.id} onClick={() => { setSelId(k.id); setMode('korpus'); }}
               style={{
                 padding: '14px 16px', borderRadius: 10, cursor: 'pointer',
-                background: selId === k.id ? 'rgba(227,133,77,0.15)' : '#161b27',
-                border: '1.5px solid', borderColor: selId === k.id ? '#E3854D' : 'rgba(255,255,255,0.06)',
+                background: selId === k.id ? 'rgba(168,93,63,0.15)' : '#161b27',
+                border: '1.5px solid', borderColor: selId === k.id ? '#A85D3F' : 'rgba(255,255,255,0.06)',
                 transition: 'all 150ms',
               }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 4 }}>{k.name}</div>
@@ -1633,7 +1634,7 @@ function KorpusesTab({ toast }) {
         </div>
 
         {/* Hint */}
-        <div style={{ background: 'rgba(227,133,77,0.08)', border: '1px solid rgba(227,133,77,0.25)', padding: '10px 14px', borderRadius: 8, marginBottom: 16, fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+        <div style={{ background: 'rgba(168,93,63,0.08)', border: '1px solid rgba(168,93,63,0.25)', padding: '10px 14px', borderRadius: 8, marginBottom: 16, fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
           <b>Как пользоваться:</b> кликните по фотографии, чтобы добавить точку контура. Перетаскивайте точки для коррекции. Правый клик по точке — удалить.
           {mode === 'floor' && ' Обведите контур каждого этажа отдельно — переключайте этажи в выпадающем списке выше.'}
           {mode === 'apts' && ' Выберите квартиру слева, потом обведите её контур на схеме этажа.'}
@@ -1679,8 +1680,8 @@ function KorpusesTab({ toast }) {
                         style={{
                           padding: '10px 12px', marginBottom: 6, borderRadius: 8,
                           cursor: 'pointer', transition: 'all 150ms',
-                          background: active ? 'rgba(227,133,77,0.18)' : 'rgba(255,255,255,0.04)',
-                          border: '1.5px solid', borderColor: active ? '#E3854D' : 'rgba(255,255,255,0.06)',
+                          background: active ? 'rgba(168,93,63,0.18)' : 'rgba(255,255,255,0.04)',
+                          border: '1.5px solid', borderColor: active ? '#A85D3F' : 'rgba(255,255,255,0.06)',
                         }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Кв. {a.id} · {a.rooms}-к · {a.area}м²</span>
@@ -1757,7 +1758,7 @@ function AdminPanel() {
       {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-logo">
-          <h1>ЖК Герои</h1>
+          <h1>ЖК Полянка</h1>
           <p>Панель управления</p>
         </div>
         {TABS.map(t => (

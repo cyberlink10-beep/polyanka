@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ЖК Герои — Жилой комплекс</title>
+  <title>ЖК Полянка — Жилой комплекс</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <script>
     /* Bootstrap from server: synchronously fetch latest data into localStorage
        before React reads it. Edge runtime keeps this fast (~50–150ms). */
@@ -25,6 +26,9 @@
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap">
   <style>
     @font-face { font-family: 'Dela Gothic One'; src: url('fonts/DelaGothicOne-Regular.ttf') format('truetype'); }
     @font-face { font-family: 'Inter'; src: url('fonts/Inter-Regular.ttf') format('truetype'); }
@@ -32,19 +36,25 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --c-brand: #D94E1F;
-      --c-brand-dark: #8B1500;
-      --c-brand-mid: #C43818;
-      --c-gold: #C9A84C;
-      --c-dark: #1E1B18;
-      --c-charcoal: #2D2A27;
-      --c-gray-700: #4A4540;
-      --c-gray-500: #7A746E;
-      --c-gray-300: #C0B8B0;
-      --c-gray-100: #EDE8E3;
-      --c-surface: #F7F4F1;
+      /* ЖК Полянка — brand palette (Earth tones)
+         Forest Olive #4E5538 · Sage #6B7350 · Champagne #EFE4C4 · Terracotta #A85D3F · Bone #FAF6EC */
+      --c-brand: #A85D3F;        /* Terracotta — основной акцент / CTA */
+      --c-brand-dark: #8E4A30;   /* terracotta deep */
+      --c-brand-mid: #B86B4D;    /* terracotta soft */
+      --c-olive: #4E5538;        /* Forest Olive — основной бренд-цвет */
+      --c-sage: #6B7350;         /* Sage — вторичный олив */
+      --c-champagne: #EFE4C4;    /* Champagne — тёплый свет */
+      --c-bone: #FAF6EC;         /* Bone — кремовый фон */
+      --c-gold: #C9B26E;         /* champagne-gold для акцентов */
+      --c-dark: #1A1F12;         /* deep olive-black */
+      --c-charcoal: #2B2F1F;     /* deep forest */
+      --c-gray-700: #4E5538;     /* body text — olive */
+      --c-gray-500: #7D8068;     /* muted sage-gray */
+      --c-gray-300: #C5C2A8;     /* light sage */
+      --c-gray-100: #EBE3CB;     /* champagne-tinted gray */
+      --c-surface: #FAF6EC;      /* Bone surface */
       --c-white: #FFFFFF;
-      --font-display: 'Dela Gothic One', Impact, sans-serif;
+      --font-display: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
       --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
       --max-w: 1280px;
       --r-sm: 4px;
@@ -103,9 +113,9 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #E05520 0%, #D94E1F 50%, #C43818 100%);
+      background: linear-gradient(135deg, #B86B4D 0%, #A85D3F 50%, #8E4A30 100%);
       color: #fff;
-      box-shadow: 0 4px 20px rgba(217,78,31,0.40);
+      box-shadow: 0 4px 20px rgba(168,93,63,0.40);
     }
     .btn-primary::before {
       content: '';
@@ -115,9 +125,9 @@
       opacity: 0;
       transition: opacity 220ms;
     }
-    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(217,78,31,0.55); }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(168,93,63,0.55); }
     .btn-primary:hover::before { opacity: 1; }
-    .btn-primary:active { transform: scale(0.97) translateY(0); box-shadow: 0 2px 8px rgba(217,78,31,0.3); }
+    .btn-primary:active { transform: scale(0.97) translateY(0); box-shadow: 0 2px 8px rgba(168,93,63,0.3); }
 
     .btn-secondary {
       background: transparent;
@@ -128,7 +138,7 @@
       background: var(--c-brand);
       color: #fff;
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(217,78,31,0.35);
+      box-shadow: 0 6px 20px rgba(168,93,63,0.35);
     }
     .btn-secondary:active { transform: scale(0.97); }
 
@@ -152,8 +162,8 @@
     .btn-hero-ghost:active { transform: scale(0.97); }
 
     @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 4px 20px rgba(217,78,31,0.4); }
-      50% { box-shadow: 0 4px 28px rgba(217,78,31,0.75), 0 0 0 6px rgba(217,78,31,0.12); }
+      0%, 100% { box-shadow: 0 4px 20px rgba(168,93,63,0.4); }
+      50% { box-shadow: 0 4px 28px rgba(168,93,63,0.75), 0 0 0 6px rgba(168,93,63,0.12); }
     }
 
     /* Phone number shimmer */
@@ -168,7 +178,7 @@
     }
     .phone-link:hover {
       animation: phone-shimmer 1.2s linear infinite;
-      filter: drop-shadow(0 0 8px rgba(217,78,31,0.7));
+      filter: drop-shadow(0 0 8px rgba(168,93,63,0.7));
     }
     @keyframes phone-shimmer {
       0%   { background-position: 100% center; }
@@ -271,9 +281,9 @@
       width: 22px; height: 22px; border-radius: 50%;
       background: #fff;
       cursor: grab; pointer-events: all;
-      border: 3px solid #D94E1F;
+      border: 3px solid #A85D3F;
       box-shadow:
-        0 5px 14px rgba(217,78,31,0.45),
+        0 5px 14px rgba(168,93,63,0.45),
         0 1px 3px rgba(0,0,0,0.18),
         inset 0 0 0 2px #fff;
       transition: transform 200ms cubic-bezier(0.4,0,0.2,1), box-shadow 200ms;
@@ -281,7 +291,7 @@
     .price-slider-wrap input[type=range]::-webkit-slider-thumb:hover {
       transform: scale(1.18);
       box-shadow:
-        0 8px 22px rgba(217,78,31,0.6),
+        0 8px 22px rgba(168,93,63,0.6),
         0 2px 6px rgba(0,0,0,0.22),
         inset 0 0 0 2px #fff;
     }
@@ -290,8 +300,8 @@
       width: 22px; height: 22px; border-radius: 50%;
       background: #fff;
       cursor: grab; pointer-events: all;
-      border: 3px solid #D94E1F;
-      box-shadow: 0 5px 14px rgba(217,78,31,0.45);
+      border: 3px solid #A85D3F;
+      box-shadow: 0 5px 14px rgba(168,93,63,0.45);
     }
 
     /* Nav link hover effect */
@@ -438,8 +448,8 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
         <div className="logo-wrap" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           style={{ flexShrink: 0 }}>
           <img
-            src="assets/logo-horizontal-white.png"
-            alt="Герои"
+            src="assets/logo-horizontal-white.svg"
+            alt="Полянка"
             style={{ height: 52, width: 'auto', display: 'block' }}
           />
         </div>
@@ -490,7 +500,7 @@ const SITE = { ..._DEFAULT_SETTINGS, ..._lsLoad('geroi_settings', {}) };
 
 const DEFAULT_ABOUT = {
   label: 'О комплексе', title: 'Жилой комплекс\nнового поколения', subtitle: 'Созданный для тех, кто ценит качество жизни',
-  text1: 'ЖК «Герои» — это современный жилой комплекс в Кургане, построенный по передовым технологиям. Продуманная архитектура, развитая инфраструктура и комфортная среда создают идеальное место для жизни.',
+  text1: 'ЖК «Полянка» — это современный жилой комплекс, где архитектура встречает природу. Тёплая палитра фасадов, продуманное благоустройство и развитая инфраструктура создают идеальное место для спокойной жизни без потери городских удобств.',
   text2: 'Каждая деталь продумана: от энергоэффективных материалов до закрытого двора без машин. Мы строим не просто дома — мы создаём сообщество активных людей.',
   features: [
     { icon: '◆', title: 'Монолитный каркас', desc: 'Надёжная конструкция с высоким классом сейсмостойкости' },
@@ -502,10 +512,10 @@ const DEFAULT_ABOUT = {
 const ABOUT_DATA = { ...DEFAULT_ABOUT, ..._lsLoad('geroi_about', {}) };
 
 const DEFAULT_PROMOS = [
-  { id:1, title: 'Ипотека от 0,1%', desc: 'Специальные условия от ведущих банков-партнёров', badge: 'Выгодно', accent: '#4ade80', expires: '31 мая 2025' },
-  { id:2, title: 'Паркинг в подарок', desc: 'При покупке квартиры от 60 м² — машиноместо бесплатно', badge: 'Акция', accent: '#E3854D', expires: '30 июня 2025' },
-  { id:3, title: 'Рассрочка 0%', desc: 'Беспроцентная рассрочка на весь период строительства', badge: 'Новинка', accent: '#818cf8', expires: '15 июня 2025' },
-  { id:4, title: 'Trade-in квартиры', desc: 'Зачтём старую квартиру по рыночной цене', badge: 'Обмен', accent: '#e879f9', expires: '31 мая 2025' },
+  { id:1, title: 'Ипотека от 0,1%', desc: 'Специальные условия от ведущих банков-партнёров', badge: 'Выгодно', accent: '#6B7350', expires: '31 мая 2025' },
+  { id:2, title: 'Паркинг в подарок', desc: 'При покупке квартиры от 60 м² — машиноместо бесплатно', badge: 'Акция', accent: '#A85D3F', expires: '30 июня 2025' },
+  { id:3, title: 'Рассрочка 0%', desc: 'Беспроцентная рассрочка на весь период строительства', badge: 'Новинка', accent: '#4E5538', expires: '15 июня 2025' },
+  { id:4, title: 'Trade-in квартиры', desc: 'Зачтём старую квартиру по рыночной цене', badge: 'Обмен', accent: '#C9B26E', expires: '31 мая 2025' },
 ];
 const PROMOS_DATA = _lsLoad('geroi_promos', DEFAULT_PROMOS);
 
@@ -617,9 +627,9 @@ function Hero({ onNav }) {
       transition: 'background 200ms, transform 200ms, box-shadow 200ms',
     }}
       onMouseEnter={e => {
-        e.currentTarget.style.background = 'rgba(217,78,31,0.75)';
+        e.currentTarget.style.background = 'rgba(168,93,63,0.75)';
         e.currentTarget.style.transform = `translateY(-50%) scale(1.08)`;
-        e.currentTarget.style.boxShadow = '0 8px 32px rgba(217,78,31,0.45), inset 0 1px 0 rgba(255,255,255,0.2)';
+        e.currentTarget.style.boxShadow = '0 8px 32px rgba(168,93,63,0.45), inset 0 1px 0 rgba(255,255,255,0.2)';
       }}
       onMouseLeave={e => {
         e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
@@ -733,18 +743,18 @@ function Hero({ onNav }) {
           <div className="hero-line hero-line-1" style={{ marginBottom: 22, display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 7,
-              background: 'rgba(201,168,76,0.18)',
-              border: '1px solid rgba(201,168,76,0.55)',
+              background: 'rgba(201,178,110,0.18)',
+              border: '1px solid rgba(201,178,110,0.55)',
               borderRadius: 4, padding: '5px 14px 5px 10px',
               backdropFilter: 'blur(6px)',
             }}>
               <svg width="12" height="15" viewBox="0 0 12 15" fill="none">
-                <path d="M6 0C2.686 0 0 2.686 0 6c0 4.418 6 9 6 9s6-4.582 6-9c0-3.314-2.686-6-6-6z" fill="#C9A84C"/>
+                <path d="M6 0C2.686 0 0 2.686 0 6c0 4.418 6 9 6 9s6-4.582 6-9c0-3.314-2.686-6-6-6z" fill="#C9B26E"/>
                 <circle cx="6" cy="6" r="2" fill="white"/>
               </svg>
               <span style={{
                 fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: '#E8CA72', fontWeight: 500,
+                textTransform: 'uppercase', color: '#E8D8A8', fontWeight: 500,
               }}>{`Жилой комплекс · ${SITE.city}`}</span>
             </span>
           </div>
@@ -753,13 +763,13 @@ function Hero({ onNav }) {
             fontFamily: 'var(--font-display)', fontSize: 'clamp(52px, 7.5vw, 100px)',
             lineHeight: 0.95, letterSpacing: '-0.02em', color: '#fff',
             textTransform: 'uppercase', marginBottom: 12,
-          }}>ГЕРОИ</h1>
+          }}>ПОЛЯНКА</h1>
 
           <p className="hero-line hero-line-3" style={{
             fontFamily: 'var(--font-display)', fontSize: 'clamp(16px, 2vw, 24px)',
             color: 'rgba(255,255,255,0.68)', textTransform: 'uppercase',
             letterSpacing: '0.05em', marginBottom: 20,
-          }}>Жилой комплекс для настоящих героев</p>
+          }}>Жилой комплекс — где архитектура встречает природу</p>
 
           <p className="hero-line hero-line-3" style={{
             fontSize: 15, color: 'rgba(255,255,255,0.58)', marginBottom: 36,
@@ -797,7 +807,7 @@ function Hero({ onNav }) {
 /* ─── ABOUT STRIP ─── */
 function AboutStrip() {
   return (
-    <section id="about" style={{ background: 'var(--c-brand)', padding: '48px 0' }}>
+    <section id="about" style={{ background: 'var(--c-olive)', padding: '48px 0' }}>
       <div className="container" style={{ display: 'flex', gap: 64, justifyContent: 'center', flexWrap: 'wrap' }}>
         {[[SITE.floors, 'этажей'], [SITE.korpuses, 'корпуса'], [SITE.aptCount, 'квартир'], [SITE.year, 'год сдачи'], [SITE.area, 'м² площадь']].map(([v, l], i) => (
           <div key={l} className={`reveal reveal-delay-${i + 1}`} style={{ textAlign: 'center' }}>
@@ -822,7 +832,7 @@ function ApartmentCard({ apt, onSelect }) {
       onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.14)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.08)'; }}
     >
-      <div style={{ position: 'relative', height: 200, overflow: 'hidden', background: '#f5f3f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ position: 'relative', height: 200, overflow: 'hidden', background: '#F0EAD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <img src={apt.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 8 }} />
         {apt.badge && (
           <span style={{
@@ -968,7 +978,7 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
           border: '1px solid rgba(0,0,0,0.05)',
         }}>
           {/* Top accent line */}
-          <div style={{ height: 3, background: 'linear-gradient(90deg, #E05520 0%, #D94E1F 50%, rgba(217,78,31,0.2) 100%)' }} />
+          <div style={{ height: 3, background: 'linear-gradient(90deg, #B86B4D 0%, #A85D3F 50%, rgba(168,93,63,0.2) 100%)' }} />
 
           <div style={{ padding: '22px 28px', display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 28, alignItems: 'center' }}>
 
@@ -988,10 +998,10 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
                       cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.02em',
                       border: active ? 'none' : '1.5px solid #e8e5e1',
                       transition: 'all 250ms cubic-bezier(.4,0,.2,1)',
-                      background: active ? 'linear-gradient(135deg,#E05520,#C43818)' : '#fff',
+                      background: active ? 'linear-gradient(135deg,#B86B4D,#8E4A30)' : '#fff',
                       color: active ? '#fff' : '#aaa',
                       boxShadow: active
-                        ? '0 6px 20px rgba(217,78,31,0.38), 0 2px 6px rgba(217,78,31,0.2)'
+                        ? '0 6px 20px rgba(168,93,63,0.38), 0 2px 6px rgba(168,93,63,0.2)'
                         : '0 1px 4px rgba(0,0,0,0.06)',
                       transform: active ? 'translateY(-2px) scale(1.06)' : 'translateY(0) scale(1)',
                     }}
@@ -999,7 +1009,7 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
                       if (!active) {
                         e.currentTarget.style.borderColor = 'var(--c-brand)';
                         e.currentTarget.style.color = 'var(--c-brand)';
-                        e.currentTarget.style.boxShadow = '0 4px 18px rgba(217,78,31,0.22)';
+                        e.currentTarget.style.boxShadow = '0 4px 18px rgba(168,93,63,0.22)';
                         e.currentTarget.style.transform = 'translateY(-2px) scale(1.06)';
                       }
                     }}
@@ -1021,12 +1031,12 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
               {/* Стоимость */}
               <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 200px', gap: 18, alignItems: 'center' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 800, color: 'var(--c-charcoal)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-brand)', boxShadow: '0 0 8px rgba(217,78,31,0.5)' }} />
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-brand)', boxShadow: '0 0 8px rgba(168,93,63,0.5)' }} />
                   Стоимость
                 </span>
                 <div className="price-slider-wrap">
                   <div style={{ position:'absolute', top:'50%', left:0, right:0, height:6, transform:'translateY(-50%)', borderRadius:99, background:'#ede9e5' }} />
-                  <div style={{ position:'absolute', top:'50%', height:6, left:`${fillL}%`, right:`${100-fillR}%`, transform:'translateY(-50%)', borderRadius:99, background:'linear-gradient(90deg,#E05520,#D94E1F)', boxShadow:'0 0 14px rgba(217,78,31,0.4)' }} />
+                  <div style={{ position:'absolute', top:'50%', height:6, left:`${fillL}%`, right:`${100-fillR}%`, transform:'translateY(-50%)', borderRadius:99, background:'linear-gradient(90deg,#B86B4D,#A85D3F)', boxShadow:'0 0 14px rgba(168,93,63,0.4)' }} />
                   <input type="range" min={minBound} max={maxBound} step={50000} value={priceRange[0]}
                     onChange={e => { const v=Number(e.target.value); if(v<priceRange[1]-100000) setPriceRange([v,priceRange[1]]); }}
                     style={{ zIndex: priceRange[0] > maxBound-(maxBound-minBound)*0.1 ? 5 : 3 }} />
@@ -1042,12 +1052,12 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
               {/* Площадь */}
               <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 200px', gap: 18, alignItems: 'center' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 800, color: 'var(--c-charcoal)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-brand)', boxShadow: '0 0 8px rgba(217,78,31,0.5)' }} />
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-brand)', boxShadow: '0 0 8px rgba(168,93,63,0.5)' }} />
                   Площадь
                 </span>
                 <div className="price-slider-wrap">
                   <div style={{ position:'absolute', top:'50%', left:0, right:0, height:6, transform:'translateY(-50%)', borderRadius:99, background:'#ede9e5' }} />
-                  <div style={{ position:'absolute', top:'50%', height:6, left:`${aFillL}%`, right:`${100-aFillR}%`, transform:'translateY(-50%)', borderRadius:99, background:'linear-gradient(90deg,#E05520,#D94E1F)', boxShadow:'0 0 14px rgba(217,78,31,0.4)' }} />
+                  <div style={{ position:'absolute', top:'50%', height:6, left:`${aFillL}%`, right:`${100-aFillR}%`, transform:'translateY(-50%)', borderRadius:99, background:'linear-gradient(90deg,#B86B4D,#A85D3F)', boxShadow:'0 0 14px rgba(168,93,63,0.4)' }} />
                   <input type="range" min={minArea} max={maxArea} step={1} value={areaRange[0]}
                     onChange={e => { const v=Number(e.target.value); if(v<areaRange[1]-1) setAreaRange([v,areaRange[1]]); }}
                     style={{ zIndex: areaRange[0] > maxArea-(maxArea-minArea)*0.1 ? 5 : 3 }} />
@@ -1065,7 +1075,7 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
             {!fullPage && (
               <a href="/flat" target="_blank" rel="noopener noreferrer"
                 style={{ textDecoration: 'none', textAlign: 'center', minWidth: 130, display: 'block', padding: '10px 14px', borderRadius: 14, transition: 'all 240ms cubic-bezier(0.4,0,0.2,1)', border: '1.5px solid transparent' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(217,78,31,0.06)'; e.currentTarget.style.borderColor = 'rgba(217,78,31,0.25)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(217,78,31,0.18)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(168,93,63,0.06)'; e.currentTarget.style.borderColor = 'rgba(168,93,63,0.25)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(168,93,63,0.18)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-brand)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
@@ -1118,14 +1128,14 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
                     background: primary ? 'var(--c-brand)' : 'transparent', color: primary ? '#fff' : 'var(--c-brand)',
                     fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,
                     cursor: 'pointer', letterSpacing: '0.04em', position: 'relative', overflow: 'hidden',
-                    transition: 'all 250ms', boxShadow: primary ? '0 6px 22px rgba(217,78,31,0.35)' : 'none',
+                    transition: 'all 250ms', boxShadow: primary ? '0 6px 22px rgba(168,93,63,0.35)' : 'none',
                   }}
                     onMouseEnter={e => {
-                      if (primary) { e.currentTarget.style.boxShadow = '0 10px 32px rgba(217,78,31,0.45)'; e.currentTarget.style.transform = 'translateY(-2px)'; }
-                      else { e.currentTarget.style.background = 'var(--c-brand)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(217,78,31,0.4)'; e.currentTarget.style.transform = 'translateY(-2px)'; }
+                      if (primary) { e.currentTarget.style.boxShadow = '0 10px 32px rgba(168,93,63,0.45)'; e.currentTarget.style.transform = 'translateY(-2px)'; }
+                      else { e.currentTarget.style.background = 'var(--c-brand)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(168,93,63,0.4)'; e.currentTarget.style.transform = 'translateY(-2px)'; }
                     }}
                     onMouseLeave={e => {
-                      if (primary) { e.currentTarget.style.boxShadow = '0 6px 22px rgba(217,78,31,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }
+                      if (primary) { e.currentTarget.style.boxShadow = '0 6px 22px rgba(168,93,63,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }
                       else { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--c-brand)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }
                     }}
                   >{label}</button>
@@ -1153,11 +1163,11 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
                         background: 'var(--c-brand)', color: '#fff', textDecoration: 'none',
                         fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,
                         letterSpacing: '0.04em',
-                        boxShadow: '0 6px 22px rgba(217,78,31,0.35)',
+                        boxShadow: '0 6px 22px rgba(168,93,63,0.35)',
                         transition: 'all 250ms cubic-bezier(0.4,0,0.2,1)',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 32px rgba(217,78,31,0.45)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(217,78,31,0.35)'; }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 32px rgba(168,93,63,0.45)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(168,93,63,0.35)'; }}
                     >
                       Посмотреть все квартиры
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1200,8 +1210,8 @@ function genFloor(floor, korpus) {
 function AptShape({ apt, isHovered, isSelected, onClick, onHover }) {
   const W = apt.rooms === 1 ? 70 : apt.rooms === 2 ? 100 : 130;
   const H = apt.area < 50 ? 80 : apt.area < 70 ? 96 : 110;
-  const fill = isSelected ? '#D94E1F' : isHovered ? '#F0784A' : apt.available ? '#fff' : '#EDE8E3';
-  const stroke = isSelected ? '#D94E1F' : '#C0B8B0';
+  const fill = isSelected ? '#A85D3F' : isHovered ? '#F0784A' : apt.available ? '#fff' : '#EDE8E3';
+  const stroke = isSelected ? '#A85D3F' : '#C0B8B0';
   const textCol = isSelected ? '#fff' : apt.available ? '#2D2A27' : '#C0B8B0';
 
   return (
@@ -1244,16 +1254,16 @@ function FloorSchema({ schemaUrl, apartments, hoveredId, selectedApt, onSelect, 
             const fill = sold
               ? 'rgba(120,120,120,0.32)'
               : isSel
-                ? 'rgba(217,78,31,0.55)'
+                ? 'rgba(168,93,63,0.55)'
                 : isHover
                   ? 'rgba(255,200,150,0.42)'
                   : 'rgba(255,255,255,0.001)';
             const stroke = sold
               ? 'rgba(120,120,120,0.55)'
               : isSel
-                ? '#E05520'
+                ? '#B86B4D'
                 : isHover
-                  ? 'rgba(217,78,31,0.6)'
+                  ? 'rgba(168,93,63,0.6)'
                   : 'transparent';
             return (
               <polygon key={apt.id}
@@ -1265,7 +1275,7 @@ function FloorSchema({ schemaUrl, apartments, hoveredId, selectedApt, onSelect, 
                 style={{
                   cursor: sold ? 'not-allowed' : 'pointer',
                   transition: 'fill 220ms cubic-bezier(.4,0,.2,1), stroke 220ms',
-                  filter: isHover && !sold ? 'drop-shadow(0 0 1.4px rgba(217,78,31,0.6))' : 'none',
+                  filter: isHover && !sold ? 'drop-shadow(0 0 1.4px rgba(168,93,63,0.6))' : 'none',
                   pointerEvents: sold ? 'none' : 'auto',
                 }}
                 onMouseEnter={() => !sold && onHover(apt.id)}
@@ -1288,7 +1298,7 @@ function FloorSchema({ schemaUrl, apartments, hoveredId, selectedApt, onSelect, 
               position:'absolute', top:`${(cy/56.25)*100}%`, left:`${cx}%`,
               transform:'translate(-50%, -120%)', pointerEvents:'none',
               background:'rgba(20,17,14,0.96)', backdropFilter:'blur(12px)',
-              border:'1px solid rgba(217,78,31,0.4)', borderRadius:10,
+              border:'1px solid rgba(168,93,63,0.4)', borderRadius:10,
               padding:'10px 14px', boxShadow:'0 14px 30px rgba(0,0,0,0.35)',
               animation:'fadeUp 160ms ease-out', minWidth:140, textAlign:'center',
             }}>
@@ -1301,7 +1311,7 @@ function FloorSchema({ schemaUrl, apartments, hoveredId, selectedApt, onSelect, 
 
       {/* Apartments without polygons — fallback list */}
       {noPolygon.length > 0 && (
-        <div style={{ marginTop:12, padding:'12px 14px', background:'#fff7ee', border:'1px solid rgba(217,78,31,0.18)', borderRadius:10, fontSize:12, color:'var(--c-gray-500)' }}>
+        <div style={{ marginTop:12, padding:'12px 14px', background:'#fff7ee', border:'1px solid rgba(168,93,63,0.18)', borderRadius:10, fontSize:12, color:'var(--c-gray-500)' }}>
           {noPolygon.length} квартир(а) на этом этаже без обведённого контура — обведите их в админке (Корпуса → Квартиры на этаже)
         </div>
       )}
@@ -1349,7 +1359,7 @@ function FloorElevation({ korpus, hovered, onHover, onSelect }) {
         </linearGradient>
         <linearGradient id="winLit" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#ffd28a" />
-          <stop offset="100%" stopColor="#E3854D" />
+          <stop offset="100%" stopColor="#A85D3F" />
         </linearGradient>
       </defs>
       {/* Base/ground line */}
@@ -1368,8 +1378,8 @@ function FloorElevation({ korpus, hovered, onHover, onSelect }) {
           <g key={floorNum}>
             <rect
               x="40" y={y} width={W - 20} height={fh - 0.5}
-              fill={isHover ? 'rgba(217,78,31,0.32)' : 'rgba(255,255,255,0)'}
-              stroke={isHover ? '#E05520' : 'rgba(255,255,255,0.04)'}
+              fill={isHover ? 'rgba(168,93,63,0.32)' : 'rgba(255,255,255,0)'}
+              stroke={isHover ? '#B86B4D' : 'rgba(255,255,255,0.04)'}
               strokeWidth={isHover ? 1.5 : 0.5}
               style={{ cursor: 'pointer', transition: 'all 220ms' }}
               onMouseEnter={() => onHover(floorNum)}
@@ -1388,7 +1398,7 @@ function FloorElevation({ korpus, hovered, onHover, onSelect }) {
             ))}
             {/* Floor number */}
             <text x="22" y={y + fh / 2 + 4} fontSize="11" fontWeight="600"
-              fill={isHover ? '#E05520' : 'rgba(255,255,255,0.5)'}
+              fill={isHover ? '#B86B4D' : 'rgba(255,255,255,0.5)'}
               fontFamily="var(--font-body)" style={{ transition: 'fill 220ms' }}>{floorNum}</text>
             {/* Floor separator */}
             <line x1="40" y1={y + fh} x2={W + 20} y2={y + fh} stroke="rgba(255,255,255,0.06)" strokeWidth="0.4" />
@@ -1441,17 +1451,17 @@ function FloorPlan({ onSelectApt }) {
     <div onClick={clickable ? onClick : undefined} style={{
       display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px',
       borderRadius: 12, cursor: clickable ? 'pointer' : 'default',
-      background: isActive ? 'rgba(217,78,31,0.06)' : isDone ? '#faf9f7' : '#fff',
-      border: '1px solid', borderColor: isActive ? 'rgba(217,78,31,0.4)' : isDone ? '#ece9e5' : '#f0eeea',
+      background: isActive ? 'rgba(168,93,63,0.06)' : isDone ? '#faf9f7' : '#fff',
+      border: '1px solid', borderColor: isActive ? 'rgba(168,93,63,0.4)' : isDone ? '#ece9e5' : '#f0eeea',
       transition: 'all 200ms', flex: 1, minWidth: 160,
     }}>
       <div style={{
         width: 30, height: 30, borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 700,
-        background: isActive ? 'linear-gradient(135deg,#E05520,#C43818)' : isDone ? 'rgba(217,78,31,0.14)' : '#f0eeea',
-        color: isActive ? '#fff' : isDone ? '#E3854D' : '#bbb',
-        boxShadow: isActive ? '0 4px 14px rgba(217,78,31,0.32)' : 'none',
+        background: isActive ? 'linear-gradient(135deg,#B86B4D,#8E4A30)' : isDone ? 'rgba(168,93,63,0.14)' : '#f0eeea',
+        color: isActive ? '#fff' : isDone ? '#A85D3F' : '#bbb',
+        boxShadow: isActive ? '0 4px 14px rgba(168,93,63,0.32)' : 'none',
         flexShrink: 0,
       }}>{isDone ? '✓' : n}</div>
       <div style={{ overflow: 'hidden' }}>
@@ -1552,10 +1562,10 @@ function FloorPlan({ onSelectApt }) {
                       return (
                         <polygon key={k.id}
                           points={k.polygon}
-                          fill={isHover ? 'rgba(217,78,31,0.30)' : 'rgba(255,255,255,0.001)'}
-                          stroke={isHover ? '#E05520' : 'transparent'}
+                          fill={isHover ? 'rgba(168,93,63,0.30)' : 'rgba(255,255,255,0.001)'}
+                          stroke={isHover ? '#B86B4D' : 'transparent'}
                           strokeWidth={isHover ? 0.4 : 0}
-                          style={{ cursor: 'pointer', transition: 'all 220ms', filter: isHover ? 'drop-shadow(0 0 6px rgba(217,78,31,0.55))' : 'none' }}
+                          style={{ cursor: 'pointer', transition: 'all 220ms', filter: isHover ? 'drop-shadow(0 0 6px rgba(168,93,63,0.55))' : 'none' }}
                           onMouseEnter={() => setHoveredKorpus(k.id)}
                           onMouseLeave={() => setHoveredKorpus(null)}
                           onClick={() => goKorpus(k)}
@@ -1609,9 +1619,9 @@ function FloorPlan({ onSelectApt }) {
                       position: 'absolute', top: `${(k.cy / 56.25) * 100}%`, left: `${k.cx}%`,
                       transform: 'translate(-50%, -120%)',
                       background: 'rgba(20,17,14,0.96)', backdropFilter: 'blur(14px)',
-                      border: '1px solid rgba(217,78,31,0.45)', borderRadius: 12,
+                      border: '1px solid rgba(168,93,63,0.45)', borderRadius: 12,
                       padding: '14px 20px', pointerEvents: 'none',
-                      boxShadow: '0 16px 40px rgba(0,0,0,0.35), 0 0 22px rgba(217,78,31,0.22)',
+                      boxShadow: '0 16px 40px rgba(0,0,0,0.35), 0 0 22px rgba(168,93,63,0.22)',
                       animation: 'fadeUp 180ms ease-out',
                       minWidth: 180, textAlign: 'center', zIndex: 5,
                     }}>
@@ -1778,7 +1788,7 @@ function FloorPlan({ onSelectApt }) {
                 <div style={{ display: 'flex', gap: 20, marginTop: 14, fontSize: 12, color: 'var(--c-gray-500)' }}>
                   {[
                     { color: '#fff', border: '1.5px solid #C0B8B0', label: 'Свободна' },
-                    { color: '#D94E1F', border: 'none', label: 'Выбрана' },
+                    { color: '#A85D3F', border: 'none', label: 'Выбрана' },
                     { color: '#EDE8E3', border: '1.5px solid #C0B8B0', label: 'Бронь' },
                   ].map(({ color, border, label }) => (
                     <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1793,7 +1803,7 @@ function FloorPlan({ onSelectApt }) {
               <div>
                 {selectedApt ? (
                   <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid #ece9e5', animation: 'fadeUp 250ms ease-out' }}>
-                    <div style={{ background: 'linear-gradient(135deg, #E05520, #C43818)', padding: '20px 22px 16px' }}>
+                    <div style={{ background: 'linear-gradient(135deg, #B86B4D, #8E4A30)', padding: '20px 22px 16px' }}>
                       <div style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>Выбранная квартира</div>
                       <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: '#fff', textTransform: 'uppercase' }}>Кв. {selectedApt.apt}</div>
                       <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase' }}>{selectedApt.rooms}-комнатная</div>
@@ -1864,12 +1874,12 @@ const FEATURES = [
 ];
 
 const FEATURE_ICONS = [
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="sport"><circle cx="16" cy="12" r="5" stroke="#C9A84C" strokeWidth="1.5"/><path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="yard"><path d="M4 28V14L16 4l12 10v14H4z" stroke="#C9A84C" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#C9A84C" strokeWidth="1.2"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="commerce"><rect x="4" y="12" width="24" height="16" rx="2" stroke="#C9A84C" strokeWidth="1.5"/><path d="M4 12l4-8h16l4 8" stroke="#C9A84C" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="18" width="8" height="10" rx="1" stroke="#C9A84C" strokeWidth="1.2"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="park"><rect x="3" y="16" width="26" height="12" rx="2" stroke="#C9A84C" strokeWidth="1.5"/><circle cx="9" cy="24" r="3" stroke="#C9A84C" strokeWidth="1.5"/><circle cx="23" cy="24" r="3" stroke="#C9A84C" strokeWidth="1.5"/><path d="M3 20h26" stroke="#C9A84C" strokeWidth="1"/><path d="M8 16V10M16 16V8M24 16V10" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="mono"><rect x="6" y="10" width="20" height="18" rx="1" stroke="#C9A84C" strokeWidth="1.5"/><path d="M2 10l14-7 14 7" stroke="#C9A84C" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#C9A84C" strokeWidth="1.2"/><path d="M10 10v18M22 10v18" stroke="#C9A84C" strokeWidth="1"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="loc"><path d="M16 28s-10-8.5-10-15a10 10 0 0120 0c0 6.5-10 15-10 15z" stroke="#C9A84C" strokeWidth="1.5"/><circle cx="16" cy="13" r="3" stroke="#C9A84C" strokeWidth="1.5"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="sport"><circle cx="16" cy="12" r="5" stroke="#C9B26E" strokeWidth="1.5"/><path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#C9B26E" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="yard"><path d="M4 28V14L16 4l12 10v14H4z" stroke="#C9B26E" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#C9B26E" strokeWidth="1.2"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="commerce"><rect x="4" y="12" width="24" height="16" rx="2" stroke="#C9B26E" strokeWidth="1.5"/><path d="M4 12l4-8h16l4 8" stroke="#C9B26E" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="18" width="8" height="10" rx="1" stroke="#C9B26E" strokeWidth="1.2"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="park"><rect x="3" y="16" width="26" height="12" rx="2" stroke="#C9B26E" strokeWidth="1.5"/><circle cx="9" cy="24" r="3" stroke="#C9B26E" strokeWidth="1.5"/><circle cx="23" cy="24" r="3" stroke="#C9B26E" strokeWidth="1.5"/><path d="M3 20h26" stroke="#C9B26E" strokeWidth="1"/><path d="M8 16V10M16 16V8M24 16V10" stroke="#C9B26E" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="mono"><rect x="6" y="10" width="20" height="18" rx="1" stroke="#C9B26E" strokeWidth="1.5"/><path d="M2 10l14-7 14 7" stroke="#C9B26E" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#C9B26E" strokeWidth="1.2"/><path d="M10 10v18M22 10v18" stroke="#C9B26E" strokeWidth="1"/></svg>,
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="loc"><path d="M16 28s-10-8.5-10-15a10 10 0 0120 0c0 6.5-10 15-10 15z" stroke="#C9B26E" strokeWidth="1.5"/><circle cx="16" cy="13" r="3" stroke="#C9B26E" strokeWidth="1.5"/></svg>,
 ];
 
 function Features() {
@@ -1904,7 +1914,7 @@ function Features() {
               borderBottom: '1px solid rgba(255,255,255,0.07)',
               transition: 'background 200ms',
             }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(217,78,31,0.08)'}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(168,93,63,0.08)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
             >
               <div style={{ marginBottom: 16 }}>{FEATURE_ICONS[i]}</div>
@@ -1959,7 +1969,7 @@ function Gallery() {
                 transition: 'border-color 150ms', flexShrink: 0, position: 'relative',
               }}>
                 <img src={r.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                {active === i && <div style={{ position: 'absolute', inset: 0, background: 'rgba(217,78,31,0.15)' }} />}
+                {active === i && <div style={{ position: 'absolute', inset: 0, background: 'rgba(168,93,63,0.15)' }} />}
               </div>
             ))}
           </div>
@@ -1995,7 +2005,7 @@ function AboutComplex() {
           <div style={{ position:'relative' }}>
             <div style={{ aspectRatio:'4/3', borderRadius:16, overflow:'hidden', position:'relative' }}>
               <img src="assets/render-hero-2.jpg" alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-              <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, rgba(217,78,31,0.25) 0%, transparent 60%)' }} />
+              <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg, rgba(168,93,63,0.25) 0%, transparent 60%)' }} />
             </div>
             {/* Floating card — Олимп logo, top-right */}
             <div style={{
@@ -2033,7 +2043,7 @@ function AboutComplex() {
               borderRight:'1px solid rgba(255,255,255,0.07)',
               transition:'background 250ms',
             }}
-              onMouseEnter={e => e.currentTarget.style.background='rgba(217,78,31,0.08)'}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(168,93,63,0.08)'}
               onMouseLeave={e => e.currentTarget.style.background=(i%2===0?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.015)')}
             >
               <div style={{ fontSize:18, color:'var(--c-brand)', marginBottom:14, fontWeight:900, letterSpacing:'-0.05em' }}>0{i+1}</div>
@@ -2050,7 +2060,7 @@ function AboutComplex() {
 /* ─── PROMOTIONS ─── */
 function Promos() {
   const promos = PROMOS_DATA;
-  const accentMap = { '#4ade80':'rgba(74,222,128,0.12)', '#E3854D':'rgba(227,133,77,0.12)', '#818cf8':'rgba(129,140,248,0.12)', '#e879f9':'rgba(232,121,249,0.12)' };
+  const accentMap = { '#4ade80':'rgba(74,222,128,0.12)', '#A85D3F':'rgba(227,133,77,0.12)', '#818cf8':'rgba(129,140,248,0.12)', '#e879f9':'rgba(232,121,249,0.12)' };
   return (
     <section id="promos" style={{ padding:'96px 0', background:'#0e0c0a', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:'url(assets/pattern-dark-gold.jpg)', backgroundSize:'640px' }} />
@@ -2064,7 +2074,7 @@ function Promos() {
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
           {promos.map((p, i) => {
-            const accent = p.accent || '#E3854D';
+            const accent = p.accent || '#A85D3F';
             const bg = accentMap[accent] || 'rgba(255,255,255,0.05)';
             return (
               <div key={p.id || i} style={{
@@ -2146,7 +2156,7 @@ function ConstructionProgress() {
                   </div>
                 )}
                 <div style={{ position:'absolute', inset:0, background:'rgba(255,255,255,0)', transition:'background 200ms' }}
-                  onMouseEnter={e => e.currentTarget.style.background='rgba(217,78,31,0.1)'}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(168,93,63,0.1)'}
                   onMouseLeave={e => e.currentTarget.style.background='transparent'}
                 />
               </div>
@@ -2193,8 +2203,8 @@ function Infrastructure() {
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12, marginBottom:48 }}>
           {places.map((pl, i) => (
             <div key={i} style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 20px', background:'#f8f7f5', borderRadius:10, border:'1px solid rgba(0,0,0,0.05)' }}>
-              <div style={{ width:36, height:36, borderRadius:8, background: (catColors[pl.cat] || '#E3854D') + '18', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <div style={{ width:10, height:10, borderRadius:'50%', background: catColors[pl.cat] || '#E3854D' }} />
+              <div style={{ width:36, height:36, borderRadius:8, background: (catColors[pl.cat] || '#A85D3F') + '18', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <div style={{ width:10, height:10, borderRadius:'50%', background: catColors[pl.cat] || '#A85D3F' }} />
               </div>
               <div>
                 <div style={{ fontSize:14, fontWeight:500, color:'#1a1512', marginBottom:2 }}>{pl.name}</div>
@@ -2220,7 +2230,7 @@ function Infrastructure() {
           background:'rgba(20,17,14,0.92)', backdropFilter:'blur(12px)',
           borderRadius:10, padding:'14px 20px', border:'1px solid rgba(255,255,255,0.1)',
         }}>
-          <div style={{ fontSize:11, color:'var(--c-gold)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>ЖК Герои</div>
+          <div style={{ fontSize:11, color:'var(--c-gold)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>ЖК Полянка</div>
           <div style={{ fontSize:14, color:'#fff', fontWeight:500 }}>{SITE.address}</div>
         </div>
         </div>
@@ -2326,13 +2336,13 @@ function Footer() {
           <div>
             <div style={{ marginBottom: 16 }}>
               <img
-                src="assets/logo-horizontal-white.png"
-                alt="Герои"
+                src="assets/logo-horizontal-white.svg"
+                alt="Полянка"
                 style={{ height: 52, width: 'auto', display: 'block' }}
               />
             </div>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, maxWidth: 240 }}>
-              Жилой комплекс «Герои» — современное жильё для активных людей в развитом районе города.
+              Жилой комплекс «Полянка» — где архитектура встречает природу. Тёплые тона, тишина и комфорт в шаге от города.
             </p>
           </div>
           <div>
@@ -2367,7 +2377,7 @@ function Footer() {
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', lineHeight: 1.7, maxWidth: 900 }}>{FOOTER_EXTRA.legalText}</p>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© {SITE.year} ЖК «Герои». Все права защищены.</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© {SITE.year} ЖК «Полянка». Все права защищены.</div>
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
             <a href={FOOTER_EXTRA.privacyUrl || '#'} style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 150ms' }}
               onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.3)'}>
@@ -2390,7 +2400,7 @@ function ApartmentModal({ apt, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={e => e.stopPropagation()}>
-        <div style={{ height: 300, overflow: 'hidden', position: 'relative', background: '#f5f3f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ height: 300, overflow: 'hidden', position: 'relative', background: '#F0EAD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <img src={apt.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 12 }} />
           <button onClick={onClose} style={{
             position: 'absolute', top: 16, right: 16,
@@ -2563,7 +2573,7 @@ function App() {
                 e.currentTarget.style.transform = 'translateX(-3px) translateY(-1px)';
                 e.currentTarget.style.borderColor = 'var(--c-brand)';
                 e.currentTarget.style.color = 'var(--c-brand)';
-                e.currentTarget.style.boxShadow = '0 8px 28px rgba(217,78,31,0.22), inset 0 1px 0 rgba(255,255,255,0.8)';
+                e.currentTarget.style.boxShadow = '0 8px 28px rgba(168,93,63,0.22), inset 0 1px 0 rgba(255,255,255,0.8)';
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.transform = 'translateX(0) translateY(0)';
@@ -2574,9 +2584,9 @@ function App() {
             >
               <span style={{
                 width: 28, height: 28, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #E05520, #C43818)', color: '#fff',
+                background: 'linear-gradient(135deg, #B86B4D, #8E4A30)', color: '#fff',
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(217,78,31,0.4)',
+                boxShadow: '0 2px 8px rgba(168,93,63,0.4)',
                 flexShrink: 0,
               }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
