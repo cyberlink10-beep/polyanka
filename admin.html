@@ -1219,7 +1219,6 @@ const DEFAULT_CONSTRUCTION = [
 
 function ConstructionTab({ toast }) {
   const [months, setMonths] = useState(() => ls.load('geroi_construction', DEFAULT_CONSTRUCTION));
-  const [openIdx, setOpenIdx] = useState(null);
   const persist = next => { setMonths(next); ls.save('geroi_construction', next); };
   const addMonth = () => {
     const m = prompt('Название месяца (например: Май 2025)');
@@ -1229,12 +1228,22 @@ function ConstructionTab({ toast }) {
   };
   const delMonth = i => { if(!confirm('Удалить этот месяц?')) return; persist(months.filter((_,j)=>j!==i)); toast('Месяц удалён'); };
   const renameMonth = i => { const m = prompt('Новое название', months[i].month); if(!m) return; persist(months.map((x,j)=>j===i?{...x,month:m}:x)); };
-  const addPhoto = i => {
-    const src = prompt('Путь к фото (например: assets/photo.jpg)');
-    if (!src) return;
-    const cap = prompt('Подпись к фото (необязательно)') || '';
-    persist(months.map((x,j) => j===i ? {...x, photos:[...x.photos,{src,caption:cap}]} : x));
-    toast('Фото добавлено');
+  const addPhotoSlot = i => persist(months.map((x,j) => j===i ? {...x, photos:[...x.photos,{src:'',caption:''}]} : x));
+  const uploadPhoto = async (mi, file) => {
+    if (!file) return;
+    try {
+      const url = await uploadImageFile(file);
+      persist(months.map((x,j) => j===mi ? {...x, photos:[...x.photos,{src:url,caption:''}]} : x));
+      toast('Фото загружено');
+    } catch (e) { alert('Ошибка загрузки: ' + (e.message || 'неизвестно')); }
+  };
+  const replacePhoto = async (mi, pi, file) => {
+    if (!file) return;
+    try {
+      const url = await uploadImageFile(file);
+      persist(months.map((x,j) => j===mi ? {...x, photos:x.photos.map((p,k)=>k===pi?{...p,src:url}:p)} : x));
+      toast('Фото заменено');
+    } catch (e) { alert('Ошибка загрузки: ' + (e.message || 'неизвестно')); }
   };
   const delPhoto = (mi, pi) => persist(months.map((x,j) => j===mi ? {...x, photos:x.photos.filter((_,k)=>k!==pi)} : x));
   const setPhotoField = (mi, pi, k, v) => persist(months.map((x,j) => j===mi ? {...x, photos:x.photos.map((p,k2)=>k2===pi?{...p,[k]:v}:p)} : x));
@@ -1243,7 +1252,7 @@ function ConstructionTab({ toast }) {
     <div>
       <div className="page-header">
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <div><div className="page-title">Ход строительства</div><div className="page-subtitle">Фотоотчёты по месяцам</div></div>
+          <div><div className="page-title">Ход строительства</div><div className="page-subtitle">Фотоотчёты по месяцам · последний месяц показывается на сайте первым</div></div>
           <button className="btn btn-primary" onClick={addMonth}>+ Добавить месяц</button>
         </div>
       </div>
@@ -1251,23 +1260,32 @@ function ConstructionTab({ toast }) {
         {months.length === 0 && <div style={{textAlign:'center',padding:'60px',color:'rgba(255,255,255,0.25)'}}>Нет месяцев. Нажмите «Добавить месяц»</div>}
         {months.map((m, i) => (
           <div key={m.id||i} className="settings-section">
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-              <h3 style={{margin:0}}>{m.month}</h3>
-              <div style={{display:'flex',gap:8}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:10}}>
+              <h3 style={{margin:0}}>
+                {m.month}
+                {i === months.length - 1 && <span style={{ marginLeft:10, fontSize:11, padding:'3px 9px', borderRadius:99, background:'rgba(168,93,63,0.18)', color:'#A85D3F', letterSpacing:'0.04em', textTransform:'uppercase', fontWeight:600 }}>текущий</span>}
+              </h3>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                <PhotoUploadButton onPick={file => uploadPhoto(i, file)} label="+ Загрузить фото" />
                 <button className="btn btn-secondary btn-sm" onClick={()=>renameMonth(i)}>Переименовать</button>
-                <button className="btn btn-secondary btn-sm" onClick={()=>addPhoto(i)}>+ Фото</button>
-                <button className="btn btn-danger btn-sm" onClick={()=>delMonth(i)}>Удалить</button>
+                <button className="btn btn-secondary btn-sm" onClick={()=>addPhotoSlot(i)}>+ Пустой слот</button>
+                <button className="btn btn-danger btn-sm" onClick={()=>delMonth(i)}>Удалить месяц</button>
               </div>
             </div>
-            {m.photos.length === 0 && <div style={{color:'rgba(255,255,255,0.25)',fontSize:13,marginBottom:12}}>Нет фотографий</div>}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
+            {m.photos.length === 0 && <div style={{color:'rgba(255,255,255,0.25)',fontSize:13,marginBottom:12}}>Нет фотографий. Нажмите «Загрузить фото» сверху.</div>}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:14}}>
               {m.photos.map((ph, pi) => (
-                <div key={pi} style={{background:'rgba(255,255,255,0.04)',borderRadius:10,overflow:'hidden'}}>
-                  {ph.src && <img src={ph.src} alt="" style={{width:'100%',height:120,objectFit:'cover',display:'block'}} onError={e=>e.target.style.display='none'}/>}
-                  <div style={{padding:'10px 12px',display:'flex',flexDirection:'column',gap:6}}>
-                    <input value={ph.src||''} onChange={e=>setPhotoField(i,pi,'src',e.target.value)} placeholder="assets/photo.jpg" style={{fontSize:12,padding:'6px 8px'}}/>
-                    <input value={ph.caption||''} onChange={e=>setPhotoField(i,pi,'caption',e.target.value)} placeholder="Подпись" style={{fontSize:12,padding:'6px 8px'}}/>
-                    <button className="btn btn-danger btn-sm" onClick={()=>delPhoto(i,pi)} style={{alignSelf:'flex-start'}}>Удалить</button>
+                <div key={pi} style={{background:'rgba(255,255,255,0.04)',borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,0.06)'}}>
+                  {ph.src
+                    ? <img src={ph.src} alt="" style={{width:'100%',height:140,objectFit:'cover',display:'block'}} onError={e=>e.target.style.display='none'}/>
+                    : <div style={{height:140,display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.25)',fontSize:12}}>Нет файла</div>
+                  }
+                  <div style={{padding:'12px 12px 14px',display:'flex',flexDirection:'column',gap:8}}>
+                    <input value={ph.caption||''} onChange={e=>setPhotoField(i,pi,'caption',e.target.value)} placeholder="Подпись (необязательно)" style={{fontSize:12,padding:'7px 9px'}}/>
+                    <div style={{display:'flex',gap:6}}>
+                      <PhotoUploadButton onPick={file => replacePhoto(i, pi, file)} label={ph.src ? '↻ Заменить' : '📤 Загрузить'} small />
+                      <button className="btn btn-danger btn-sm" onClick={()=>delPhoto(i,pi)} style={{flex:'0 0 auto'}}>Удалить</button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1276,6 +1294,35 @@ function ConstructionTab({ toast }) {
         ))}
       </div>
     </div>
+  );
+}
+
+/* Compact file-picker button — uploads to /api/upload and hands the file back via onPick */
+function PhotoUploadButton({ onPick, label, small }) {
+  const [busy, setBusy] = useState(false);
+  const ref = useRef(null);
+  const handle = async e => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setBusy(true);
+    try { await onPick(f); }
+    finally {
+      setBusy(false);
+      if (ref.current) ref.current.value = '';
+    }
+  };
+  return (
+    <>
+      <button type="button"
+        className={`btn btn-primary ${small ? 'btn-sm' : 'btn-sm'}`}
+        disabled={busy}
+        onClick={() => ref.current?.click()}
+        style={{ opacity: busy ? 0.6 : 1, cursor: busy ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}
+      >
+        {busy ? '⏳ Загрузка...' : label}
+      </button>
+      <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={handle} />
+    </>
   );
 }
 

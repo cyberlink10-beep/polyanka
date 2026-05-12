@@ -2216,17 +2216,42 @@ function ConstructionProgress() {
           <div style={{ fontSize:12, letterSpacing:'0.32em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:14, fontWeight:600 }}>— VII · Фотоотчёт —</div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:20 }}>
             <h2 style={{ fontFamily:'var(--font-display)', fontWeight:400, fontSize:'clamp(36px,4.5vw,56px)', color:'var(--c-champagne)', lineHeight:1.05, letterSpacing:'-0.005em' }}>Ход <em style={{ fontStyle:'italic', color:'var(--c-gold)' }}>строительства</em></h2>
-            {/* Month selector */}
-            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-              {months.map((m, i) => (
-                <button key={i} onClick={() => setIdx(i)} style={{
-                  padding:'8px 18px', borderRadius:24, border:'1px solid', fontSize:13, cursor:'pointer', transition:'all 200ms',
-                  borderColor: i===idx ? 'var(--c-brand)' : 'rgba(255,255,255,0.15)',
-                  background: i===idx ? 'var(--c-brand)' : 'transparent',
-                  color: i===idx ? '#fff' : 'rgba(255,255,255,0.5)',
-                  fontFamily:'inherit',
-                }}>{m.month}</button>
-              ))}
+            {/* Month selector — premium serif dropdown, latest first */}
+            <div style={{ position:'relative', minWidth:240 }}>
+              <select
+                value={idx}
+                onChange={e => setIdx(Number(e.target.value))}
+                style={{
+                  appearance:'none', WebkitAppearance:'none', MozAppearance:'none',
+                  fontFamily:'var(--font-display)', fontWeight:500, fontStyle:'italic',
+                  fontSize:18, color:'var(--c-champagne)',
+                  background:'transparent',
+                  border:'1px solid rgba(184,153,104,0.45)',
+                  borderRadius:0,
+                  padding:'12px 44px 12px 18px',
+                  letterSpacing:'0.02em', cursor:'pointer',
+                  width:'100%', outline:'none',
+                  transition:'border-color 200ms, background 200ms',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-gold)'; e.currentTarget.style.background = 'rgba(184,153,104,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(184,153,104,0.45)'; e.currentTarget.style.background = 'transparent'; }}
+              >
+                {months.map((m, i) => (
+                  <option key={i} value={i} style={{ background:'var(--c-charcoal)', color:'var(--c-champagne)', fontStyle:'normal' }}>
+                    — {m.month} —
+                  </option>
+                ))}
+              </select>
+              {/* Custom chevron */}
+              <div style={{
+                position:'absolute', right:16, top:'50%', transform:'translateY(-50%)',
+                pointerEvents:'none', color:'var(--c-gold)', fontSize:14,
+              }}>▾</div>
+              {/* Gold underline accent */}
+              <div style={{
+                position:'absolute', bottom:-5, left:0, width:36, height:1,
+                background:'var(--c-gold)', opacity:0.7, pointerEvents:'none',
+              }} />
             </div>
           </div>
         </div>
