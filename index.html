@@ -2208,6 +2208,16 @@ function ConstructionProgress() {
   const [idx, setIdx] = useState(months.length - 1);
   const current = months[idx] || months[0];
   const [lightbox, setLightbox] = useState(null);
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = e => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    const onEsc = e => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onEsc);
+    return () => { document.removeEventListener('mousedown', onDocClick); document.removeEventListener('keydown', onEsc); };
+  }, [open]);
   if (!months.length) return null;
   return (
     <section id="construction" style={{ padding:'96px 0', background:'var(--c-charcoal)', position:'relative', overflow:'hidden' }}>
@@ -2216,42 +2226,77 @@ function ConstructionProgress() {
           <div style={{ fontSize:12, letterSpacing:'0.32em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:14, fontWeight:600 }}>— VII · Фотоотчёт —</div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:20 }}>
             <h2 style={{ fontFamily:'var(--font-display)', fontWeight:400, fontSize:'clamp(36px,4.5vw,56px)', color:'var(--c-champagne)', lineHeight:1.05, letterSpacing:'-0.005em' }}>Ход <em style={{ fontStyle:'italic', color:'var(--c-gold)' }}>строительства</em></h2>
-            {/* Month selector — premium serif dropdown, latest first */}
-            <div style={{ position:'relative', minWidth:240 }}>
-              <select
-                value={idx}
-                onChange={e => setIdx(Number(e.target.value))}
+            {/* Month selector — fully custom premium dropdown */}
+            <div ref={wrapRef} style={{ position:'relative', minWidth:260 }}>
+              <button
+                type="button"
+                onClick={() => setOpen(o => !o)}
                 style={{
-                  appearance:'none', WebkitAppearance:'none', MozAppearance:'none',
                   fontFamily:'var(--font-display)', fontWeight:500, fontStyle:'italic',
                   fontSize:18, color:'var(--c-champagne)',
-                  background:'transparent',
-                  border:'1px solid rgba(184,153,104,0.45)',
+                  background: open ? 'rgba(184,153,104,0.10)' : 'transparent',
+                  border:`1px solid ${open ? 'var(--c-gold)' : 'rgba(184,153,104,0.45)'}`,
                   borderRadius:0,
-                  padding:'12px 44px 12px 18px',
+                  padding:'12px 48px 12px 20px',
                   letterSpacing:'0.02em', cursor:'pointer',
-                  width:'100%', outline:'none',
+                  width:'100%', outline:'none', textAlign:'left',
                   transition:'border-color 200ms, background 200ms',
+                  position:'relative',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-gold)'; e.currentTarget.style.background = 'rgba(184,153,104,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(184,153,104,0.45)'; e.currentTarget.style.background = 'transparent'; }}
+                onMouseEnter={e => { if (!open) { e.currentTarget.style.borderColor = 'var(--c-gold)'; e.currentTarget.style.background = 'rgba(184,153,104,0.06)'; } }}
+                onMouseLeave={e => { if (!open) { e.currentTarget.style.borderColor = 'rgba(184,153,104,0.45)'; e.currentTarget.style.background = 'transparent'; } }}
               >
-                {months.map((m, i) => (
-                  <option key={i} value={i} style={{ background:'var(--c-charcoal)', color:'var(--c-champagne)', fontStyle:'normal' }}>
-                    — {m.month} —
-                  </option>
-                ))}
-              </select>
-              {/* Custom chevron */}
-              <div style={{
-                position:'absolute', right:16, top:'50%', transform:'translateY(-50%)',
-                pointerEvents:'none', color:'var(--c-gold)', fontSize:14,
-              }}>▾</div>
+                — {current.month} —
+                <span style={{
+                  position:'absolute', right:18, top:'50%', transform:`translateY(-50%) rotate(${open ? 180 : 0}deg)`,
+                  color:'var(--c-gold)', fontSize:14, transition:'transform 220ms ease',
+                  display:'inline-block',
+                }}>▾</span>
+              </button>
               {/* Gold underline accent */}
               <div style={{
                 position:'absolute', bottom:-5, left:0, width:36, height:1,
                 background:'var(--c-gold)', opacity:0.7, pointerEvents:'none',
               }} />
+
+              {/* Custom popup list */}
+              {open && (
+                <div style={{
+                  position:'absolute', top:'calc(100% + 6px)', right:0, left:0, zIndex:20,
+                  background:'rgba(20,17,14,0.96)',
+                  backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)',
+                  border:'1px solid rgba(184,153,104,0.45)',
+                  boxShadow:'0 16px 40px rgba(0,0,0,0.45), 0 0 22px rgba(184,153,104,0.10)',
+                  maxHeight: 320, overflowY:'auto',
+                  animation:'fadeUp 180ms ease-out',
+                }}>
+                  {months.map((m, i) => {
+                    const active = i === idx;
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => { setIdx(i); setOpen(false); }}
+                        style={{
+                          padding:'12px 20px',
+                          fontFamily:'var(--font-display)', fontStyle:'italic', fontWeight:active ? 600 : 400,
+                          fontSize:17, letterSpacing:'0.02em',
+                          color: active ? 'var(--c-gold)' : 'var(--c-champagne)',
+                          background: active ? 'rgba(184,153,104,0.10)' : 'transparent',
+                          borderTop: i === 0 ? 'none' : '1px solid rgba(184,153,104,0.14)',
+                          cursor:'pointer',
+                          transition:'background 160ms, color 160ms',
+                          display:'flex', alignItems:'center', justifyContent:'space-between', gap:12,
+                        }}
+                        onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(184,153,104,0.07)'; e.currentTarget.style.color = 'var(--c-gold)'; } }}
+                        onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--c-champagne)'; } }}
+                      >
+                        <span>— {m.month} —</span>
+                        {active && <span style={{ color:'var(--c-gold)', fontSize:12, fontStyle:'normal', letterSpacing:'0.04em' }}>✓</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
