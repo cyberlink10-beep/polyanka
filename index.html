@@ -85,17 +85,6 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Decorative DarkBloom band — переход между About-strip и AboutComplex */
-    .darkbloom-band {
-      height: 96px;
-      background:
-        linear-gradient(to bottom, rgba(0,0,0,0.18), rgba(0,0,0,0)),
-        var(--c-olive-deep) url('assets/patterns/06-darkbloom-clear.svg');
-      background-size: cover, 420px 420px;
-      border-top: 1px solid rgba(239,228,196,0.10);
-      border-bottom: 1px solid rgba(0,0,0,0.25);
-    }
-
     /* Tendril divider — горизонтальный разделитель между секциями */
     .tendril-divider {
       height: 64px;
@@ -492,7 +481,7 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
         </div>
 
         {/* Nav */}
-        <nav style={{ display: 'flex', gap: 24, flex: 1, justifyContent: 'center' }}>
+        <nav style={{ display: 'flex', gap: 24, flex: 1, justifyContent: 'center', paddingTop: 5 }}>
           {links.map(l => (
             <a
               key={l.id}
@@ -504,7 +493,7 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
         </nav>
 
         {/* CTA — phone icon + number + button */}
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14, paddingTop: 3 }}>
           {/* Phone number */}
           <a href="tel:+73522777777" className="phone-link" style={{
             fontSize: 14, fontWeight: 700, textDecoration: 'none',
@@ -2676,10 +2665,10 @@ function App() {
       <Header activeSection={activeSection} onNav={handleNav} />
       <Hero onNav={handleNav} />
       <div className="reveal"><AboutStrip /></div>
-      <div className="darkbloom-band" aria-hidden="true" />
       <div className="reveal"><AboutComplex /></div>
       <div className="tendril-divider on-bone" aria-hidden="true" />
       <div className="reveal"><ApartmentCatalog onSelectApt={setSelectedApt} /></div>
+      <div className="tendril-divider on-bone" aria-hidden="true" />
       <div className="reveal"><FloorPlan onSelectApt={setSelectedApt} /></div>
       <div className="reveal"><Promos /></div>
       <div className="reveal"><Features /></div>
