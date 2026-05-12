@@ -78,8 +78,7 @@
     body {
       font-family: var(--font-body);
       font-weight: 400;
-      background: var(--c-bone) url('assets/patterns/01-whisper-clear.svg');
-      background-size: 320px 320px;
+      background: var(--c-bone);
       color: var(--c-ink-soft);
       line-height: 1.65;
       -webkit-font-smoothing: antialiased;
@@ -1517,7 +1516,7 @@ function FloorPlan({ onSelectApt }) {
   );
 
   return (
-    <section id="floorplan" style={{ padding: '96px 0', background: '#fff', position: 'relative' }}>
+    <section id="floorplan" style={{ padding: '96px 0', background: 'var(--c-surface)', position: 'relative' }}>
       <div className="container" style={{ position: 'relative' }}>
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', marginBottom: 12, fontWeight: 600 }}>
@@ -1984,7 +1983,7 @@ const RENDERS = [
 function Gallery() {
   const [active, setActive] = useState(0);
   return (
-    <section id="progress" style={{ padding: '96px 0', background: '#fff' }}>
+    <section id="progress" style={{ padding: '96px 0', background: 'var(--c-surface)' }}>
       <div className="container">
         <div style={{ marginBottom: 48 }}>
           <div style={{ fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', marginBottom: 12, fontWeight: 600 }}>— VI · Галерея —</div>
