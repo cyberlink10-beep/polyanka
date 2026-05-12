@@ -1908,23 +1908,28 @@ function FloorPlan({ onSelectApt }) {
 
 
 /* ─── FEATURES ─── */
-const FEATURES = [
-  { icon: '⬛', svg: true, title: 'Спорткомплекс',   desc: 'Собственная спортивная площадка и зоны для воркаута во дворе' },
-  { icon: '⬛', svg: true, title: 'Закрытый двор',    desc: 'Двор без машин — безопасное пространство для детей и отдыха' },
-  { icon: '⬛', svg: true, title: 'Коммерция',        desc: 'Магазины, кафе и сервисы на первом этаже без выхода на улицу' },
-  { icon: '⬛', svg: true, title: 'Парковка',          desc: 'Наземный паркинг с достаточным количеством мест для всех жильцов' },
-  { icon: '⬛', svg: true, title: 'Монолит',           desc: 'Монолитно-кирпичное строительство — надёжность и долговечность' },
-  { icon: '⬛', svg: true, title: 'Локация',           desc: 'Развитая инфраструктура района: школы, детсады, больницы' },
-];
+const FEATURE_ICONS = {
+  sport:    <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="12" r="5" stroke="#B89968" strokeWidth="1.5"/><path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#B89968" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  yard:     <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 28V14L16 4l12 10v14H4z" stroke="#B89968" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#B89968" strokeWidth="1.2"/></svg>,
+  commerce: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="12" width="24" height="16" rx="2" stroke="#B89968" strokeWidth="1.5"/><path d="M4 12l4-8h16l4 8" stroke="#B89968" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="18" width="8" height="10" rx="1" stroke="#B89968" strokeWidth="1.2"/></svg>,
+  park:     <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="3" y="16" width="26" height="12" rx="2" stroke="#B89968" strokeWidth="1.5"/><circle cx="9" cy="24" r="3" stroke="#B89968" strokeWidth="1.5"/><circle cx="23" cy="24" r="3" stroke="#B89968" strokeWidth="1.5"/><path d="M3 20h26" stroke="#B89968" strokeWidth="1"/><path d="M8 16V10M16 16V8M24 16V10" stroke="#B89968" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  mono:     <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="10" width="20" height="18" rx="1" stroke="#B89968" strokeWidth="1.5"/><path d="M2 10l14-7 14 7" stroke="#B89968" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#B89968" strokeWidth="1.2"/><path d="M10 10v18M22 10v18" stroke="#B89968" strokeWidth="1"/></svg>,
+  loc:      <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 28s-10-8.5-10-15a10 10 0 0120 0c0 6.5-10 15-10 15z" stroke="#B89968" strokeWidth="1.5"/><circle cx="16" cy="13" r="3" stroke="#B89968" strokeWidth="1.5"/></svg>,
+  leaf:     <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M27 5c0 13-10 22-22 22 0-12 9-22 22-22z" stroke="#B89968" strokeWidth="1.5" strokeLinejoin="round"/><path d="M5 27C12 20 19 13 27 5" stroke="#B89968" strokeWidth="1.2" strokeLinecap="round"/></svg>,
+  security: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 3l11 4v8c0 8-5 13-11 14C10 28 5 23 5 15V7l11-4z" stroke="#B89968" strokeWidth="1.5" strokeLinejoin="round"/><path d="M11 16l4 4 6-7" stroke="#B89968" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+};
 
-const FEATURE_ICONS = [
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="sport"><circle cx="16" cy="12" r="5" stroke="#C9B26E" strokeWidth="1.5"/><path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#C9B26E" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="yard"><path d="M4 28V14L16 4l12 10v14H4z" stroke="#C9B26E" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#C9B26E" strokeWidth="1.2"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="commerce"><rect x="4" y="12" width="24" height="16" rx="2" stroke="#C9B26E" strokeWidth="1.5"/><path d="M4 12l4-8h16l4 8" stroke="#C9B26E" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="18" width="8" height="10" rx="1" stroke="#C9B26E" strokeWidth="1.2"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="park"><rect x="3" y="16" width="26" height="12" rx="2" stroke="#C9B26E" strokeWidth="1.5"/><circle cx="9" cy="24" r="3" stroke="#C9B26E" strokeWidth="1.5"/><circle cx="23" cy="24" r="3" stroke="#C9B26E" strokeWidth="1.5"/><path d="M3 20h26" stroke="#C9B26E" strokeWidth="1"/><path d="M8 16V10M16 16V8M24 16V10" stroke="#C9B26E" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="mono"><rect x="6" y="10" width="20" height="18" rx="1" stroke="#C9B26E" strokeWidth="1.5"/><path d="M2 10l14-7 14 7" stroke="#C9B26E" strokeWidth="1.5" strokeLinejoin="round"/><rect x="12" y="20" width="8" height="8" rx="1" stroke="#C9B26E" strokeWidth="1.2"/><path d="M10 10v18M22 10v18" stroke="#C9B26E" strokeWidth="1"/></svg>,
-  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" key="loc"><path d="M16 28s-10-8.5-10-15a10 10 0 0120 0c0 6.5-10 15-10 15z" stroke="#C9B26E" strokeWidth="1.5"/><circle cx="16" cy="13" r="3" stroke="#C9B26E" strokeWidth="1.5"/></svg>,
+const DEFAULT_FEATURES = [
+  { iconKey: 'sport',    title: 'Спорткомплекс',     desc: 'Собственная площадка и зоны для воркаута во дворе' },
+  { iconKey: 'yard',     title: 'Закрытый двор',     desc: 'Двор-сад без машин — безопасное пространство для прогулок' },
+  { iconKey: 'commerce', title: 'Коммерция',         desc: 'Магазины, кафе и сервисы на первом этаже без выхода на улицу' },
+  { iconKey: 'park',     title: 'Парковка',          desc: 'Наземный паркинг с достаточным количеством мест для всех жильцов' },
+  { iconKey: 'mono',     title: 'Монолит',           desc: 'Монолитно-кирпичное строительство — надёжность и долговечность' },
+  { iconKey: 'loc',      title: 'Локация',           desc: 'Развитая инфраструктура района: школы, детсады, больницы' },
+  { iconKey: 'leaf',     title: 'Зелень и природа',  desc: 'Дворы-сады, ландшафтное благоустройство, тишина и чистый воздух' },
+  { iconKey: 'security', title: 'Безопасность 24/7', desc: 'Видеонаблюдение, домофоны, охраняемая территория' },
 ];
+const FEATURES = _lsLoad('geroi_features', DEFAULT_FEATURES);
 
 function Features() {
   return (
@@ -1952,24 +1957,22 @@ function Features() {
         </div>
 
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 0,
-          borderTop: '1px solid rgba(184,153,104,0.28)',
-          borderBottom: '1px solid rgba(184,153,104,0.28)',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 1,
+          background: 'rgba(184,153,104,0.22)',
+          border: '1px solid rgba(184,153,104,0.28)',
         }}>
           {FEATURES.map((f, i) => (
             <div key={i} style={{
               padding: '44px 32px 40px',
-              background: 'transparent',
-              borderLeft: i % 3 === 0 ? 'none' : '1px solid rgba(184,153,104,0.18)',
-              borderTop: i >= 3 ? '1px solid rgba(184,153,104,0.18)' : 'none',
+              background: 'var(--c-dark)',
               position: 'relative',
               transition: 'background 320ms ease',
             }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(184,153,104,0.06)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(184,153,104,0.08)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-dark)'; }}
             >
               {/* Icon — gold accent */}
-              <div style={{ marginBottom: 22, opacity: 0.9 }}>{FEATURE_ICONS[i]}</div>
+              <div style={{ marginBottom: 22, opacity: 0.9 }}>{FEATURE_ICONS[f.iconKey] || FEATURE_ICONS.sport}</div>
 
               {/* Title — Cormorant serif, sentence case */}
               <div style={{
@@ -2095,22 +2098,21 @@ function AboutComplex() {
         </div>
         {/* Feature cards — premium serif treatment with Roman numerals, gold hairlines and a mark accent on hover */}
         <div style={{
-          display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:0,
-          borderTop:'1px solid rgba(184,153,104,0.28)',
-          borderBottom:'1px solid rgba(184,153,104,0.28)',
+          display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:1,
+          background:'rgba(184,153,104,0.22)',
+          border:'1px solid rgba(184,153,104,0.28)',
         }}>
           {feats.map((f, i) => {
             const roman = ['I','II','III','IV','V','VI'][i] || (i+1);
             return (
               <div key={i} style={{
                 padding:'44px 32px 40px',
-                background:'transparent',
-                borderLeft: i === 0 ? 'none' : '1px solid rgba(184,153,104,0.18)',
+                background:'var(--c-ink)',
                 position:'relative',
-                transition:'background 320ms ease, transform 320ms ease',
+                transition:'background 320ms ease',
               }}
-                onMouseEnter={e => { e.currentTarget.style.background='rgba(184,153,104,0.06)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}
+                onMouseEnter={e => { e.currentTarget.style.background='rgba(184,153,104,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background='var(--c-ink)'; }}
               >
                 {/* Roman numeral — Cormorant italic, large, gold */}
                 <div style={{

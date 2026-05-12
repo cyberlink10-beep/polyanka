@@ -251,7 +251,7 @@ const DEFAULT_SETTINGS = {
 /* ─── STORAGE HELPERS ─── */
 const SYNC_KEYS = [
   'geroi_apts','geroi_slides','geroi_settings','geroi_about',
-  'geroi_promos','geroi_construction','geroi_infra','geroi_footer',
+  'geroi_promos','geroi_features','geroi_construction','geroi_infra','geroi_footer',
   'geroi_korpuses','geroi_site_render',
 ];
 let __syncTimer = null;
@@ -1117,6 +1117,101 @@ function PromosTab({ toast }) {
   );
 }
 
+/* ─── FEATURES TAB ─── */
+const FEATURE_ICON_OPTIONS = [
+  { key: 'sport',    label: '🏃 Спорткомплекс / активность' },
+  { key: 'yard',     label: '🏡 Дом / закрытый двор' },
+  { key: 'commerce', label: '🛍 Магазины / коммерция' },
+  { key: 'park',     label: '🚗 Парковка' },
+  { key: 'mono',     label: '🧱 Монолит / стройка' },
+  { key: 'loc',      label: '📍 Локация / расположение' },
+  { key: 'leaf',     label: '🌿 Природа / зелень' },
+  { key: 'security', label: '🛡 Безопасность / охрана' },
+];
+const DEFAULT_FEATURES = [
+  { iconKey:'sport',    title:'Спорткомплекс',     desc:'Собственная площадка и зоны для воркаута во дворе' },
+  { iconKey:'yard',     title:'Закрытый двор',     desc:'Двор-сад без машин — безопасное пространство для прогулок' },
+  { iconKey:'commerce', title:'Коммерция',         desc:'Магазины, кафе и сервисы на первом этаже без выхода на улицу' },
+  { iconKey:'park',     title:'Парковка',          desc:'Наземный паркинг с достаточным количеством мест для всех жильцов' },
+  { iconKey:'mono',     title:'Монолит',           desc:'Монолитно-кирпичное строительство — надёжность и долговечность' },
+  { iconKey:'loc',      title:'Локация',           desc:'Развитая инфраструктура района: школы, детсады, больницы' },
+  { iconKey:'leaf',     title:'Зелень и природа',  desc:'Дворы-сады, ландшафтное благоустройство, тишина и чистый воздух' },
+  { iconKey:'security', title:'Безопасность 24/7', desc:'Видеонаблюдение, домофоны, охраняемая территория' },
+];
+
+function FeaturesTab({ toast }) {
+  const [features, setFeatures] = useState(() => ls.load('geroi_features', DEFAULT_FEATURES));
+  const set = (i, k, v) => setFeatures(p => p.map((x, j) => j === i ? { ...x, [k]: v } : x));
+  const add = () => {
+    if (features.length >= 8) { toast('Максимум 8 блоков'); return; }
+    setFeatures(p => [...p, { iconKey:'sport', title:'Новый блок', desc:'Описание' }]);
+  };
+  const del = i => { if (!confirm('Удалить этот блок?')) return; setFeatures(p => p.filter((_, j) => j !== i)); };
+  const move = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= features.length) return;
+    setFeatures(p => { const a = [...p]; [a[i], a[j]] = [a[j], a[i]]; return a; });
+  };
+  const saveAll = () => { ls.save('geroi_features', features); toast(`Сохранено: ${features.length} блок(ов)`); };
+  const reset = () => {
+    if (!confirm('Сбросить к значениям по умолчанию?')) return;
+    setFeatures(DEFAULT_FEATURES); ls.save('geroi_features', DEFAULT_FEATURES); toast('Сброшено');
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div>
+            <div className="page-title">Преимущества</div>
+            <div className="page-subtitle">Блоки в разделе «— V · Преимущества» на главной (до 8 штук)</div>
+          </div>
+          <button className="btn btn-primary" onClick={add} disabled={features.length >= 8}>+ Добавить блок</button>
+        </div>
+      </div>
+      <div className="page-body">
+        {features.map((f, i) => (
+          <div key={i} className="settings-section">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+              <h3 style={{margin:0}}>Блок {i + 1}</h3>
+              <div style={{display:'flex',gap:6}}>
+                <button className="btn btn-secondary btn-sm" onClick={()=>move(i,-1)} disabled={i===0}>↑</button>
+                <button className="btn btn-secondary btn-sm" onClick={()=>move(i,1)} disabled={i===features.length-1}>↓</button>
+                <button className="btn btn-danger btn-sm" onClick={()=>del(i)}>Удалить</button>
+              </div>
+            </div>
+            <div className="form-grid">
+              <div className="form-group">
+                <span className="form-label">Иконка</span>
+                <select value={f.iconKey || 'sport'} onChange={e=>set(i,'iconKey',e.target.value)}>
+                  {FEATURE_ICON_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <span className="form-label">Заголовок</span>
+                <input value={f.title||''} onChange={e=>set(i,'title',e.target.value)} placeholder="Закрытый двор" />
+              </div>
+              <div className="form-group full">
+                <span className="form-label">Описание</span>
+                <textarea rows={2} value={f.desc||''} onChange={e=>set(i,'desc',e.target.value)} placeholder="Двор без машин — для прогулок и тишины"/>
+              </div>
+            </div>
+          </div>
+        ))}
+        {features.length === 0 && (
+          <div style={{textAlign:'center',padding:'60px',color:'rgba(255,255,255,0.25)'}}>
+            Нет блоков. Нажмите «Добавить блок» сверху.
+          </div>
+        )}
+        <div className="section-actions">
+          <button className="btn btn-primary" onClick={saveAll}>Сохранить</button>
+          <button className="btn btn-secondary" onClick={reset}>Сбросить к умолчаниям</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── CONSTRUCTION TAB ─── */
 const DEFAULT_CONSTRUCTION = [
   { id:1, month:'Апрель 2025', photos:[{src:'assets/render-aerial.jpg',caption:'Вид с воздуха'},{src:'assets/render-facade.jpg',caption:'Фасад'},{src:'assets/render-street.jpg',caption:'Улица'}] },
@@ -1734,6 +1829,7 @@ const TABS = [
   { id: 'slider',       label: 'Слайдер',         icon: '🖼' },
   { id: 'about',        label: 'О комплексе',     icon: '📋' },
   { id: 'promos',       label: 'Акции',           icon: '🎁' },
+  { id: 'features',     label: 'Преимущества',    icon: '⭐' },
   { id: 'construction', label: 'Строительство',   icon: '🏗️' },
   { id: 'infra',        label: 'Инфраструктура',  icon: '🗺️' },
   { id: 'settings',     label: 'Настройки',       icon: '⚙️' },
@@ -1784,6 +1880,7 @@ function AdminPanel() {
         {tab === 'slider'       && <SliderTab toast={showToast} />}
         {tab === 'about'        && <AboutTab toast={showToast} />}
         {tab === 'promos'       && <PromosTab toast={showToast} />}
+        {tab === 'features'     && <FeaturesTab toast={showToast} />}
         {tab === 'construction' && <ConstructionTab toast={showToast} />}
         {tab === 'infra'        && <InfraTab toast={showToast} />}
         {tab === 'settings'     && <SettingsTab toast={showToast} />}
