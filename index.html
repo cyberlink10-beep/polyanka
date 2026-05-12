@@ -2098,21 +2098,22 @@ function AboutComplex() {
         </div>
         {/* Feature cards — premium serif treatment with Roman numerals, gold hairlines and a mark accent on hover */}
         <div style={{
-          display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:1,
-          background:'rgba(184,153,104,0.22)',
-          border:'1px solid rgba(184,153,104,0.28)',
+          display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:0,
+          borderTop:'1px solid rgba(184,153,104,0.28)',
+          borderBottom:'1px solid rgba(184,153,104,0.28)',
         }}>
           {feats.map((f, i) => {
             const roman = ['I','II','III','IV','V','VI'][i] || (i+1);
             return (
               <div key={i} style={{
                 padding:'44px 32px 40px',
-                background:'var(--c-ink)',
+                background:'transparent',
+                borderLeft: i === 0 ? 'none' : '1px solid rgba(184,153,104,0.18)',
                 position:'relative',
-                transition:'background 320ms ease',
+                transition:'background 320ms ease, transform 320ms ease',
               }}
-                onMouseEnter={e => { e.currentTarget.style.background='rgba(184,153,104,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background='var(--c-ink)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background='rgba(184,153,104,0.06)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background='transparent'; }}
               >
                 {/* Roman numeral — Cormorant italic, large, gold */}
                 <div style={{
