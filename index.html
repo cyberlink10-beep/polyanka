@@ -1943,8 +1943,11 @@ function Features() {
               Жизнь <em style={{ fontStyle: 'italic', color: 'var(--c-gold)' }}>на своей</em> поляне<em style={{ fontStyle: 'italic', color: 'var(--c-terracotta)', fontWeight: 500 }}>.</em>
             </h2>
           </div>
-          <p style={{ maxWidth: 320, fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7 }}>
-            Мы продумали каждую деталь, чтобы ваша жизнь в новом доме была комфортной с первого дня
+          <p style={{
+            maxWidth: 360, fontFamily: 'var(--font-display)', fontStyle: 'italic',
+            fontWeight: 400, fontSize: 19, color: 'var(--c-gold)', lineHeight: 1.5,
+          }}>
+            — каждая деталь продумана так, чтобы создать ощущение покоя и принадлежности —
           </p>
         </div>
 
@@ -1953,50 +1956,41 @@ function Features() {
           borderTop: '1px solid rgba(184,153,104,0.28)',
           borderBottom: '1px solid rgba(184,153,104,0.28)',
         }}>
-          {FEATURES.map((f, i) => {
-            const roman = ['I','II','III','IV','V','VI','VII','VIII'][i] || (i+1);
-            return (
-              <div key={i} style={{
-                padding: '44px 32px 40px',
-                background: 'transparent',
-                borderLeft: i % 3 === 0 ? 'none' : '1px solid rgba(184,153,104,0.18)',
-                borderTop: i >= 3 ? '1px solid rgba(184,153,104,0.18)' : 'none',
-                position: 'relative',
-                transition: 'background 320ms ease',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(184,153,104,0.06)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                {/* Icon + roman numeral on a single row, gold */}
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 18 }}>
-                  <div style={{ opacity: 0.85 }}>{FEATURE_ICONS[i]}</div>
-                  <div style={{
-                    fontFamily:'var(--font-display)', fontStyle:'italic', fontWeight:400,
-                    fontSize:28, color:'var(--c-gold)', lineHeight:1, letterSpacing:'0.02em',
-                  }}>— {roman} —</div>
-                </div>
+          {FEATURES.map((f, i) => (
+            <div key={i} style={{
+              padding: '44px 32px 40px',
+              background: 'transparent',
+              borderLeft: i % 3 === 0 ? 'none' : '1px solid rgba(184,153,104,0.18)',
+              borderTop: i >= 3 ? '1px solid rgba(184,153,104,0.18)' : 'none',
+              position: 'relative',
+              transition: 'background 320ms ease',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(184,153,104,0.06)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              {/* Icon — gold accent */}
+              <div style={{ marginBottom: 22, opacity: 0.9 }}>{FEATURE_ICONS[i]}</div>
 
-                {/* Title — Cormorant serif, sentence case */}
-                <div style={{
-                  fontFamily:'var(--font-display)', fontWeight:500, fontSize:24,
-                  color:'var(--c-champagne)', lineHeight:1.15, letterSpacing:'-0.005em',
-                  marginBottom:14,
-                }}>{f.title}</div>
+              {/* Title — Cormorant serif, sentence case */}
+              <div style={{
+                fontFamily:'var(--font-display)', fontWeight:500, fontSize:24,
+                color:'var(--c-champagne)', lineHeight:1.15, letterSpacing:'-0.005em',
+                marginBottom:14,
+              }}>{f.title}</div>
 
-                {/* Gold hairline */}
-                <div style={{
-                  width:36, height:1, background:'var(--c-gold)',
-                  opacity:0.75, marginBottom:16,
-                }} />
+              {/* Gold hairline */}
+              <div style={{
+                width:36, height:1, background:'var(--c-gold)',
+                opacity:0.75, marginBottom:16,
+              }} />
 
-                {/* Description — Inter Light */}
-                <div style={{
-                  fontFamily:'var(--font-body)', fontWeight:300, fontSize:14,
-                  color:'rgba(239,228,196,0.72)', lineHeight:1.7,
-                }}>{f.desc}</div>
-              </div>
-            );
-          })}
+              {/* Description — Inter Light */}
+              <div style={{
+                fontFamily:'var(--font-body)', fontWeight:300, fontSize:14,
+                color:'rgba(239,228,196,0.72)', lineHeight:1.7,
+              }}>{f.desc}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
