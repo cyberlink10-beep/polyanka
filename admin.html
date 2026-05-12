@@ -27,128 +27,280 @@
   <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
+    /* ─── Apple-style admin theme · light, minimal, airy ─── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+    :root {
+      --bg:          #F5F5F7;   /* App background (Apple light grey) */
+      --surface:     #FFFFFF;   /* Cards, modals, sidebar */
+      --surface-2:   #FAFAFA;   /* Subtle inner surfaces */
+      --hairline:    rgba(0,0,0,0.07);
+      --hairline-2:  rgba(0,0,0,0.045);
+      --text:        #1D1D1F;   /* Primary text */
+      --text-2:      #515154;   /* Secondary */
+      --text-3:      #86868B;   /* Tertiary */
+      --accent:      #A85D3F;   /* Brand terracotta */
+      --accent-2:    #8E4A30;
+      --accent-tint: rgba(168,93,63,0.08);
+      --blue:        #007AFF;   /* iOS system blue (for selection / focus) */
+      --green:       #34C759;
+      --red:         #FF3B30;
+      --orange:      #FF9500;
+      --shadow-1:    0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+      --shadow-2:    0 4px 16px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+      --radius-sm:   8px;
+      --radius:      12px;
+      --radius-lg:   18px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      font-size: 14px; line-height: 1.5;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
     /* Layout */
     .admin-layout { display: flex; min-height: 100vh; }
-    .sidebar { width: 240px; background: #161b27; border-right: 1px solid rgba(255,255,255,0.06); padding: 24px 0; flex-shrink: 0; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+    .sidebar {
+      width: 240px; background: var(--surface); border-right: 1px solid var(--hairline);
+      padding: 24px 0; flex-shrink: 0; display: flex; flex-direction: column;
+      position: sticky; top: 0; height: 100vh;
+    }
     .main-content { flex: 1; overflow: auto; }
 
     /* Sidebar */
-    .sidebar-logo { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 16px; }
-    .sidebar-logo h1 { font-size: 16px; font-weight: 700; color: #fff; }
-    .sidebar-logo p { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 24px; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.55); transition: all 150ms; border-left: 3px solid transparent; }
-    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
-    .nav-item.active { color: #fff; background: rgba(168,93,63,0.12); border-left-color: #A85D3F; }
-    .sidebar-bottom { margin-top: auto; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .sidebar-logo { padding: 4px 22px 22px; border-bottom: 1px solid var(--hairline); margin-bottom: 14px; }
+    .sidebar-logo h1 { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+    .sidebar-logo p { font-size: 12px; color: var(--text-3); margin-top: 2px; font-weight: 400; }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 9px 14px; margin: 1px 12px;
+      border-radius: 8px; cursor: pointer;
+      font-size: 14px; color: var(--text-2); font-weight: 450;
+      transition: background 140ms ease, color 140ms ease;
+    }
+    .nav-item:hover { background: rgba(0,0,0,0.04); color: var(--text); }
+    .nav-item.active { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
+    .sidebar-bottom { margin-top: auto; padding: 16px 22px 0; border-top: 1px solid var(--hairline); }
 
     /* Page */
-    .page-header { padding: 32px 40px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .page-title { font-size: 22px; font-weight: 700; color: #fff; }
-    .page-subtitle { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
-    .page-body { padding: 32px 40px; }
+    .page-header {
+      padding: 36px 44px 24px; border-bottom: 1px solid var(--hairline);
+      background: var(--surface);
+    }
+    .page-title { font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+    .page-subtitle { font-size: 14px; color: var(--text-3); margin-top: 4px; font-weight: 400; }
+    .page-body { padding: 32px 44px; }
 
     /* Buttons */
-    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 150ms; text-decoration: none; }
-    .btn-primary { background: #A85D3F; color: #fff; }
-    .btn-primary:hover { background: #8E4A30; }
-    .btn-secondary { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
-    .btn-secondary:hover { background: rgba(255,255,255,0.12); }
-    .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; }
-    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 500; font-family: inherit;
+      transition: background 140ms ease, transform 120ms ease, box-shadow 140ms ease;
+      text-decoration: none; line-height: 1; white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 1px 2px rgba(168,93,63,0.18); }
+    .btn-primary:hover { background: var(--accent-2); }
+    .btn-primary:disabled { background: rgba(0,0,0,0.10); color: rgba(0,0,0,0.3); box-shadow: none; cursor: not-allowed; }
+    .btn-secondary { background: rgba(0,0,0,0.05); color: var(--text); }
+    .btn-secondary:hover { background: rgba(0,0,0,0.08); }
+    .btn-secondary:disabled { color: var(--text-3); cursor: not-allowed; opacity: 0.5; }
+    .btn-danger { background: rgba(255,59,48,0.10); color: var(--red); }
+    .btn-danger:hover { background: rgba(255,59,48,0.16); }
+    .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-sm { padding: 6px 12px; font-size: 12px; }
-    .btn-icon { padding: 7px 9px; border-radius: 6px; }
+    .btn-icon { padding: 7px 9px; border-radius: 7px; }
 
     /* Table */
-    .table-wrap { background: #161b27; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+    .table-wrap {
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--hairline); overflow: hidden;
+      box-shadow: var(--shadow-1);
+    }
     table { width: 100%; border-collapse: collapse; }
-    th { padding: 12px 16px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.06em; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: nowrap; }
-    td { padding: 12px 16px; font-size: 13px; color: rgba(255,255,255,0.75); border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    th {
+      padding: 14px 18px; font-size: 11px; font-weight: 600; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.06em; text-align: left;
+      border-bottom: 1px solid var(--hairline); white-space: nowrap;
+      background: var(--surface-2);
+    }
+    td {
+      padding: 13px 18px; font-size: 13.5px; color: var(--text);
+      border-bottom: 1px solid var(--hairline-2); vertical-align: middle;
+    }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255,255,255,0.02); }
+    tr:hover td { background: rgba(0,0,0,0.015); }
 
     /* Badge */
-    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
-    .badge-green { background: rgba(74,222,128,0.15); color: #4ade80; }
-    .badge-yellow { background: rgba(251,191,36,0.15); color: #fbbf24; }
-    .badge-red { background: rgba(239,68,68,0.15); color: #f87171; }
-    .badge-orange { background: rgba(168,93,63,0.2); color: #A85D3F; }
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 5px; font-size: 11.5px; font-weight: 500; letter-spacing: -0.005em; }
+    .badge-green  { background: rgba(52,199,89,0.14);  color: #1F8638; }
+    .badge-yellow { background: rgba(255,149,0,0.14);  color: #B86E00; }
+    .badge-red    { background: rgba(255,59,48,0.12);  color: #C42620; }
+    .badge-orange { background: rgba(168,93,63,0.14);  color: var(--accent); }
 
     /* Modal */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-    .modal { background: #1a2035; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 620px; max-height: 92vh; overflow-y: auto; }
-    .modal-header { padding: 24px 28px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: #1a2035; z-index: 1; }
-    .modal-header h3 { font-size: 17px; font-weight: 600; color: #fff; }
-    .modal-body { padding: 24px 28px; }
-    .modal-footer { padding: 16px 28px 24px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 20px;
+    }
+    .modal {
+      background: var(--surface); border-radius: var(--radius-lg);
+      width: 100%; max-width: 620px; max-height: 92vh; overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 12px 32px rgba(0,0,0,0.12);
+    }
+    .modal-header {
+      padding: 22px 28px 18px; border-bottom: 1px solid var(--hairline);
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; background: var(--surface); z-index: 1;
+    }
+    .modal-header h3 { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+    .modal-body { padding: 22px 28px; }
+    .modal-footer { padding: 16px 28px 22px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--hairline); }
 
     /* Form */
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
     .form-group.full { grid-column: 1 / -1; }
-    .form-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; }
-    input, select, textarea { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 14px; font-family: inherit; width: 100%; outline: none; transition: border-color 150ms; }
-    input:focus, select:focus, textarea:focus { border-color: #A85D3F; background: rgba(255,255,255,0.08); }
-    select option { background: #1a2035; color: #fff; }
-    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
+    .form-label { font-size: 12px; font-weight: 500; color: var(--text-2); letter-spacing: -0.005em; }
+    input, select, textarea {
+      background: var(--surface); border: 1px solid var(--hairline);
+      border-radius: 8px; padding: 10px 12px;
+      color: var(--text); font-size: 14px; font-family: inherit;
+      width: 100%; outline: none;
+      transition: border-color 140ms, box-shadow 140ms, background 140ms;
+    }
+    input:hover, select:hover, textarea:hover { border-color: rgba(0,0,0,0.14); }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint);
+    }
+    select option { background: var(--surface); color: var(--text); }
+    input::placeholder, textarea::placeholder { color: var(--text-3); }
 
     /* Stats cards */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; margin-bottom: 28px; }
-    .stat-card { background: #161b27; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); padding: 18px 20px; }
-    .stat-card-value { font-size: 26px; font-weight: 700; color: #fff; }
-    .stat-card-label { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--hairline); padding: 18px 20px;
+      box-shadow: var(--shadow-1);
+    }
+    .stat-card-value { font-size: 28px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+    .stat-card-label { font-size: 13px; color: var(--text-3); margin-top: 4px; font-weight: 400; }
 
     /* Toolbar */
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
     .toolbar-left { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .search-input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 14px; color: #fff; font-size: 13px; width: 240px; outline: none; font-family: inherit; }
-    .search-input::placeholder { color: rgba(255,255,255,0.3); }
-    .search-input:focus { border-color: #A85D3F; }
+    .search-input {
+      background: var(--surface); border: 1px solid var(--hairline);
+      border-radius: 8px; padding: 9px 14px;
+      color: var(--text); font-size: 14px; width: 260px; outline: none; font-family: inherit;
+      transition: border-color 140ms, box-shadow 140ms;
+    }
+    .search-input::placeholder { color: var(--text-3); }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
 
     /* Slides */
     .slide-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .slide-card { background: #161b27; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
-    .slide-preview { height: 160px; background: #0f1117; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+    .slide-card {
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--hairline); overflow: hidden; box-shadow: var(--shadow-1);
+    }
+    .slide-preview {
+      height: 170px; background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
     .slide-preview img { width: 100%; height: 100%; object-fit: cover; }
-    .slide-preview-empty { color: rgba(255,255,255,0.2); font-size: 12px; }
+    .slide-preview-empty { color: var(--text-3); font-size: 12px; }
     .slide-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .slide-num { font-size: 11px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .slide-num { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
 
     /* Settings */
-    .settings-section { background: #161b27; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); padding: 24px; margin-bottom: 20px; }
-    .settings-section h3 { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); margin-bottom: 18px; text-transform: uppercase; letter-spacing: 0.1em; }
+    .settings-section {
+      background: var(--surface); border-radius: var(--radius);
+      border: 1px solid var(--hairline); padding: 24px 26px; margin-bottom: 18px;
+      box-shadow: var(--shadow-1);
+    }
+    .settings-section h3 {
+      font-size: 12px; font-weight: 600; color: var(--text-2);
+      margin-bottom: 18px; text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* Korpus selector cards (used in KorpusesTab) */
+    .korpus-card {
+      padding: 14px 16px; border-radius: var(--radius); cursor: pointer;
+      background: var(--surface); border: 1px solid var(--hairline);
+      transition: background 140ms ease, border-color 140ms ease, transform 120ms ease;
+    }
+    .korpus-card:hover { background: var(--surface-2); border-color: rgba(0,0,0,0.10); }
+    .korpus-card.active {
+      background: var(--accent-tint); border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-tint);
+    }
+    .korpus-card-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; letter-spacing: -0.005em; }
+    .korpus-card-meta { font-size: 12px; color: var(--text-3); }
 
     /* Toast */
-    .toast { position: fixed; bottom: 24px; right: 24px; background: #1e2a1e; border: 1px solid rgba(74,222,128,0.3); border-radius: 10px; padding: 14px 20px; font-size: 14px; color: #4ade80; z-index: 9999; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: toastIn 0.2s ease; }
-    @keyframes toastIn { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: rgba(28,28,30,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 12px; padding: 14px 20px; font-size: 14px; color: #fff;
+      z-index: 9999; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.20);
+      animation: toastIn 0.22s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes toastIn { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     /* Login */
-    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .login-card { background: #161b27; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 44px 40px; width: 360px; }
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); }
+    .login-card {
+      background: var(--surface); border: 1px solid var(--hairline);
+      border-radius: var(--radius-lg); padding: 44px 40px; width: 360px;
+      box-shadow: var(--shadow-2);
+    }
 
     /* Img */
-    .img-thumb { width: 52px; height: 38px; object-fit: cover; border-radius: 6px; background: #0f1117; display: block; }
-    .no-img { width: 52px; height: 38px; border-radius: 6px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 9px; color: rgba(255,255,255,0.2); }
+    .img-thumb { width: 56px; height: 42px; object-fit: cover; border-radius: 7px; background: var(--surface-2); display: block; border: 1px solid var(--hairline); }
+    .no-img { width: 56px; height: 42px; border-radius: 7px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text-3); border: 1px solid var(--hairline); }
 
-    /* Toggle */
+    /* Toggle (iOS style) */
     .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
-    .toggle { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0; }
     .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(255,255,255,0.12); border-radius: 11px; transition: 0.25s; }
-    .toggle-slider:before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.25s; }
-    .toggle input:checked + .toggle-slider { background: #4ade80; }
-    .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
-    .toggle-label { font-size: 13px; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: rgba(120,120,128,0.20); border-radius: 13px; transition: 0.25s;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute; height: 22px; width: 22px;
+      left: 2px; bottom: 2px; background: #fff; border-radius: 50%;
+      transition: 0.25s; box-shadow: 0 2px 4px rgba(0,0,0,0.18), 0 1px 1px rgba(0,0,0,0.06);
+    }
+    .toggle input:checked + .toggle-slider { background: var(--green); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+    .toggle-label { font-size: 13px; color: var(--text-2); }
 
     /* Section divider */
-    .section-actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+    .section-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+
+    /* Sync status pill (top-right of main content) */
+    .sync-pill { background: var(--surface); border: 1px solid var(--hairline); box-shadow: var(--shadow-1); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 5px; border: 2px solid var(--bg); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
 
     @media (max-width: 900px) {
       .slide-cards { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
       .sidebar { display: none; }
+      .page-header, .page-body { padding-left: 24px; padding-right: 24px; }
     }
   </style>
 </head>
@@ -311,19 +463,19 @@ function SyncStatus() {
   }, [status]);
   if (status === 'idle') return null;
   const cfg = {
-    pending: { icon: '⏳', text: 'Ожидание...',     bg: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)' },
+    pending: { icon: '⏳', text: 'Ожидание...',     bg: 'rgba(0,0,0,0.06)', color: 'rgba(0,0,0,0.75)' },
     saving:  { icon: '🔄', text: 'Синхронизация...', bg: 'rgba(168,93,63,0.18)', color: '#A85D3F' },
-    saved:   { icon: '✓',  text: 'Сохранено на сервере', bg: 'rgba(74,222,128,0.16)', color: '#4ade80' },
-    error:   { icon: '⚠',  text: 'Ошибка синхронизации', bg: 'rgba(239,68,68,0.16)', color: '#f87171' },
-  }[status] || { icon: '', text: '', bg: 'transparent', color: '#fff' };
+    saved:   { icon: '✓',  text: 'Сохранено на сервере', bg: 'rgba(52,199,89,0.14)', color: '#1F8638' },
+    error:   { icon: '⚠',  text: 'Ошибка синхронизации', bg: 'rgba(255,59,48,0.14)', color: '#C42620' },
+  }[status] || { icon: '', text: '', bg: 'transparent', color: 'var(--text)' };
   return (
     <div style={{
       position: 'fixed', top: 16, right: 20, zIndex: 999,
       padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
       background: cfg.bg, color: cfg.color,
-      border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(0,0,0,0.06)', backdropFilter: 'blur(10px)',
       display: 'flex', alignItems: 'center', gap: 8,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
     }}>
       <span>{cfg.icon}</span>
       <span>{cfg.text}</span>
@@ -344,8 +496,8 @@ function LoginScreen({ onLogin }) {
     <div className="login-screen">
       <div className="login-card">
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10 }}>Панель управления</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>ЖК Полянка</div>
+          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10 }}>Панель управления</div>
+          <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.02em' }}>ЖК Полянка</div>
         </div>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input
@@ -356,7 +508,7 @@ function LoginScreen({ onLogin }) {
           {err && <div style={{ fontSize: 12, color: '#f87171', textAlign: 'center' }}>Неверный пароль</div>}
           <button type="submit" className="btn btn-primary" style={{ justifyContent: 'center', marginTop: 4 }}>Войти</button>
         </form>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.18)', textAlign: 'center', marginTop: 24 }}>По умолчанию: geroi2025</div>
+        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', textAlign: 'center', marginTop: 24 }}>По умолчанию: geroi2025</div>
       </div>
     </div>
   );
@@ -451,8 +603,8 @@ function AptModal({ apt, onSave, onClose }) {
                 <div className="form-group full">
                   <span className="form-label">Предпросмотр фото</span>
                   {!imgErr
-                    ? <img src={form.img} onError={() => setImgErr(true)} alt="" style={{ width: '100%', height: 160, objectFit: 'contain', background: '#0c0a08', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }} />
-                    : <div style={{ height: 80, background: 'rgba(255,255,255,0.04)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Не удалось загрузить фото</div>
+                    ? <img src={form.img} onError={() => setImgErr(true)} alt="" style={{ width: '100%', height: 160, objectFit: 'contain', background: 'var(--surface-2)', borderRadius: 10, border: '1px solid rgba(0,0,0,0.06)' }} />
+                    : <div style={{ height: 80, background: 'rgba(0,0,0,0.03)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>Не удалось загрузить фото</div>
                   }
                 </div>
               )}
@@ -678,13 +830,13 @@ function ApartmentsTab({ toast }) {
         <div className="toolbar">
           <div className="toolbar-left">
             <input className="search-input" placeholder="Поиск по площади, этажу, цене..." value={search} onChange={e => setSearch(e.target.value)} />
-            <select style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '8px 12px', color: '#fff', fontSize: 13, outline: 'none', cursor: 'pointer' }}
+            <select style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', cursor: 'pointer' }}
               value={filter} onChange={e => setFilter(e.target.value)}>
               <option value="all">Все статусы</option>
               <option value="available">Свободные</option>
               <option value="sold">Проданные</option>
             </select>
-            <select style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '8px 12px', color: '#fff', fontSize: 13, outline: 'none', cursor: 'pointer' }}
+            <select style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', cursor: 'pointer' }}
               value={sortBy} onChange={e => setSortBy(e.target.value)}>
               <option value="id">По добавлению</option>
               <option value="price-asc">Цена ↑</option>
@@ -729,11 +881,11 @@ function ApartmentsTab({ toast }) {
                     }
                     <div className="no-img" style={{ display: a.img ? 'none' : 'flex' }}>нет</div>
                   </td>
-                  <td style={{ color: '#fff', fontWeight: 600 }}>{a.rooms}-комн.</td>
+                  <td style={{ color: 'var(--text)', fontWeight: 600 }}>{a.rooms}-комн.</td>
                   <td>{a.area} м²</td>
                   <td>{a.floor} эт.</td>
                   <td>Корп. {a.korpus || 1}</td>
-                  <td style={{ color: '#fff' }}>{fmt(a.price)} ₽</td>
+                  <td style={{ color: 'var(--text)' }}>{fmt(a.price)} ₽</td>
                   <td>
                     <span
                       className={`badge ${a.available ? 'badge-green' : 'badge-red'}`}
@@ -747,7 +899,7 @@ function ApartmentsTab({ toast }) {
                   <td>
                     {a.badge
                       ? <span className="badge badge-orange">{a.badge}</span>
-                      : <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>—</span>
+                      : <span style={{ color: 'rgba(0,0,0,0.35)', fontSize: 12 }}>—</span>
                     }
                   </td>
                   <td>
@@ -760,7 +912,7 @@ function ApartmentsTab({ toast }) {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px', color: 'rgba(255,255,255,0.2)', fontSize: 14 }}>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px', color: 'rgba(0,0,0,0.35)', fontSize: 14 }}>
                     Квартиры не найдены
                   </td>
                 </tr>
@@ -870,7 +1022,7 @@ function SettingsTab({ toast }) {
     <div className="form-group">
       <span className="form-label">{label}</span>
       <input type={type} value={s[k] || ''} onChange={e => set(k, e.target.value)} placeholder={placeholder} />
-      {hint && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 3 }}>{hint}</div>}
+      {hint && <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)', marginTop: 3 }}>{hint}</div>}
     </div>
   );
 
@@ -999,7 +1151,7 @@ function ExportTab({ toast }) {
 
         <div className="settings-section">
           <h3>Как это работает</h3>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.8 }}>
+          <p style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', lineHeight: 1.8 }}>
             Все изменения хранятся в браузере (localStorage).<br/>
             Сохранённые данные загружаются автоматически при открытии <a href="index.html" style={{ color: '#A85D3F' }} target="_blank">сайта</a>.<br/>
             Чтобы перенести данные на другое устройство — скачайте резервную копию и загрузите её там.
@@ -1047,8 +1199,8 @@ function AboutTab({ toast }) {
         <div className="settings-section">
           <h3>Преимущества (4 блока)</h3>
           {(d.features||[]).map((f,i) => (
-            <div key={i} style={{marginBottom:16,padding:'16px',background:'rgba(255,255,255,0.04)',borderRadius:8}}>
-              <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10}}>Блок {i+1}</div>
+            <div key={i} style={{marginBottom:16,padding:'16px',background:'rgba(0,0,0,0.03)',borderRadius:8}}>
+              <div style={{fontSize:11,color:'rgba(0,0,0,0.55)',marginBottom:10}}>Блок {i+1}</div>
               <div className="form-grid">
                 <div className="form-group"><span className="form-label">Заголовок</span><input value={f.title||''} onChange={e=>setFeat(i,'title',e.target.value)}/></div>
                 <div className="form-group"><span className="form-label">Описание</span><input value={f.desc||''} onChange={e=>setFeat(i,'desc',e.target.value)}/></div>
@@ -1199,7 +1351,7 @@ function FeaturesTab({ toast }) {
           </div>
         ))}
         {features.length === 0 && (
-          <div style={{textAlign:'center',padding:'60px',color:'rgba(255,255,255,0.25)'}}>
+          <div style={{textAlign:'center',padding:'60px',color:'rgba(0,0,0,0.45)'}}>
             Нет блоков. Нажмите «Добавить блок» сверху.
           </div>
         )}
@@ -1271,13 +1423,13 @@ function GalleryTab({ toast }) {
         </div>
       </div>
       <div className="page-body">
-        {items.length === 0 && <div style={{textAlign:'center',padding:'60px',color:'rgba(255,255,255,0.25)'}}>Нет рендеров. Нажмите «Загрузить рендер» сверху.</div>}
+        {items.length === 0 && <div style={{textAlign:'center',padding:'60px',color:'rgba(0,0,0,0.45)'}}>Нет рендеров. Нажмите «Загрузить рендер» сверху.</div>}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:16}}>
           {items.map((it, i) => (
-            <div key={i} style={{background:'rgba(255,255,255,0.04)',borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,0.06)'}}>
+            <div key={i} style={{background:'rgba(0,0,0,0.03)',borderRadius:10,overflow:'hidden',border:'1px solid rgba(0,0,0,0.05)'}}>
               {it.src
                 ? <img src={it.src} alt="" style={{width:'100%',height:170,objectFit:'cover',display:'block'}} onError={e=>e.target.style.display='none'}/>
-                : <div style={{height:170,display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.25)',fontSize:12}}>Нет файла</div>
+                : <div style={{height:170,display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(0,0,0,0.45)',fontSize:12}}>Нет файла</div>
               }
               <div style={{padding:'14px 14px 16px',display:'flex',flexDirection:'column',gap:10}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -1346,7 +1498,7 @@ function ConstructionTab({ toast }) {
         </div>
       </div>
       <div className="page-body">
-        {months.length === 0 && <div style={{textAlign:'center',padding:'60px',color:'rgba(255,255,255,0.25)'}}>Нет месяцев. Нажмите «Добавить месяц»</div>}
+        {months.length === 0 && <div style={{textAlign:'center',padding:'60px',color:'rgba(0,0,0,0.45)'}}>Нет месяцев. Нажмите «Добавить месяц»</div>}
         {months.map((m, i) => (
           <div key={m.id||i} className="settings-section">
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:10}}>
@@ -1361,13 +1513,13 @@ function ConstructionTab({ toast }) {
                 <button className="btn btn-danger btn-sm" onClick={()=>delMonth(i)}>Удалить месяц</button>
               </div>
             </div>
-            {m.photos.length === 0 && <div style={{color:'rgba(255,255,255,0.25)',fontSize:13,marginBottom:12}}>Нет фотографий. Нажмите «Загрузить фото» сверху.</div>}
+            {m.photos.length === 0 && <div style={{color:'rgba(0,0,0,0.45)',fontSize:13,marginBottom:12}}>Нет фотографий. Нажмите «Загрузить фото» сверху.</div>}
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:14}}>
               {m.photos.map((ph, pi) => (
-                <div key={pi} style={{background:'rgba(255,255,255,0.04)',borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,0.06)'}}>
+                <div key={pi} style={{background:'rgba(0,0,0,0.03)',borderRadius:10,overflow:'hidden',border:'1px solid rgba(0,0,0,0.05)'}}>
                   {ph.src
                     ? <img src={ph.src} alt="" style={{width:'100%',height:140,objectFit:'cover',display:'block'}} onError={e=>e.target.style.display='none'}/>
-                    : <div style={{height:140,display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.25)',fontSize:12}}>Нет файла</div>
+                    : <div style={{height:140,display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(0,0,0,0.45)',fontSize:12}}>Нет файла</div>
                   }
                   <div style={{padding:'12px 12px 14px',display:'flex',flexDirection:'column',gap:8}}>
                     <input value={ph.caption||''} onChange={e=>setPhotoField(i,pi,'caption',e.target.value)} placeholder="Подпись (необязательно)" style={{fontSize:12,padding:'7px 9px'}}/>
@@ -1443,7 +1595,7 @@ function InfraTab({ toast }) {
             <span className="form-label">URL карты (iframe src)</span>
             <input value={d.mapUrl||''} onChange={e=>setField('mapUrl',e.target.value)} placeholder="https://yandex.ru/map-widget/v1/?..."/>
           </div>
-          <div style={{fontSize:12,color:'rgba(255,255,255,0.3)',lineHeight:1.6}}>
+          <div style={{fontSize:12,color:'rgba(0,0,0,0.5)',lineHeight:1.6}}>
             Откройте <a href="https://yandex.ru/maps" target="_blank" style={{color:'#A85D3F'}}>yandex.ru/maps</a>, найдите нужное место, нажмите «Поделиться» → «Встроить карту» и скопируйте URL из атрибута src.
           </div>
         </div>
@@ -1568,7 +1720,7 @@ function PolygonEditor({ value, onChange, imgSrc }) {
   }, [draggingIdx, points]);
 
   return (
-    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#0a0907' }}>
+    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)', background: 'var(--surface-2)' }}>
       <img src={imgSrc} alt="" style={{ width: '100%', display: 'block', userSelect: 'none', pointerEvents: 'none' }} draggable={false} />
       <svg
         ref={svgRef}
@@ -1662,7 +1814,7 @@ function ImageUploader({ value, onChange, label, accept = 'image/*', placeholder
       </div>
       {value && (
         <div style={{ marginTop: 8 }}>
-          <img src={value} alt="" style={{ maxHeight: 80, borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)' }} onError={e => { e.currentTarget.style.display = 'none'; }} />
+          <img src={value} alt="" style={{ maxHeight: 80, borderRadius: 6, border: '1px solid rgba(0,0,0,0.08)' }} onError={e => { e.currentTarget.style.display = 'none'; }} />
         </div>
       )}
       {err && <div style={{ marginTop: 6, fontSize: 12, color: '#f87171' }}>⚠ {err}</div>}
@@ -1710,7 +1862,7 @@ function AptSchemaEditor({ imgSrc, apts, activeId, onChange }) {
   }, [draggingIdx, points]);
 
   return (
-    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: '#0a0907' }}>
+    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)', background: 'var(--surface-2)' }}>
       <img src={imgSrc} alt="" style={{ width: '100%', display: 'block', userSelect: 'none', pointerEvents: 'none' }} draggable={false} />
       <svg ref={svgRef} viewBox="0 0 100 56.25" preserveAspectRatio="none"
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: active ? 'crosshair' : 'default' }}
@@ -1764,6 +1916,35 @@ function KorpusesTab({ toast }) {
   const resetAll = () => { if (confirm('Восстановить полигоны по умолчанию?')) { persist(DEFAULT_KORPUSES_ADMIN); toast('Сброшено'); } };
   const updateSel = patch => persist(korpuses.map(k => k.id === selId ? { ...k, ...patch } : k));
 
+  const addKorpus = () => {
+    const maxId = korpuses.reduce((m, k) => Math.max(m, Number(k.id) || 0), 0);
+    const newKorpus = {
+      id: maxId + 1,
+      name: `Корпус ${korpuses.length + 1}`,
+      floors: 9, total: 60, free: 20,
+      polygon: '', floorPolygons: {}, floorSchemas: {},
+      cx: 50, cy: 50,
+    };
+    persist([...korpuses, newKorpus]);
+    setSelId(newKorpus.id);
+    setMode('korpus');
+    toast(`Добавлен «${newKorpus.name}»`);
+  };
+  const delKorpus = () => {
+    if (korpuses.length <= 1) { alert('Должен остаться хотя бы один корпус'); return; }
+    if (!confirm(`Удалить «${sel.name}»? Все квартиры этого корпуса тоже удалятся.`)) return;
+    const remaining = korpuses.filter(k => k.id !== selId);
+    const remainingApts = apts.filter(a => a.korpus !== selId);
+    persist(remaining);
+    persistApts(remainingApts);
+    setSelId(remaining[0].id);
+    toast('Корпус удалён');
+  };
+  const renameKorpus = () => {
+    const n = prompt('Новое название', sel.name);
+    if (n && n.trim()) updateSel({ name: n.trim() });
+  };
+
   const onChangeKorpusPolygon = pts => updateSel({ polygon: pts });
   const onChangeFloorPolygon = pts => updateSel({ floorPolygons: { ...sel.floorPolygons, [floorNum]: pts } });
   const clearKorpusPolygon = () => updateSel({ polygon: '' });
@@ -1790,19 +1971,22 @@ function KorpusesTab({ toast }) {
       </div>
       <div className="page-body">
 
-        {/* Korpus selector cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+        {/* Korpus selector cards + add/delete */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.5)', fontWeight: 600 }}>Корпуса · {korpuses.length}</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary btn-sm" onClick={renameKorpus}>Переименовать</button>
+            <button className="btn btn-danger btn-sm" onClick={delKorpus} disabled={korpuses.length <= 1}>Удалить</button>
+            <button className="btn btn-primary btn-sm" onClick={addKorpus}>+ Добавить корпус</button>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(180px, 1fr))`, gap: 12, marginBottom: 24 }}>
           {korpuses.map(k => (
             <div key={k.id} onClick={() => { setSelId(k.id); setMode('korpus'); }}
-              style={{
-                padding: '14px 16px', borderRadius: 10, cursor: 'pointer',
-                background: selId === k.id ? 'rgba(168,93,63,0.15)' : '#161b27',
-                border: '1.5px solid', borderColor: selId === k.id ? '#A85D3F' : 'rgba(255,255,255,0.06)',
-                transition: 'all 150ms',
-              }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 4 }}>{k.name}</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-                {k.floors} эт · {k.total} кв · {Object.keys(k.floorPolygons || {}).length}/{k.floors} этажей размечено
+              className={`korpus-card ${selId === k.id ? 'active' : ''}`}>
+              <div className="korpus-card-name">{k.name}</div>
+              <div className="korpus-card-meta">
+                {k.floors} эт · {k.total} кв · {Object.keys(k.floorPolygons || {}).length}/{k.floors} размечено
               </div>
             </div>
           ))}
@@ -1865,7 +2049,7 @@ function KorpusesTab({ toast }) {
         </div>
 
         {/* Hint */}
-        <div style={{ background: 'rgba(168,93,63,0.08)', border: '1px solid rgba(168,93,63,0.25)', padding: '10px 14px', borderRadius: 8, marginBottom: 16, fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+        <div style={{ background: 'rgba(168,93,63,0.08)', border: '1px solid rgba(168,93,63,0.25)', padding: '10px 14px', borderRadius: 8, marginBottom: 16, fontSize: 12, color: 'rgba(0,0,0,0.75)', lineHeight: 1.5 }}>
           <b>Как пользоваться:</b> кликните по фотографии, чтобы добавить точку контура. Перетаскивайте точки для коррекции. Правый клик по точке — удалить.
           {mode === 'floor' && ' Обведите контур каждого этажа отдельно — переключайте этажи в выпадающем списке выше.'}
           {mode === 'apts' && ' Выберите квартиру слева, потом обведите её контур на схеме этажа.'}
@@ -1881,7 +2065,7 @@ function KorpusesTab({ toast }) {
         ) : (
           <div>
             {/* Floor schema upload */}
-            <div style={{ marginBottom: 12, padding: 12, background: '#161b27', borderRadius: 10 }}>
+            <div style={{ marginBottom: 12, padding: 12, background: 'var(--surface-2)', borderRadius: 10 }}>
               <ImageUploader
                 label={`Фото-планировка этажа ${floorNum}`}
                 value={floorSchemaUrl}
@@ -1891,13 +2075,13 @@ function KorpusesTab({ toast }) {
             </div>
 
             {!floorSchemaUrl ? (
-              <div style={{ padding: 24, background: '#161b27', borderRadius: 10, textAlign: 'center', color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>
+              <div style={{ padding: 24, background: 'var(--surface-2)', borderRadius: 10, textAlign: 'center', color: 'rgba(0,0,0,0.65)', fontSize: 13 }}>
                 Укажите путь к фото-планировке выше, чтобы начать обводить квартиры
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 14 }}>
                 {/* Apartment list (filter by korpus + floor) */}
-                <div style={{ background: '#161b27', borderRadius: 10, padding: 12, maxHeight: 520, overflowY: 'auto' }}>
+                <div style={{ background: 'var(--surface-2)', borderRadius: 10, padding: 12, maxHeight: 520, overflowY: 'auto' }}>
                   <div className="form-label" style={{ marginBottom: 8 }}>Квартиры на этаже {floorNum} ({aptsOnFloor.length})</div>
                   {aptsOnFloor.length === 0 ? (
                     <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
@@ -1911,12 +2095,12 @@ function KorpusesTab({ toast }) {
                         style={{
                           padding: '10px 12px', marginBottom: 6, borderRadius: 8,
                           cursor: 'pointer', transition: 'all 150ms',
-                          background: active ? 'rgba(168,93,63,0.18)' : 'rgba(255,255,255,0.04)',
-                          border: '1.5px solid', borderColor: active ? '#A85D3F' : 'rgba(255,255,255,0.06)',
+                          background: active ? 'rgba(168,93,63,0.18)' : 'rgba(0,0,0,0.03)',
+                          border: '1.5px solid', borderColor: active ? '#A85D3F' : 'rgba(0,0,0,0.05)',
                         }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Кв. {a.id} · {a.rooms}-к · {a.area}м²</span>
-                          <span style={{ fontSize: 14, color: has ? '#4ade80' : 'rgba(255,255,255,0.3)' }}>{has ? '✓' : '○'}</span>
+                          <span style={{ fontSize: 14, color: has ? '#4ade80' : 'rgba(0,0,0,0.5)' }}>{has ? '✓' : '○'}</span>
                         </div>
                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
                           {a.available ? 'Свободна' : 'Бронь/Продана'} · {a.price?.toLocaleString('ru-RU')} ₽
@@ -1945,7 +2129,7 @@ function KorpusesTab({ toast }) {
         </div>
 
         {/* Site render upload */}
-        <div style={{ marginTop: 28, padding: 16, background: '#161b27', borderRadius: 10 }}>
+        <div style={{ marginTop: 28, padding: 16, background: 'var(--surface-2)', borderRadius: 10 }}>
           <ImageUploader
             label="Фотография комплекса (вид сверху)"
             value={siteRender}
@@ -2001,7 +2185,7 @@ function AdminPanel() {
           </div>
         ))}
         <div className="sidebar-bottom">
-          <a href="index.html" target="_blank" style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 12, textDecoration: 'none' }}>
+          <a href="index.html" target="_blank" style={{ display: 'block', fontSize: 13, color: 'rgba(0,0,0,0.55)', marginBottom: 12, textDecoration: 'none' }}>
             ↗ Открыть сайт
           </a>
           <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', fontSize: 12 }} onClick={logout}>
