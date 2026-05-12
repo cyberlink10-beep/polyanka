@@ -103,6 +103,107 @@
       margin: 0 auto;
       padding: 0 40px;
     }
+    @media (max-width: 900px)  { .container { padding: 0 28px; } }
+    @media (max-width: 600px)  { .container { padding: 0 18px; } }
+
+    /* ─── Responsive grid helpers ─── */
+    /* Two-up text/photo split → stack on tablet */
+    .resp-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    @media (max-width: 1024px) { .resp-2col { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* AboutStrip 5-up counter band → 2-up on mobile */
+    .resp-5stat { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; align-items: center; }
+    @media (max-width: 900px) { .resp-5stat { grid-template-columns: repeat(3, 1fr); gap: 20px; row-gap: 28px; } .resp-5stat > * + * { border-left: none !important; } }
+    @media (max-width: 520px) { .resp-5stat { grid-template-columns: repeat(2, 1fr); } }
+
+    /* 4-up feature cards in AboutComplex → 2-up on tablet, 1-up on mobile */
+    .resp-features4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+    @media (max-width: 1024px) { .resp-features4 { grid-template-columns: repeat(2, 1fr); } .resp-features4 > * { border-left: none !important; border-top: 1px solid rgba(184,153,104,0.18); } .resp-features4 > *:nth-child(odd) { border-left: none !important; } }
+    @media (min-width: 601px) and (max-width: 1024px) { .resp-features4 > *:nth-child(2n) { border-left: 1px solid rgba(184,153,104,0.18) !important; } .resp-features4 > *:nth-child(-n+2) { border-top: none !important; } }
+    @media (max-width: 600px)  { .resp-features4 { grid-template-columns: 1fr; } .resp-features4 > *:first-child { border-top: none !important; } }
+
+    /* Gallery: main image + side rail → stacked rail under image */
+    .resp-gallery { display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
+    @media (max-width: 900px) { .resp-gallery { grid-template-columns: 1fr; } .resp-gallery > :last-child { flex-direction: row !important; max-height: none !important; overflow-x: auto !important; } }
+
+    /* Construction photos 3-up → 2 → 1 */
+    .resp-photos3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 900px) { .resp-photos3 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .resp-photos3 { grid-template-columns: 1fr; } }
+
+    /* Infrastructure places 3-up → 2 → 1 */
+    .resp-places3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 900px) { .resp-places3 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .resp-places3 { grid-template-columns: 1fr; } }
+
+    /* Footer 2fr 1fr 1fr 1fr → 1 fr (stacked) */
+    .resp-footer { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    @media (max-width: 900px) { .resp-footer { grid-template-columns: 1fr 1fr; gap: 32px; } }
+    @media (max-width: 520px) { .resp-footer { grid-template-columns: 1fr; gap: 28px; } }
+
+    /* Contact form 1fr 1fr → 1 fr */
+    .resp-contact { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    @media (max-width: 900px) { .resp-contact { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Hide on small screens (desktop-only nav etc) */
+    @media (max-width: 900px) {
+      .hide-mobile { display: none !important; }
+      .hide-mobile-flex { display: none !important; }
+      /* Tighter vertical rhythm — only for content sections, leave hero/strip alone */
+      section[id]:not(#hero):not(#about) { padding-top: 72px !important; padding-bottom: 72px !important; }
+    }
+    @media (max-width: 600px) {
+      section[id]:not(#hero):not(#about) { padding-top: 56px !important; padding-bottom: 56px !important; }
+      /* Section headers stack cleanly */
+      section h2 { font-size: clamp(28px, 7vw, 40px) !important; line-height: 1.1 !important; }
+      .tendril-divider { height: 48px !important; background-size: auto 44px !important; }
+    }
+
+    /* Hamburger menu — mobile only */
+    .burger {
+      display: none;
+      width: 40px; height: 40px;
+      align-items: center; justify-content: center;
+      background: transparent; border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px; cursor: pointer; padding: 0;
+      transition: background 180ms;
+    }
+    .burger:hover { background: rgba(255,255,255,0.08); }
+    .burger svg { display: block; }
+    @media (max-width: 900px) { .burger { display: inline-flex; } }
+
+    /* Mobile drawer */
+    .mobile-drawer {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(20,17,14,0.96);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      display: flex; flex-direction: column;
+      padding: 80px 32px 32px;
+      animation: drawerIn 240ms cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes drawerIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .mobile-drawer-close {
+      position: absolute; top: 22px; right: 22px;
+      width: 40px; height: 40px; border-radius: 8px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.25);
+      color: #fff; cursor: pointer; font-size: 18px; line-height: 1;
+    }
+    .mobile-drawer-link {
+      font-family: var(--font-display); font-weight: 500; font-size: 24px;
+      color: rgba(255,255,255,0.85); text-decoration: none;
+      padding: 14px 4px; border-bottom: 1px solid rgba(239,228,196,0.10);
+      cursor: pointer; transition: color 180ms;
+      letter-spacing: -0.01em;
+    }
+    .mobile-drawer-link:hover { color: var(--c-gold); }
+    .mobile-drawer-phone {
+      margin-top: 28px; padding: 16px 0 8px;
+      font-family: var(--font-display); font-style: italic;
+      font-size: 22px; color: var(--c-gold);
+      border-top: 1px solid rgba(239,228,196,0.18);
+      text-decoration: none;
+    }
 
     /* Buttons */
     .btn {
@@ -438,6 +539,7 @@ function addRipple(e) {
 /* ─── HEADER ─── */
 function Header({ activeSection, onNav, forceScrolled = false }) {
   const [scrolledRaw, setScrolled] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const scrolled = forceScrolled || scrolledRaw;
 
   useEffect(() => {
@@ -445,6 +547,13 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [drawerOpen]);
 
   const links = [
     { id: 'about-complex',  label: 'О комплексе' },
@@ -455,7 +564,10 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
     { id: 'contact',        label: 'Контакты' },
   ];
 
+  const goTo = id => { setDrawerOpen(false); onNav(id); };
+
   return (
+    <>
     <header style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
       height: 76, display: 'flex', alignItems: 'center',
@@ -465,12 +577,11 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
       transition: 'background 350ms ease-out, backdrop-filter 350ms, box-shadow 350ms',
       boxShadow: scrolled ? '0 1px 0 rgba(255,255,255,0.07)' : 'none',
     }}>
-      <div style={{
-        maxWidth: 'var(--max-w)', margin: '0 auto', padding: '0 40px',
+      <div className="container" style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        width: '100%', gap: 24,
+        gap: 24,
       }}>
-        {/* Logo — horizontal with white text, dark-background ready */}
+        {/* Logo */}
         <div className="logo-wrap" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           style={{ flexShrink: 0 }}>
           <img
@@ -480,8 +591,8 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
           />
         </div>
 
-        {/* Nav */}
-        <nav style={{ display: 'flex', gap: 24, flex: 1, justifyContent: 'center', paddingTop: 5 }}>
+        {/* Desktop nav */}
+        <nav className="hide-mobile" style={{ display: 'flex', gap: 24, flex: 1, justifyContent: 'center', paddingTop: 5 }}>
           {links.map(l => (
             <a
               key={l.id}
@@ -492,15 +603,13 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
           ))}
         </nav>
 
-        {/* CTA — phone icon + number + button */}
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14, paddingTop: 3 }}>
-          {/* Phone number */}
+        {/* Desktop CTA */}
+        <div className="hide-mobile" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14, paddingTop: 3 }}>
           <a href="tel:+73522777777" className="phone-link" style={{
             fontSize: 14, fontWeight: 700, textDecoration: 'none',
             letterSpacing: '0.02em', whiteSpace: 'nowrap',
             transform: 'translateY(-3px)',
           }}>+7 (352) 277-77-77</a>
-          {/* CTA button */}
           <a className="btn btn-primary btn-call" href="#contact"
             onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
             style={{ fontSize: 13, whiteSpace: 'nowrap' }}
@@ -508,8 +617,40 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
             Оставить заявку
           </a>
         </div>
+
+        {/* Mobile burger (visible < 900px) */}
+        <button className="burger" aria-label="Меню" onClick={() => setDrawerOpen(true)}>
+          <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
+            <line x1="0" y1="1"  x2="20" y2="1"  stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+            <line x1="0" y1="7"  x2="20" y2="7"  stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+            <line x1="0" y1="13" x2="20" y2="13" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+        </button>
       </div>
     </header>
+
+    {/* Mobile drawer */}
+    {drawerOpen && (
+      <div className="mobile-drawer" onClick={e => { if (e.target === e.currentTarget) setDrawerOpen(false); }}>
+        <button className="mobile-drawer-close" onClick={() => setDrawerOpen(false)} aria-label="Закрыть">✕</button>
+        <div style={{ marginBottom: 16 }}>
+          <img src="assets/logo-horizontal-white.svg" alt="Полянка" style={{ height: 60, display: 'block' }} />
+        </div>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 12 }}>
+          {links.map(l => (
+            <a key={l.id} className="mobile-drawer-link" onClick={() => goTo(l.id)}>{l.label}</a>
+          ))}
+        </nav>
+        <a href="tel:+73522777777" className="mobile-drawer-phone" onClick={() => setDrawerOpen(false)}>
+          — +7 (352) 277-77-77 —
+        </a>
+        <a className="btn btn-primary btn-lg" href="#contact" style={{ marginTop: 18, justifyContent: 'center' }}
+          onClick={e => { e.preventDefault(); setDrawerOpen(false); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}>
+          Оставить заявку
+        </a>
+      </div>
+    )}
+    </>
   );
 }
 
@@ -842,11 +983,7 @@ function AboutStrip() {
       padding: '56px 0',
       position: 'relative',
     }}>
-      <div className="container" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(5, 1fr)',
-        gap: 24,
-        alignItems: 'center',
+      <div className="container resp-5stat" style={{
         position: 'relative',
       }}>
         {[[SITE.floors, 'этажей'], [SITE.korpuses, 'корпуса'], [SITE.aptCount, 'квартир'], [SITE.year, 'год сдачи'], [SITE.area, 'м² площадь']].map(([v, l], i) => (
@@ -2025,7 +2162,7 @@ function Gallery() {
             Масштаб,<br/>который впечатляет
           </h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16 }}>
+        <div className="resp-gallery">
           <div style={{ borderRadius: 12, overflow: 'hidden', height: 420, position: 'relative' }}>
             <img src={RENDERS[safeActive].src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 300ms' }} />
             <div style={{
@@ -2066,7 +2203,7 @@ function AboutComplex() {
       <div style={{ position:'absolute', left:0, top:'10%', bottom:'10%', width:1, background:'linear-gradient(to bottom, transparent, var(--c-gold), transparent)', opacity:0.8 }} />
       <div className="container" style={{ position:'relative' }}>
         {/* Header */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:80, alignItems:'start', marginBottom:72 }}>
+        <div className="resp-2col" style={{ marginBottom:72 }}>
           <div>
             <div style={{ fontSize:12, letterSpacing:'0.32em', textTransform:'uppercase', color:'var(--c-gold)', marginBottom:18, fontWeight:600 }}>
               — {d.label || 'О комплексе'} —
@@ -2100,8 +2237,7 @@ function AboutComplex() {
           </div>
         </div>
         {/* Feature cards — premium serif treatment with Roman numerals, gold hairlines and a mark accent on hover */}
-        <div style={{
-          display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:0,
+        <div className="resp-features4" style={{
           borderTop:'1px solid rgba(184,153,104,0.28)',
           borderBottom:'1px solid rgba(184,153,104,0.28)',
         }}>
@@ -2304,7 +2440,7 @@ function ConstructionProgress() {
           </div>
         </div>
         {current.photos && current.photos.length > 0 ? (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12 }}>
+          <div className="resp-photos3">
             {current.photos.map((ph, i) => (
               <div key={i} onClick={() => setLightbox(ph)} style={{
                 borderRadius:10, overflow:'hidden', cursor:'pointer', position:'relative',
@@ -2365,7 +2501,7 @@ function Infrastructure() {
           </p>
         </div>
         {/* Places grid */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12, marginBottom:48 }}>
+        <div className="resp-places3" style={{ marginBottom:48 }}>
           {places.map((pl, i) => (
             <div key={i} style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 20px', background:'#f8f7f5', borderRadius:10, border:'1px solid rgba(0,0,0,0.05)' }}>
               <div style={{ width:36, height:36, borderRadius:8, background: (catColors[pl.cat] || '#A85D3F') + '18', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -2421,7 +2557,7 @@ function ContactForm() {
   return (
     <section id="contact" style={{ padding: '96px 0', background: 'var(--c-dark)', position: 'relative', overflow: 'hidden' }}>
       <div className="container" style={{ position: 'relative' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+        <div className="resp-contact">
           <div>
             <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 16 }}>Получить консультацию</div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px,3.5vw,44px)', textTransform: 'uppercase', color: '#fff', lineHeight: 1.1, marginBottom: 24 }}>
@@ -2503,7 +2639,7 @@ function Footer() {
       position: 'relative',
     }}>
       <div className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 40 }}>
+        <div className="resp-footer" style={{ marginBottom: 40 }}>
           <div>
             <div style={{ marginBottom: 16 }}>
               <img
