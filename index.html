@@ -591,7 +591,7 @@ const DEFAULT_KORPUSES = [
     floorPolygons: {}, cx: 49, cy: 68 },
 ];
 const KORPUSES_DATA = _lsLoad('geroi_korpuses', DEFAULT_KORPUSES);
-const SITE_RENDER = _lsLoad('geroi_site_render', 'assets/site-render.jpg');
+const SITE_RENDER = _lsLoad('geroi_site_render', 'assets/render-floorplan.jpg');
 
 /* ─── HERO SLIDER ─── */
 const SLIDES = _lsLoad('geroi_slides', [
@@ -2001,7 +2001,7 @@ function Features() {
 }
 
 /* ─── GALLERY ─── */
-const RENDERS = [
+const DEFAULT_RENDERS = [
   { src: 'assets/render-aerial.jpg',    label: 'Вид с воздуха' },
   { src: 'assets/render-courtyard.jpg', label: 'Внутренний двор' },
   { src: 'assets/render-sunset.jpg',    label: 'Закат. Корпус 2' },
@@ -2010,9 +2010,12 @@ const RENDERS = [
   { src: 'assets/render-facade.jpg',    label: 'Коммерческий первый этаж' },
   { src: 'assets/render-aerial2.jpg',   label: 'Генеральный план' },
 ];
+const RENDERS = _lsLoad('geroi_gallery', DEFAULT_RENDERS);
 
 function Gallery() {
   const [active, setActive] = useState(0);
+  if (!RENDERS.length) return null;
+  const safeActive = Math.min(active, RENDERS.length - 1);
   return (
     <section id="progress" style={{ padding: '96px 0', background: 'var(--c-surface)' }}>
       <div className="container">
@@ -2024,24 +2027,24 @@ function Gallery() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16 }}>
           <div style={{ borderRadius: 12, overflow: 'hidden', height: 420, position: 'relative' }}>
-            <img src={RENDERS[active].src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 300ms' }} />
+            <img src={RENDERS[safeActive].src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 300ms' }} />
             <div style={{
               position: 'absolute', bottom: 0, left: 0, right: 0,
               background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
               padding: '24px 24px 20px',
             }}>
-              <span style={{ color: '#fff', fontFamily: 'var(--font-display)', fontSize: 16, textTransform: 'uppercase' }}>{RENDERS[active].label}</span>
+              <span style={{ color: '#fff', fontFamily: 'var(--font-display)', fontSize: 16, textTransform: 'uppercase' }}>{RENDERS[safeActive].label}</span>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', maxHeight: 420 }}>
             {RENDERS.map((r, i) => (
               <div key={i} onClick={() => setActive(i)} style={{
                 height: 80, borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
-                border: active === i ? '2.5px solid var(--c-brand)' : '2.5px solid transparent',
+                border: safeActive === i ? '2.5px solid var(--c-brand)' : '2.5px solid transparent',
                 transition: 'border-color 150ms', flexShrink: 0, position: 'relative',
               }}>
                 <img src={r.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                {active === i && <div style={{ position: 'absolute', inset: 0, background: 'rgba(168,93,63,0.15)' }} />}
+                {safeActive === i && <div style={{ position: 'absolute', inset: 0, background: 'rgba(168,93,63,0.15)' }} />}
               </div>
             ))}
           </div>
@@ -2350,7 +2353,7 @@ function Infrastructure() {
   const places = Array.isArray(d.places) ? d.places : DEFAULT_INFRA.places;
   const catColors = { 'Образование':'#818cf8', 'Торговля':'#4ade80', 'Отдых':'#4ade80', 'Здоровье':'#f87171', 'Сервис':'#fbbf24' };
   return (
-    <section id="infrastructure" style={{ padding:'96px 0 0', background:'#fff', overflow:'hidden' }}>
+    <section id="infrastructure" style={{ padding:'96px 0', background:'var(--c-surface)', overflow:'hidden' }}>
       <div className="container" style={{ marginBottom:48 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:48, flexWrap:'wrap', gap:24 }}>
           <div>
@@ -2506,7 +2509,7 @@ function Footer() {
               <img
                 src="assets/logo-horizontal-white.svg"
                 alt="Полянка"
-                style={{ height: 52, width: 'auto', display: 'block' }}
+                style={{ height: 104, width: 'auto', display: 'block', marginLeft: -8 }}
               />
             </div>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: 260 }}>
@@ -2546,7 +2549,7 @@ function Footer() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.02em' }}>
-            © {SITE.year} ЖК «Полянка» · <span style={{ fontStyle: 'italic', color: 'var(--c-gold)' }}>Anno MMXXVI</span> · Все права защищены
+            © {SITE.year} ЖК «Полянка» · Все права защищены
           </div>
           <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
             <a href={FOOTER_EXTRA.privacyUrl || '#'} style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', textDecoration: 'none', transition: 'color 150ms' }}

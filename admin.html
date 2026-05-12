@@ -251,7 +251,7 @@ const DEFAULT_SETTINGS = {
 /* ─── STORAGE HELPERS ─── */
 const SYNC_KEYS = [
   'geroi_apts','geroi_slides','geroi_settings','geroi_about',
-  'geroi_promos','geroi_features','geroi_construction','geroi_infra','geroi_footer',
+  'geroi_promos','geroi_features','geroi_construction','geroi_gallery','geroi_infra','geroi_footer',
   'geroi_korpuses','geroi_site_render',
 ];
 let __syncTimer = null;
@@ -1212,6 +1212,95 @@ function FeaturesTab({ toast }) {
   );
 }
 
+/* ─── GALLERY TAB ─── */
+const DEFAULT_RENDERS = [
+  { src: 'assets/render-aerial.jpg',    label: 'Вид с воздуха' },
+  { src: 'assets/render-courtyard.jpg', label: 'Внутренний двор' },
+  { src: 'assets/render-sunset.jpg',    label: 'Закат. Корпус 2' },
+  { src: 'assets/render-street.jpg',    label: 'Фасад со стороны улицы' },
+  { src: 'assets/render-sports.jpg',    label: 'Спортивная площадка' },
+  { src: 'assets/render-facade.jpg',    label: 'Коммерческий первый этаж' },
+  { src: 'assets/render-aerial2.jpg',   label: 'Генеральный план' },
+];
+
+function GalleryTab({ toast }) {
+  const [items, setItems] = useState(() => ls.load('geroi_gallery', DEFAULT_RENDERS));
+  const persist = next => { setItems(next); ls.save('geroi_gallery', next); };
+  const set = (i, k, v) => persist(items.map((x, j) => j === i ? { ...x, [k]: v } : x));
+  const move = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const a = [...items]; [a[i], a[j]] = [a[j], a[i]]; persist(a);
+  };
+  const del = i => { if (!confirm('Удалить этот рендер?')) return; persist(items.filter((_, j) => j !== i)); };
+  const addEmpty = () => persist([...items, { src: '', label: 'Новый рендер' }]);
+  const uploadNew = async file => {
+    if (!file) return;
+    try {
+      const url = await uploadImageFile(file);
+      persist([...items, { src: url, label: 'Новый рендер' }]);
+      toast('Рендер загружен');
+    } catch (e) { alert('Ошибка загрузки: ' + (e.message || 'неизвестно')); }
+  };
+  const replace = async (i, file) => {
+    if (!file) return;
+    try {
+      const url = await uploadImageFile(file);
+      set(i, 'src', url);
+      toast('Рендер заменён');
+    } catch (e) { alert('Ошибка загрузки: ' + (e.message || 'неизвестно')); }
+  };
+  const reset = () => {
+    if (!confirm('Сбросить к значениям по умолчанию?')) return;
+    persist(DEFAULT_RENDERS); toast('Сброшено');
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+          <div>
+            <div className="page-title">Галерея</div>
+            <div className="page-subtitle">Рендеры в разделе «— VI · Галерея» на главной</div>
+          </div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <PhotoUploadButton onPick={uploadNew} label="+ Загрузить рендер" />
+            <button className="btn btn-secondary btn-sm" onClick={addEmpty}>+ Пустой слот</button>
+            <button className="btn btn-secondary btn-sm" onClick={reset}>Сбросить</button>
+          </div>
+        </div>
+      </div>
+      <div className="page-body">
+        {items.length === 0 && <div style={{textAlign:'center',padding:'60px',color:'rgba(255,255,255,0.25)'}}>Нет рендеров. Нажмите «Загрузить рендер» сверху.</div>}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:16}}>
+          {items.map((it, i) => (
+            <div key={i} style={{background:'rgba(255,255,255,0.04)',borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,0.06)'}}>
+              {it.src
+                ? <img src={it.src} alt="" style={{width:'100%',height:170,objectFit:'cover',display:'block'}} onError={e=>e.target.style.display='none'}/>
+                : <div style={{height:170,display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.25)',fontSize:12}}>Нет файла</div>
+              }
+              <div style={{padding:'14px 14px 16px',display:'flex',flexDirection:'column',gap:10}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontSize:11,color:'rgba(255,255,255,0.4)',letterSpacing:'0.08em',textTransform:'uppercase'}}>№ {i + 1}</span>
+                  <div style={{display:'flex',gap:4}}>
+                    <button className="btn btn-secondary btn-sm" onClick={()=>move(i,-1)} disabled={i===0} style={{padding:'4px 8px'}}>↑</button>
+                    <button className="btn btn-secondary btn-sm" onClick={()=>move(i,1)} disabled={i===items.length-1} style={{padding:'4px 8px'}}>↓</button>
+                  </div>
+                </div>
+                <input value={it.label||''} onChange={e=>set(i,'label',e.target.value)} placeholder="Подпись (например: Внутренний двор)" style={{fontSize:13,padding:'8px 10px'}}/>
+                <div style={{display:'flex',gap:6}}>
+                  <PhotoUploadButton onPick={file => replace(i, file)} label={it.src ? '↻ Заменить' : '📤 Загрузить'} small />
+                  <button className="btn btn-danger btn-sm" onClick={()=>del(i)}>Удалить</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── CONSTRUCTION TAB ─── */
 const DEFAULT_CONSTRUCTION = [
   { id:1, month:'Апрель 2025', photos:[{src:'assets/render-aerial.jpg',caption:'Вид с воздуха'},{src:'assets/render-facade.jpg',caption:'Фасад'},{src:'assets/render-street.jpg',caption:'Улица'}] },
@@ -1877,6 +1966,7 @@ const TABS = [
   { id: 'about',        label: 'О комплексе',     icon: '📋' },
   { id: 'promos',       label: 'Акции',           icon: '🎁' },
   { id: 'features',     label: 'Преимущества',    icon: '⭐' },
+  { id: 'gallery',      label: 'Галерея',         icon: '🖼️' },
   { id: 'construction', label: 'Строительство',   icon: '🏗️' },
   { id: 'infra',        label: 'Инфраструктура',  icon: '🗺️' },
   { id: 'settings',     label: 'Настройки',       icon: '⚙️' },
@@ -1928,6 +2018,7 @@ function AdminPanel() {
         {tab === 'about'        && <AboutTab toast={showToast} />}
         {tab === 'promos'       && <PromosTab toast={showToast} />}
         {tab === 'features'     && <FeaturesTab toast={showToast} />}
+        {tab === 'gallery'      && <GalleryTab toast={showToast} />}
         {tab === 'construction' && <ConstructionTab toast={showToast} />}
         {tab === 'infra'        && <InfraTab toast={showToast} />}
         {tab === 'settings'     && <SettingsTab toast={showToast} />}
