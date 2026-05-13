@@ -1075,20 +1075,20 @@ function ApartmentCard({ apt, onSelect }) {
         {/* Italic subtitle */}
         <div style={{
           fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500,
-          fontSize: 16, color: 'var(--c-olive-deep)', marginTop: 2, lineHeight: 1.3,
+          fontSize: 19, color: 'var(--c-olive-deep)', marginTop: 4, lineHeight: 1.25,
         }}>
           {apt.rooms}-комнатная
         </div>
 
         {/* Gold hairline */}
-        <div style={{ width: 36, height: 1, background: 'var(--c-gold)', opacity: 0.9, margin: '13px 0 12px' }} />
+        <div style={{ width: 36, height: 1, background: 'var(--c-gold)', opacity: 0.9, margin: '14px 0 12px' }} />
 
         {/* Korpus / floor row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500, fontSize: 15, color: 'var(--c-ink-soft)' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500, fontSize: 17, color: 'var(--c-ink-soft)' }}>
             Корпус <span style={{ color: 'var(--c-ink)', fontWeight: 600, fontStyle: 'normal' }}>{apt.korpus || 1}</span>
           </span>
-          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500, fontSize: 15, color: 'var(--c-ink-soft)' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500, fontSize: 17, color: 'var(--c-ink-soft)' }}>
             <span style={{ color: 'var(--c-ink)', fontWeight: 600, fontStyle: 'normal' }}>{apt.floor}</span> этаж
           </span>
         </div>
@@ -1225,42 +1225,45 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
 
           <div style={{ padding: '22px 28px', display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 28, alignItems: 'center' }}>
 
-            {/* Rooms — separated pills with wow hover */}
+            {/* Rooms — Cormorant italic pills in brand voice */}
             <div style={{ display: 'flex', gap: 8 }}>
               {[
                 { v: null, l: 'Все' },
-                { v: 1, l: '1к' },
-                { v: 2, l: '2к' },
-                { v: 3, l: '3к' },
+                { v: 1, l: '1-комн.' },
+                { v: 2, l: '2-комн.' },
+                { v: 3, l: '3-комн.' },
               ].map(r => {
                 const active = roomsFilter === r.v;
                 return (
                   <button key={r.v} onClick={() => setRoomsFilter(r.v)}
                     style={{
-                      padding: '9px 22px', borderRadius: 99, fontSize: 13, fontWeight: 700,
-                      cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.02em',
-                      border: active ? 'none' : '1.5px solid #e8e5e1',
-                      transition: 'all 250ms cubic-bezier(.4,0,.2,1)',
+                      padding: '10px 22px', borderRadius: 99,
+                      fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                      fontSize: 17, fontWeight: 600,
+                      cursor: 'pointer', letterSpacing: '0.005em', lineHeight: 1,
+                      border: '1.5px solid',
+                      borderColor: active ? 'var(--c-brand)' : 'var(--c-gray-100)',
+                      transition: 'all 240ms cubic-bezier(.4,0,.2,1)',
                       background: active ? 'linear-gradient(135deg,#B86B4D,#8E4A30)' : '#fff',
-                      color: active ? '#fff' : '#aaa',
+                      color: active ? '#fff' : 'var(--c-olive-deep)',
                       boxShadow: active
                         ? '0 6px 20px rgba(168,93,63,0.38), 0 2px 6px rgba(168,93,63,0.2)'
-                        : '0 1px 4px rgba(0,0,0,0.06)',
-                      transform: active ? 'translateY(-2px) scale(1.06)' : 'translateY(0) scale(1)',
+                        : '0 1px 3px rgba(0,0,0,0.04)',
+                      transform: active ? 'translateY(-2px) scale(1.04)' : 'translateY(0) scale(1)',
                     }}
                     onMouseEnter={e => {
                       if (!active) {
                         e.currentTarget.style.borderColor = 'var(--c-brand)';
                         e.currentTarget.style.color = 'var(--c-brand)';
                         e.currentTarget.style.boxShadow = '0 4px 18px rgba(168,93,63,0.22)';
-                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.06)';
+                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)';
                       }
                     }}
                     onMouseLeave={e => {
                       if (!active) {
-                        e.currentTarget.style.borderColor = '#e8e5e1';
-                        e.currentTarget.style.color = '#aaa';
-                        e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)';
+                        e.currentTarget.style.borderColor = 'var(--c-gray-100)';
+                        e.currentTarget.style.color = 'var(--c-olive-deep)';
+                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)';
                         e.currentTarget.style.transform = 'translateY(0) scale(1)';
                       }
                     }}
@@ -1287,8 +1290,8 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
                     onChange={e => { const v=Number(e.target.value); if(v>priceRange[0]+100000) setPriceRange([priceRange[0],v]); }}
                     style={{ zIndex: 4 }} />
                 </div>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, color: 'var(--c-charcoal)', textAlign: 'right', letterSpacing: '-0.01em', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
-                  {fmtPrice(priceRange[0])}<span style={{ color: '#d8d2cc', margin: '0 6px', fontFamily: 'var(--font-body)', fontWeight: 300 }}>—</span>{fmtPrice(priceRange[1])}
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 18, color: 'var(--c-ink)', textAlign: 'right', letterSpacing: '-0.005em', whiteSpace: 'nowrap', lineHeight: 1.2 }}>
+                  {fmtPrice(priceRange[0])}<span style={{ color: 'var(--c-gold)', margin: '0 8px', fontStyle: 'normal', fontWeight: 400 }}>—</span>{fmtPrice(priceRange[1])}
                 </span>
               </div>
 
@@ -1308,8 +1311,8 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
                     onChange={e => { const v=Number(e.target.value); if(v>areaRange[0]+1) setAreaRange([areaRange[0],v]); }}
                     style={{ zIndex: 4 }} />
                 </div>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, color: 'var(--c-charcoal)', textAlign: 'right', letterSpacing: '-0.01em', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
-                  {areaRange[0]}<span style={{ color: '#d8d2cc', margin: '0 6px', fontFamily: 'var(--font-body)', fontWeight: 300 }}>—</span>{areaRange[1]}<span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#999', marginLeft: 6 }}>м²</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 18, color: 'var(--c-ink)', textAlign: 'right', letterSpacing: '-0.005em', whiteSpace: 'nowrap', lineHeight: 1.2 }}>
+                  {areaRange[0]}<span style={{ color: 'var(--c-gold)', margin: '0 8px', fontStyle: 'normal', fontWeight: 400 }}>—</span>{areaRange[1]}<span style={{ fontSize: 14, color: 'var(--c-olive-deep)', marginLeft: 6, fontWeight: 500 }}> м²</span>
                 </span>
               </div>
             </div>
