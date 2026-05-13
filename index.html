@@ -1848,9 +1848,11 @@ function FloorPlan({ onSelectApt }) {
                       });
                     })()}
 
-                    {/* STEP 1: floor polygons */}
+                    {/* STEP 1: floor polygons (per-entrance with korpus-level fallback) */}
                     {step === 1 && korpus && (() => {
-                      const fp = korpus.floorPolygons || {};
+                      const entFp = (entrance && entrance.floorPolygons && Object.keys(entrance.floorPolygons).length)
+                        ? entrance.floorPolygons : null;
+                      const fp = entFp || korpus.floorPolygons || {};
                       const floorsCount = (entrance && entrance.floors) ? entrance.floors : korpus.floors;
                       const floors = Array.from({ length: floorsCount }, (_, i) => floorsCount - i);
                       return floors.map(f => {

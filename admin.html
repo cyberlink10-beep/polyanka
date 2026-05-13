@@ -1994,23 +1994,47 @@ function KorpusesTab({ toast }) {
     if (n && n.trim()) updateSel({ name: n.trim() });
   };
 
+  /* Floor-polygons storage helpers — per-entrance when an entrance is picked,
+     fall back to the korpus-level dict for legacy data / "общий" режим. */
+  const getFloorPolygons = () => {
+    if (entranceId != null && Array.isArray(sel.entrances)) {
+      const en = sel.entrances.find(e => e.id === entranceId);
+      if (en) return en.floorPolygons || {};
+    }
+    return sel.floorPolygons || {};
+  };
+  const setFloorPolygonsDict = (dict) => {
+    if (entranceId != null && Array.isArray(sel.entrances)) {
+      const nextEnts = sel.entrances.map(e => e.id === entranceId ? { ...e, floorPolygons: dict } : e);
+      updateSel({ entrances: nextEnts });
+    } else {
+      updateSel({ floorPolygons: dict });
+    }
+  };
+
   const onChangeKorpusPolygon = pts => updateSel({ polygon: pts });
-  const onChangeFloorPolygon = pts => updateSel({ floorPolygons: { ...sel.floorPolygons, [floorNum]: pts } });
+  const onChangeFloorPolygon = pts => {
+    const fp = { ...getFloorPolygons(), [floorNum]: pts };
+    setFloorPolygonsDict(fp);
+  };
   const onChangeEntrancePolygon = pts => {
     if (entranceId == null) return;
     updateSel({ entrancePolygons: { ...(sel.entrancePolygons || {}), [entranceId]: pts } });
   };
   const clearKorpusPolygon = () => updateSel({ polygon: '' });
   const clearFloorPolygon = () => {
-    const fp = { ...sel.floorPolygons }; delete fp[floorNum];
-    updateSel({ floorPolygons: fp });
+    const fp = { ...getFloorPolygons() }; delete fp[floorNum];
+    setFloorPolygonsDict(fp);
   };
   const clearEntrancePolygon = () => {
     if (entranceId == null) return;
     const ep = { ...(sel.entrancePolygons || {}) }; delete ep[entranceId];
     updateSel({ entrancePolygons: ep });
   };
-  const clearAllFloors = () => { if (confirm('Удалить разметку всех этажей этого корпуса?')) updateSel({ floorPolygons: {} }); };
+  const clearAllFloors = () => {
+    if (!confirm('Удалить разметку всех этажей' + (entranceId != null ? ' этого подъезда' : ' этого корпуса') + '?')) return;
+    setFloorPolygonsDict({});
+  };
   const clearAllEntrances = () => { if (confirm('Удалить разметку всех подъездов этого корпуса?')) updateSel({ entrancePolygons: {} }); };
   /* Unified "Clear" button — wipes the polygon for the currently active mode */
   const clearCurrent = () => {
@@ -2162,33 +2186,57 @@ function KorpusesTab({ toast }) {
             Квартиры на этаже
           </button>
 
-          {/* Entrance selector (entrance + apts) */}
-          {(mode === 'entrance' || mode === 'apts') && Array.isArray(sel.entrances) && sel.entrances.length > 0 && (
+          {/* Entrance selector — available in entrance / floor / apts modes (optional for floor) */}
+          {(mode === 'entrance' || mode === 'floor' || mode === 'apts') && Array.isArray(sel.entrances) && sel.entrances.length > 0 && (
             <>
               <span style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 12 }}>Подъезд:</span>
-              <select value={entranceId ?? ''} onChange={e => { setEntranceId(Number(e.target.value)); setActiveAptId(null); }}
-                style={{ width: 160, padding: '7px 10px', fontSize: 13 }}>
-                {sel.entrances.map(en => (
-                  <option key={en.id} value={en.id}>
-                    {en.name || `Подъезд ${en.id}`}{mode === 'entrance' && (sel.entrancePolygons?.[en.id] ? ' ✓' : '')}
-                  </option>
-                ))}
+              <select
+                value={entranceId == null ? '' : entranceId}
+                onChange={e => { const v = e.target.value; setEntranceId(v === '' ? null : Number(v)); setActiveAptId(null); }}
+                style={{ width: 180, padding: '7px 10px', fontSize: 13 }}
+              >
+                {mode === 'floor' && (
+                  <option value="">Общий (без привязки)</option>
+                )}
+                {sel.entrances.map(en => {
+                  const fpDict = (en.floorPolygons && Object.keys(en.floorPolygons).length) ? en.floorPolygons : null;
+                  const epHas = sel.entrancePolygons?.[en.id];
+                  return (
+                    <option key={en.id} value={en.id}>
+                      {en.name || `Подъезд ${en.id}`}
+                      {mode === 'entrance' ? (epHas ? ' ✓' : '') : ''}
+                      {mode === 'floor' && fpDict ? ` · ${Object.keys(fpDict).length} этаж.` : ''}
+                    </option>
+                  );
+                })}
               </select>
             </>
           )}
 
           {/* Floor selector (floor + apts) */}
-          {(mode === 'floor' || mode === 'apts') && (
-            <>
-              <span style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 12 }}>Этаж:</span>
-              <select value={floorNum} onChange={e => { setFloorNum(Number(e.target.value)); setActiveAptId(null); }}
-                style={{ width: 100, padding: '7px 10px', fontSize: 13 }}>
-                {Array.from({ length: sel.floors }, (_, i) => sel.floors - i).map(f => (
-                  <option key={f} value={f}>{f} этаж {mode==='floor' ? (sel.floorPolygons?.[f] ? '✓' : '') : (sel.floorSchemas?.[f] ? '🖼' : '')}</option>
-                ))}
-              </select>
-            </>
-          )}
+          {(mode === 'floor' || mode === 'apts') && (() => {
+            const fp = getFloorPolygons();
+            const totalFloors = (() => {
+              if (entranceId != null && Array.isArray(sel.entrances)) {
+                const en = sel.entrances.find(e => e.id === entranceId);
+                if (en?.floors) return en.floors;
+              }
+              return sel.floors;
+            })();
+            return (
+              <>
+                <span style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 12 }}>Этаж:</span>
+                <select value={floorNum} onChange={e => { setFloorNum(Number(e.target.value)); setActiveAptId(null); }}
+                  style={{ width: 110, padding: '7px 10px', fontSize: 13 }}>
+                  {Array.from({ length: totalFloors }, (_, i) => totalFloors - i).map(f => (
+                    <option key={f} value={f}>
+                      {f} этаж {mode === 'floor' ? (fp[f] ? '✓' : '') : (sel.floorSchemas?.[f] ? '🖼' : '')}
+                    </option>
+                  ))}
+                </select>
+              </>
+            );
+          })()}
 
           {/* Single Clear button — context-aware */}
           <button className="btn btn-danger btn-sm" onClick={clearCurrent} style={{ marginLeft: 12 }}
@@ -2210,7 +2258,9 @@ function KorpusesTab({ toast }) {
         <div style={{ background: 'rgba(168,93,63,0.08)', border: '1px solid rgba(168,93,63,0.25)', padding: '10px 14px', borderRadius: 8, marginBottom: 16, fontSize: 12, color: 'rgba(0,0,0,0.75)', lineHeight: 1.5 }}>
           <b>Как пользоваться:</b> кликните по фотографии, чтобы добавить точку контура. Перетаскивайте точки для коррекции. Правый клик по точке — удалить.
           {mode === 'entrance' && ' Обведите каждый подъезд отдельно — переключайте подъезды в выпадающем списке выше.'}
-          {mode === 'floor' && ' Обведите контур каждого этажа отдельно — переключайте этажи в выпадающем списке выше.'}
+          {mode === 'floor' && (entranceId != null
+            ? ' Контур этажа сохранится для выбранного подъезда — переключайте подъезды и этажи в выпадающих списках выше.'
+            : ' Контур сохранится в общую разметку корпуса. Выберите подъезд, чтобы рисовать контуры для конкретного подъезда.')}
           {mode === 'apts' && ' Выберите подъезд и этаж, затем выберите квартиру слева и обведите её контур на схеме этажа.'}
         </div>
 
@@ -2221,7 +2271,7 @@ function KorpusesTab({ toast }) {
             value={
               mode === 'korpus'   ? (sel.polygon || '') :
               mode === 'entrance' ? (sel.entrancePolygons?.[entranceId] || '') :
-              /* floor */           (sel.floorPolygons?.[floorNum] || '')
+              /* floor */           (getFloorPolygons()[floorNum] || '')
             }
             onChange={
               mode === 'korpus'   ? onChangeKorpusPolygon :
