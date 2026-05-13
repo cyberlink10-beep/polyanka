@@ -1613,6 +1613,7 @@ const DEFAULT_INFRA = {
   centerLat: 55.4408,
   centerLon: 65.3654,
   zoom: 17,
+  mapAddress: 'Кетово, ул. Полевая, 1',
   categoryColors: { ...DEFAULT_CATEGORY_COLORS },
   places: [
     {name:'Школа',dist:'350 м',cat:'Образование',lat:null,lon:null},
@@ -1657,6 +1658,13 @@ function InfraTab({ toast }) {
         <div className="settings-section">
           <h3>Центр карты и зум</h3>
           <div className="form-grid">
+            <div className="form-group full">
+              <span className="form-label">Адрес на карте (показывается в чёрной плашке)</span>
+              <input value={d.mapAddress ?? ''} onChange={e=>setField('mapAddress', e.target.value)} placeholder="Кетово, ул. Полевая, 1"/>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>
+                Адрес самого ЖК — может отличаться от адреса офиса продаж в Настройках.
+              </div>
+            </div>
             <div className="form-group">
               <span className="form-label">Широта (lat)</span>
               <input type="number" step="0.0001" value={d.centerLat ?? ''} onChange={e=>setField('centerLat', parseFloat(e.target.value) || 0)} placeholder="55.4408"/>

@@ -760,6 +760,9 @@ const DEFAULT_INFRA = {
   centerLat: 55.4408,
   centerLon: 65.3654,
   zoom: 17, // ~90 м/см
+  // Адрес, который показывается в чёрной плашке поверх карты —
+  // обычно это адрес самого ЖК, отличается от адреса офиса продаж.
+  mapAddress: 'Кетово, ул. Полевая, 1',
   categoryColors: { ...DEFAULT_CATEGORY_COLORS },
   places: [
     { name: 'Школа',         dist: '350 м', cat: 'Образование', lat: null, lon: null },
@@ -2844,24 +2847,31 @@ function Infrastructure() {
       {/* Contained map */}
       <div style={{ maxWidth:'var(--max-w)', margin:'0 auto', padding:'0 40px' }}>
         <div style={{ height:480, position:'relative', borderRadius:16, overflow:'hidden', border:'1px solid var(--c-gold)' }}>
-          <YandexMap
-            centerLat={d.centerLat ?? DEFAULT_INFRA.centerLat}
-            centerLon={d.centerLon ?? DEFAULT_INFRA.centerLon}
-            zoom={d.zoom ?? DEFAULT_INFRA.zoom}
-            places={places}
-            catColors={catColors}
-            address={SITE.address}
-          />
-          {/* Overlay badge */}
-          <div style={{
-            position:'absolute', top:24, left:24, zIndex: 5,
-            background:'rgba(20,17,14,0.92)', backdropFilter:'blur(12px)',
-            borderRadius:10, padding:'14px 20px', border:'1px solid var(--c-gold)',
-            pointerEvents:'none',
-          }}>
-            <div style={{ fontSize:11, color:'var(--c-gold)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>ЖК Полянка</div>
-            <div style={{ fontSize:14, color:'#fff', fontWeight:500 }}>{SITE.address}</div>
-          </div>
+          {(() => {
+            const mapAddress = d.mapAddress || DEFAULT_INFRA.mapAddress || SITE.address;
+            return (
+              <>
+                <YandexMap
+                  centerLat={d.centerLat ?? DEFAULT_INFRA.centerLat}
+                  centerLon={d.centerLon ?? DEFAULT_INFRA.centerLon}
+                  zoom={d.zoom ?? DEFAULT_INFRA.zoom}
+                  places={places}
+                  catColors={catColors}
+                  address={mapAddress}
+                />
+                {/* Overlay badge */}
+                <div style={{
+                  position:'absolute', top:24, left:24, zIndex: 5,
+                  background:'rgba(20,17,14,0.92)', backdropFilter:'blur(12px)',
+                  borderRadius:10, padding:'14px 20px', border:'1px solid var(--c-gold)',
+                  pointerEvents:'none',
+                }}>
+                  <div style={{ fontSize:11, color:'var(--c-gold)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>ЖК Полянка</div>
+                  <div style={{ fontSize:14, color:'#fff', fontWeight:500 }}>{mapAddress}</div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
     </section>
