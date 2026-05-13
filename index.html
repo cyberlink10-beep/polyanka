@@ -2056,8 +2056,8 @@ function FloorPlan({ onSelectApt }) {
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18, color: 'var(--c-gold)', lineHeight: 1 }}>
-                      — {stats.total} {stats.total === 1 ? 'квартира' : (stats.total < 5 ? 'квартиры' : 'квартир')} —
+                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18, color: 'var(--c-gold)', lineHeight: 1.35 }}>
+                      — {stats.total} {stats.total === 1 ? 'квартира' : (stats.total < 5 ? 'квартиры' : 'квартир')} на этаже —
                     </div>
                   </div>
                 </div>
@@ -2065,16 +2065,19 @@ function FloorPlan({ onSelectApt }) {
                   ? <FloorSchema schemaUrl={korpus.floorSchemas[floor]} apartments={filtered} hoveredId={hoveredId} selectedApt={selectedApt} onSelect={setSelectedApt} onHover={setHoveredId} />
                   : <FloorMap  apartments={filtered} hoveredId={hoveredId} selectedApt={selectedApt} onSelect={setSelectedApt} onHover={setHoveredId} />
                 }
-                {/* Legend */}
-                <div style={{ display: 'flex', gap: 20, marginTop: 14, fontSize: 12, color: 'var(--c-gray-500)' }}>
+                {/* Legend — premium serif */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 28, marginTop: 18, paddingTop: 16, borderTop: '1px solid var(--c-gray-100)', flexWrap: 'wrap' }}>
                   {[
-                    { color: '#fff', border: '1.5px solid #C0B8B0', label: 'Свободна' },
-                    { color: '#A85D3F', border: 'none', label: 'Выбрана' },
-                    { color: '#EDE8E3', border: '1.5px solid #C0B8B0', label: 'Бронь' },
+                    { color: '#fff',     border: '1.5px solid var(--c-gold)',     label: 'Свободна' },
+                    { color: '#A85D3F',  border: 'none',                          label: 'Выбрана' },
+                    { color: '#EDE8E3',  border: '1.5px solid var(--c-gray-300)', label: 'В брони' },
                   ].map(({ color, border, label }) => (
-                    <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ width: 12, height: 12, background: color, border, borderRadius: 3, display: 'inline-block' }} />
-                      {label}
+                    <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: 9 }}>
+                      <span style={{ width: 14, height: 14, background: color, border, borderRadius: 3, display: 'inline-block' }} />
+                      <span style={{
+                        fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 400,
+                        fontSize: 15, color: 'var(--c-olive-deep)', letterSpacing: '0.01em',
+                      }}>— {label} —</span>
                     </span>
                   ))}
                 </div>
@@ -2085,89 +2088,101 @@ function FloorPlan({ onSelectApt }) {
                 {selectedApt ? (
                   <div style={{
                     background: '#fff', borderRadius: 16, overflow: 'hidden',
-                    boxShadow: '0 8px 28px rgba(0,0,0,0.07)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
                     border: '1px solid var(--c-gray-100)',
-                    animation: 'fadeUp 250ms ease-out',
+                    animation: 'fadeUp 280ms cubic-bezier(0.22,1,0.36,1)',
                   }}>
                     {/* Header — sentence case Cormorant, gold hairline */}
-                    <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid var(--c-gray-100)' }}>
+                    <div style={{ padding: '26px 26px 22px', borderBottom: '1px solid var(--c-gray-100)' }}>
                       <div style={{
-                        fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase',
-                        color: 'var(--c-olive)', fontWeight: 600, marginBottom: 10,
+                        fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase',
+                        color: 'var(--c-olive)', fontWeight: 600, marginBottom: 12,
                       }}>
                         — Выбранная квартира —
                       </div>
                       <div style={{
-                        fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 32,
-                        color: 'var(--c-charcoal)', letterSpacing: '-0.01em', lineHeight: 1.05,
+                        fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 38,
+                        color: 'var(--c-charcoal)', letterSpacing: '-0.015em', lineHeight: 1.0,
                       }}>
-                        <em style={{ fontStyle: 'italic', color: 'var(--c-olive-deep)' }}>{selectedApt.area}</em> м²
+                        <em style={{ fontStyle: 'italic', color: 'var(--c-olive-deep)' }}>{selectedApt.area}</em>
+                        <span style={{ fontSize: 22, color: 'var(--c-gray-500)', marginLeft: 6, fontWeight: 400 }}>м²</span>
                       </div>
                       <div style={{
-                        fontFamily: 'var(--font-display)', fontStyle: 'italic',
-                        fontSize: 16, color: 'var(--c-gold)', marginTop: 4,
+                        fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 400,
+                        fontSize: 17, color: 'var(--c-gold)', marginTop: 6, lineHeight: 1.3,
                       }}>
-                        — {selectedApt.rooms}-комнатная —
+                        — {selectedApt.rooms}-комнатная планировка —
                       </div>
-                      <div style={{ width: 36, height: 1, background: 'var(--c-gold)', opacity: 0.7, marginTop: 14 }} />
+                      <div style={{ width: 40, height: 1, background: 'var(--c-gold)', opacity: 0.7, marginTop: 16 }} />
                     </div>
 
                     {/* Mini floor plan preview */}
                     <div style={{
                       background: 'var(--c-cream)',
-                      padding: 18,
+                      padding: 22,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      minHeight: 180, borderBottom: '1px solid var(--c-gray-100)',
+                      minHeight: 200, borderBottom: '1px solid var(--c-gray-100)',
                     }}>
                       {selectedApt.img ? (
-                        <img src={selectedApt.img} alt="Планировка"
-                          style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', display: 'block' }}
+                        <img src={selectedApt.img} alt="Планировка квартиры"
+                          style={{ maxWidth: '100%', maxHeight: 220, objectFit: 'contain', display: 'block' }}
                           onError={e => { e.currentTarget.style.display = 'none'; }}
                         />
                       ) : (
-                        <div style={{ textAlign: 'center', color: 'var(--c-gray-500)' }}>
-                          <svg width="48" height="48" viewBox="0 0 40 40" fill="none" style={{ display: 'block', margin: '0 auto 8px', opacity: 0.5 }}>
+                        <div style={{ textAlign: 'center', color: 'var(--c-olive-deep)', opacity: 0.7 }}>
+                          <svg width="52" height="52" viewBox="0 0 40 40" fill="none" style={{ display: 'block', margin: '0 auto 10px', opacity: 0.55 }}>
                             <rect x="4" y="4" width="32" height="32" rx="3" stroke="currentColor" strokeWidth="1.2" fill="none"/>
                             <rect x="9" y="9" width="10" height="14" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/>
                             <rect x="21" y="9" width="10" height="6" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/>
                             <rect x="21" y="17" width="10" height="6" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/>
                             <rect x="9" y="25" width="22" height="6" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/>
                           </svg>
-                          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13 }}>планировка не загружена</div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14 }}>— планировка не загружена —</div>
                         </div>
                       )}
                     </div>
 
                     {/* Details */}
-                    <div style={{ padding: '22px 24px 24px' }}>
+                    <div style={{ padding: '24px 26px 26px' }}>
+                      <div style={{
+                        fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase',
+                        color: 'var(--c-olive)', fontWeight: 600, marginBottom: 14,
+                      }}>— Характеристики —</div>
+
                       {[
-                        ['Этаж', `${selectedApt.floor} из ${(entrance && entrance.floors) || korpus.floors}`],
+                        ['Этаж',   `${selectedApt.floor} из ${(entrance && entrance.floors) || korpus.floors}`],
                         ['Корпус', korpus.name],
                         ...(entrance ? [['Подъезд', entrance.name]] : []),
                         ['Статус', selectedApt.available ? 'Свободна' : 'В брони'],
                       ].map(([l, v]) => (
-                        <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '10px 0', borderBottom: '1px solid var(--c-gray-100)' }}>
-                          <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>{l}</span>
-                          <span style={{ fontSize: 14, color: 'var(--c-charcoal)', fontWeight: 500 }}>{v}</span>
+                        <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '11px 0', borderBottom: '1px solid var(--c-gray-100)' }}>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--c-gray-500)', fontWeight: 400 }}>{l}</span>
+                          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500, fontSize: 16, color: 'var(--c-charcoal)' }}>{v}</span>
                         </div>
                       ))}
 
                       {/* Price block */}
-                      <div style={{ padding: '20px 0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <span style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-olive)', fontWeight: 600 }}>Стоимость</span>
+                      <div style={{ padding: '22px 0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', fontWeight: 600 }}>Стоимость</span>
                         <span style={{
-                          fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 30,
-                          color: 'var(--c-brand)', letterSpacing: '-0.01em', lineHeight: 1,
+                          fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 32,
+                          color: 'var(--c-brand)', letterSpacing: '-0.015em', lineHeight: 1,
                         }}>{selectedApt.price.toLocaleString('ru-RU')} ₽</span>
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--c-gray-500)', textAlign: 'right', marginBottom: 20, fontStyle: 'italic' }}>
-                        {Math.round(selectedApt.price / selectedApt.area).toLocaleString('ru-RU')} ₽ / м²
+                      <div style={{
+                        fontFamily: 'var(--font-display)', fontStyle: 'italic',
+                        fontSize: 13, color: 'var(--c-gray-500)', textAlign: 'right',
+                        marginBottom: 22, marginTop: 4,
+                      }}>
+                        — {Math.round(selectedApt.price / selectedApt.area).toLocaleString('ru-RU')} ₽ за м² —
                       </div>
 
-                      <button className="btn btn-primary" style={{ width: '100%', marginBottom: 8 }} onMouseDown={addRipple} onClick={() => onSelectApt && onSelectApt(selectedApt)}>
+                      <button className="btn btn-primary" style={{ width: '100%', marginBottom: 10 }} onMouseDown={addRipple} onClick={() => onSelectApt && onSelectApt(selectedApt)}>
                         Забронировать
                       </button>
-                      <button className="btn btn-secondary" style={{ width: '100%' }} onMouseDown={addRipple}>Узнать подробнее</button>
+                      <button className="btn btn-secondary" style={{ width: '100%' }} onMouseDown={addRipple}>
+                        Узнать подробнее
+                      </button>
                     </div>
                   </div>
                 ) : (
