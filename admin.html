@@ -1595,11 +1595,21 @@ function PhotoUploadButton({ onPick, label, small }) {
 }
 
 /* ─── INFRASTRUCTURE TAB ─── */
+const DEFAULT_CATEGORY_COLORS = {
+  'Образование': '#6B7350',
+  'Торговля':    '#A85D3F',
+  'Отдых':       '#4E5538',
+  'Здоровье':    '#B86B4D',
+  'Сервис':      '#B89968',
+  'Транспорт':   '#7D8068',
+  'Другое':      '#A85D3F',
+};
 const DEFAULT_INFRA = {
   mapUrl: 'https://yandex.ru/map-widget/v1/?ll=65.3654%2C55.4408&z=17&pt=65.3654%2C55.4408%2Cpm2rdl&l=map',
   centerLat: 55.4408,
   centerLon: 65.3654,
   zoom: 17,
+  categoryColors: { ...DEFAULT_CATEGORY_COLORS },
   places: [
     {name:'Школа',dist:'350 м',cat:'Образование',lat:null,lon:null},
     {name:'Детский сад',dist:'200 м',cat:'Образование',lat:null,lon:null},
@@ -1612,9 +1622,17 @@ const DEFAULT_INFRA = {
 const CATS = ['Образование','Торговля','Отдых','Здоровье','Сервис','Транспорт','Другое'];
 
 function InfraTab({ toast }) {
-  const [d, setD] = useState(() => ({ ...DEFAULT_INFRA, ...ls.load('geroi_infra', {}) }));
+  const [d, setD] = useState(() => {
+    const loaded = ls.load('geroi_infra', {});
+    return {
+      ...DEFAULT_INFRA,
+      ...loaded,
+      categoryColors: { ...DEFAULT_CATEGORY_COLORS, ...(loaded.categoryColors || {}) },
+    };
+  });
   const setField = (k,v) => setD(p=>({...p,[k]:v}));
   const setPlace = (i,k,v) => setD(p=>{ const pl=[...p.places]; pl[i]={...pl[i],[k]:v}; return {...p,places:pl}; });
+  const setCatColor = (cat, color) => setD(p => ({ ...p, categoryColors: { ...(p.categoryColors || {}), [cat]: color } }));
   const addPlace = () => setD(p=>({...p,places:[...p.places,{name:'',dist:'',cat:'Другое',lat:null,lon:null}]}));
   const delPlace = i => setD(p=>({...p,places:p.places.filter((_,j)=>j!==i)}));
   const saveAll = () => { ls.save('geroi_infra', d); toast('Инфраструктура сохранена'); };
@@ -1658,6 +1676,37 @@ function InfraTab({ toast }) {
           <div style={{fontSize:12,color:'var(--text-3)',lineHeight:1.6,marginTop:14}}>
             Откройте <a href="https://yandex.ru/maps" target="_blank" style={{color:'#A85D3F'}}>yandex.ru/maps</a>, кликните по нужной точке правой кнопкой → «Что здесь?». В адресной строке появятся координаты вида <code>55.4408, 65.3654</code> — скопируйте их и вставьте в поле выше.
             <br/>Zoom <b>17</b> ≈ 90 м/см · <b>16</b> ≈ 200 м/см · <b>15</b> ≈ 400 м/см.
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3>Цвета категорий</h3>
+          <div style={{fontSize:12,color:'var(--text-3)',lineHeight:1.5,marginBottom:14}}>
+            Эти же цвета используются и в списке объектов, и на карте.
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))',gap:10}}>
+            {CATS.map(cat => {
+              const color = (d.categoryColors && d.categoryColors[cat]) || DEFAULT_CATEGORY_COLORS[cat] || '#A85D3F';
+              return (
+                <div key={cat} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:'var(--surface-2)',borderRadius:8,border:'1px solid var(--hairline)'}}>
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={e => setCatColor(cat, e.target.value)}
+                    style={{width:40,height:32,padding:0,border:'1px solid var(--hairline)',borderRadius:6,cursor:'pointer',background:'transparent'}}
+                  />
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,color:'var(--text)',fontWeight:500}}>{cat}</div>
+                    <input
+                      type="text"
+                      value={color}
+                      onChange={e => setCatColor(cat, e.target.value)}
+                      style={{fontFamily:'ui-monospace, SFMono-Regular, monospace',fontSize:11,padding:'4px 6px',marginTop:3,width:'100%',height:22}}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
