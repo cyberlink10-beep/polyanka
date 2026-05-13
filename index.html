@@ -3148,29 +3148,32 @@ function ApartmentModal({ apt, onClose }) {
           {/* Gold hairline */}
           <div style={{ width: '100%', height: 1, background: 'var(--c-gold)', opacity: 0.5, margin: '24px 0' }} />
 
-          {/* Location thumbnails — same SITE_RENDER image, different highlights */}
-          {korpus && (
-            <div style={{ marginBottom: 28 }}>
-              <div style={{
-                fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase',
-                color: 'var(--c-olive)', fontWeight: 600, marginBottom: 12,
-              }}>— Расположение в комплексе —</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <SiteRenderThumb
-                  polygon={korpus.polygon}
-                  label={korpus.name}
-                  sublabel={entrance ? entrance.name : 'на генплане'}
-                  height={120}
-                />
-                <SiteRenderThumb
-                  polygon={floorPolygon || korpus.polygon}
-                  label={`${apt.floor} этаж`}
-                  sublabel={floorPolygon ? 'на корпусе' : 'этаж не размечен'}
-                  height={120}
-                />
+          {/* Location thumbnails — same highlights as on the Интерактивный выбор */}
+          {korpus && (() => {
+            const entrancePolygon = entrance && korpus.entrancePolygons ? korpus.entrancePolygons[entrance.id] : null;
+            return (
+              <div style={{ marginBottom: 28 }}>
+                <div style={{
+                  fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase',
+                  color: 'var(--c-olive)', fontWeight: 600, marginBottom: 12,
+                }}>— Расположение в комплексе —</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <SiteRenderThumb
+                    polygon={entrancePolygon || korpus.polygon}
+                    label={entrance ? entrance.name : korpus.name}
+                    sublabel={entrance ? korpus.name : 'на генплане'}
+                    height={120}
+                  />
+                  <SiteRenderThumb
+                    polygon={floorPolygon || korpus.polygon}
+                    label={`${apt.floor} этаж`}
+                    sublabel={floorPolygon ? (entrance ? entrance.name : korpus.name) : 'этаж не размечен'}
+                    height={120}
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Characteristics — 2×2 grid in cream cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 28 }}>
