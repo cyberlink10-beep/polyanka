@@ -175,8 +175,9 @@
     /* Footer 1fr auto → 1 fr (stacked) */
     @media (max-width: 900px) {
       .footer-top { grid-template-columns: 1fr !important; gap: 28px !important; }
-      .footer-contacts { grid-template-columns: 1fr !important; }
+      .footer-contacts { grid-template-columns: 1fr !important; gap: 14px !important; }
       .footer-contacts > div:nth-child(2) { display: none !important; }
+      .footer-contacts > .btn { justify-self: start; margin-top: 4px; }
     }
     @media (max-width: 520px) {
       .footer-top { gap: 22px !important; }
@@ -3125,10 +3126,9 @@ function Footer() {
             <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 14 }}>— Контакты —</div>
             <div className="footer-contacts" style={{
               display: 'grid',
-              gridTemplateColumns: 'auto 1px auto',
+              gridTemplateColumns: 'auto 1px auto auto',
               gap: 22,
               alignItems: 'center',
-              marginBottom: 16,
             }}>
               {/* Phone column */}
               <div>
@@ -3142,12 +3142,13 @@ function Footer() {
                 <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', lineHeight: 1.35 }}>{SITE.address}</div>
                 <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>{SITE.addressLabel} · {SITE.hours}</div>
               </div>
+              {/* CTA column */}
+              <a className="btn btn-primary" href="#contact"
+                onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
+                style={{ fontSize: 13, padding: '12px 22px', whiteSpace: 'nowrap' }} onMouseDown={addRipple}>
+                Оставить заявку
+              </a>
             </div>
-            <a className="btn btn-primary" href="#contact"
-              onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
-              style={{ fontSize: 13, padding: '10px 22px' }} onMouseDown={addRipple}>
-              Оставить заявку
-            </a>
           </div>
         </div>
 
