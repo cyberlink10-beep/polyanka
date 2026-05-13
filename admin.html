@@ -1596,11 +1596,17 @@ function PhotoUploadButton({ onPick, label, small }) {
 
 /* ─── INFRASTRUCTURE TAB ─── */
 const DEFAULT_INFRA = {
-  mapUrl: 'https://yandex.ru/map-widget/v1/?ll=65.3654%2C55.4408&z=15&pt=65.3654%2C55.4408%2Cpm2rdl&l=map',
+  mapUrl: 'https://yandex.ru/map-widget/v1/?ll=65.3654%2C55.4408&z=17&pt=65.3654%2C55.4408%2Cpm2rdl&l=map',
+  centerLat: 55.4408,
+  centerLon: 65.3654,
+  zoom: 17,
   places: [
-    {name:'Школа',dist:'350 м',cat:'Образование'},{name:'Детский сад',dist:'200 м',cat:'Образование'},
-    {name:'Торговый центр',dist:'1.2 км',cat:'Торговля'},{name:'Парк',dist:'800 м',cat:'Отдых'},
-    {name:'Поликлиника',dist:'500 м',cat:'Здоровье'},{name:'МФЦ',dist:'1 км',cat:'Сервис'},
+    {name:'Школа',dist:'350 м',cat:'Образование',lat:null,lon:null},
+    {name:'Детский сад',dist:'200 м',cat:'Образование',lat:null,lon:null},
+    {name:'Торговый центр',dist:'1.2 км',cat:'Торговля',lat:null,lon:null},
+    {name:'Парк',dist:'800 м',cat:'Отдых',lat:null,lon:null},
+    {name:'Поликлиника',dist:'500 м',cat:'Здоровье',lat:null,lon:null},
+    {name:'МФЦ',dist:'1 км',cat:'Сервис',lat:null,lon:null},
   ],
 };
 const CATS = ['Образование','Торговля','Отдых','Здоровье','Сервис','Транспорт','Другое'];
@@ -1609,39 +1615,74 @@ function InfraTab({ toast }) {
   const [d, setD] = useState(() => ({ ...DEFAULT_INFRA, ...ls.load('geroi_infra', {}) }));
   const setField = (k,v) => setD(p=>({...p,[k]:v}));
   const setPlace = (i,k,v) => setD(p=>{ const pl=[...p.places]; pl[i]={...pl[i],[k]:v}; return {...p,places:pl}; });
-  const addPlace = () => setD(p=>({...p,places:[...p.places,{name:'',dist:'',cat:'Другое'}]}));
+  const addPlace = () => setD(p=>({...p,places:[...p.places,{name:'',dist:'',cat:'Другое',lat:null,lon:null}]}));
   const delPlace = i => setD(p=>({...p,places:p.places.filter((_,j)=>j!==i)}));
   const saveAll = () => { ls.save('geroi_infra', d); toast('Инфраструктура сохранена'); };
+
+  // Helper: parse "55.4408, 65.3654" or yandex URL ll=lon,lat into lat/lon
+  const parseCoord = (str) => {
+    if (!str) return null;
+    const m = String(str).match(/(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)/);
+    if (!m) return null;
+    return [parseFloat(m[1]), parseFloat(m[2])];
+  };
+
   return (
     <div>
-      <div className="page-header"><div className="page-title">Инфраструктура</div><div className="page-subtitle">Яндекс карта и список объектов рядом</div></div>
+      <div className="page-header"><div className="page-title">Инфраструктура</div><div className="page-subtitle">Яндекс-карта, центр и объекты рядом с координатами</div></div>
       <div className="page-body">
+
         <div className="settings-section">
-          <h3>Яндекс карта</h3>
-          <div className="form-group" style={{marginBottom:16}}>
-            <span className="form-label">URL карты (iframe src)</span>
-            <input value={d.mapUrl||''} onChange={e=>setField('mapUrl',e.target.value)} placeholder="https://yandex.ru/map-widget/v1/?..."/>
+          <h3>Центр карты и зум</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <span className="form-label">Широта (lat)</span>
+              <input type="number" step="0.0001" value={d.centerLat ?? ''} onChange={e=>setField('centerLat', parseFloat(e.target.value) || 0)} placeholder="55.4408"/>
+            </div>
+            <div className="form-group">
+              <span className="form-label">Долгота (lon)</span>
+              <input type="number" step="0.0001" value={d.centerLon ?? ''} onChange={e=>setField('centerLon', parseFloat(e.target.value) || 0)} placeholder="65.3654"/>
+            </div>
+            <div className="form-group">
+              <span className="form-label">Зум (10–19, чем больше — тем ближе)</span>
+              <input type="number" min={10} max={19} step={1} value={d.zoom ?? 17} onChange={e=>setField('zoom', parseInt(e.target.value) || 17)} placeholder="17"/>
+            </div>
+            <div className="form-group">
+              <span className="form-label">Вставить пару «lat, lon»</span>
+              <input placeholder="55.4408, 65.3654" onBlur={e => {
+                const c = parseCoord(e.target.value);
+                if (c) { setField('centerLat', c[0]); setField('centerLon', c[1]); e.target.value = ''; }
+              }}/>
+            </div>
           </div>
-          <div style={{fontSize:12,color:'rgba(0,0,0,0.5)',lineHeight:1.6}}>
-            Откройте <a href="https://yandex.ru/maps" target="_blank" style={{color:'#A85D3F'}}>yandex.ru/maps</a>, найдите нужное место, нажмите «Поделиться» → «Встроить карту» и скопируйте URL из атрибута src.
+          <div style={{fontSize:12,color:'var(--text-3)',lineHeight:1.6,marginTop:14}}>
+            Откройте <a href="https://yandex.ru/maps" target="_blank" style={{color:'#A85D3F'}}>yandex.ru/maps</a>, кликните по нужной точке правой кнопкой → «Что здесь?». В адресной строке появятся координаты вида <code>55.4408, 65.3654</code> — скопируйте их и вставьте в поле выше.
+            <br/>Zoom <b>17</b> ≈ 90 м/см · <b>16</b> ≈ 200 м/см · <b>15</b> ≈ 400 м/см.
           </div>
         </div>
+
         <div className="settings-section">
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
             <h3 style={{margin:0}}>Объекты рядом</h3>
             <button className="btn btn-secondary btn-sm" onClick={addPlace}>+ Добавить</button>
           </div>
+          <div style={{fontSize:12,color:'var(--text-3)',lineHeight:1.5,marginBottom:12}}>
+            Координаты не обязательны — без них объект показывается только в списке. С координатами появляется ещё и метка на карте.
+          </div>
           {d.places.map((pl,i) => (
-            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 100px 140px 36px',gap:8,marginBottom:10,alignItems:'center'}}>
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 90px 130px 110px 110px 36px',gap:8,marginBottom:10,alignItems:'center'}}>
               <input value={pl.name||''} onChange={e=>setPlace(i,'name',e.target.value)} placeholder="Название" style={{padding:'8px 10px',fontSize:13}}/>
               <input value={pl.dist||''} onChange={e=>setPlace(i,'dist',e.target.value)} placeholder="300 м" style={{padding:'8px 10px',fontSize:13}}/>
               <select value={pl.cat||'Другое'} onChange={e=>setPlace(i,'cat',e.target.value)} style={{padding:'8px 10px',fontSize:13}}>
                 {CATS.map(c=><option key={c} value={c}>{c}</option>)}
               </select>
+              <input type="number" step="0.0001" value={pl.lat ?? ''} onChange={e=>setPlace(i,'lat',e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="lat" style={{padding:'8px 10px',fontSize:13}}/>
+              <input type="number" step="0.0001" value={pl.lon ?? ''} onChange={e=>setPlace(i,'lon',e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="lon" style={{padding:'8px 10px',fontSize:13}}/>
               <button className="btn btn-danger btn-icon btn-sm" onClick={()=>delPlace(i)}>✕</button>
             </div>
           ))}
         </div>
+
         <div className="section-actions"><button className="btn btn-primary" onClick={saveAll}>Сохранить</button></div>
       </div>
     </div>
