@@ -1486,9 +1486,9 @@ function FloorSchema({ schemaUrl, apartments, hoveredId, selectedApt, onSelect, 
           })}
         </svg>
 
-        {/* Sold overlay tooltip on hover (skipped for cleanliness) */}
-        {hoveredId && (() => {
-          const apt = apartments.find(a => a.id === hoveredId);
+        {/* Sold overlay tooltip on hover — single node, smooth glide between apartments */}
+        {(() => {
+          const apt = hoveredId ? apartments.find(a => a.id === hoveredId) : null;
           if (!apt || !apt.polygon) return null;
           const pts = apt.polygon.split(/\s+/).map(p => p.split(',').map(Number));
           const cx = pts.reduce((s,p)=>s+p[0],0)/pts.length;
@@ -1500,7 +1500,8 @@ function FloorSchema({ schemaUrl, apartments, hoveredId, selectedApt, onSelect, 
               background:'rgba(20,17,14,0.96)', backdropFilter:'blur(12px)',
               border:'1px solid rgba(168,93,63,0.4)', borderRadius:10,
               padding:'10px 14px', boxShadow:'0 14px 30px rgba(0,0,0,0.35)',
-              animation:'fadeUp 160ms ease-out', minWidth:140, textAlign:'center',
+              minWidth:140, textAlign:'center', zIndex: 5,
+              transition: 'top 240ms cubic-bezier(0.22,1,0.36,1), left 240ms cubic-bezier(0.22,1,0.36,1)',
             }}>
               <div style={{ fontFamily:'var(--font-display)', fontSize:16, color:'#fff', textTransform:'uppercase' }}>{apt.rooms}-комн · {apt.area} м²</div>
               <div style={{ fontSize:12, color:'var(--c-brand)', fontWeight:700, marginTop:3 }}>{apt.price.toLocaleString('ru-RU')} ₽</div>
@@ -1878,9 +1879,11 @@ function FloorPlan({ onSelectApt }) {
                   </svg>
                 </div>
 
-                {/* STEP 0: Hover tooltip — anchored to korpus */}
-                {step === 0 && hoveredKorpus && (() => {
-                  const k = KORPUSES.find(x => x.id === hoveredKorpus);
+                {/* STEP 0: Hover tooltip — anchored to korpus. Single stable node, position
+                    transitions smoothly so it doesn't snap between buildings. */}
+                {step === 0 && (() => {
+                  const k = hoveredKorpus ? KORPUSES.find(x => x.id === hoveredKorpus) : null;
+                  if (!k) return null;
                   return (
                     <div style={{
                       position: 'absolute', top: `${(k.cy / 56.25) * 100}%`, left: `${k.cx}%`,
@@ -1889,8 +1892,8 @@ function FloorPlan({ onSelectApt }) {
                       border: '1px solid rgba(168,93,63,0.45)', borderRadius: 12,
                       padding: '14px 20px', pointerEvents: 'none',
                       boxShadow: '0 16px 40px rgba(0,0,0,0.35), 0 0 22px rgba(168,93,63,0.22)',
-                      animation: 'fadeUp 180ms ease-out',
                       minWidth: 180, textAlign: 'center', zIndex: 5,
+                      transition: 'top 260ms cubic-bezier(0.22,1,0.36,1), left 260ms cubic-bezier(0.22,1,0.36,1), opacity 200ms ease',
                     }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 22, color: '#fff', textTransform: 'uppercase', marginBottom: 8 }}>{k.name}</div>
                       <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>{k.floors} этажей · {k.total} квартир</div>
@@ -1953,29 +1956,9 @@ function FloorPlan({ onSelectApt }) {
                     </div>
                     {hoveredFloor ? (
                       <>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 64, color: 'var(--c-charcoal)', lineHeight: 1, marginBottom: 4 }}>{hoveredFloor}</div>
-                        <div style={{ fontSize: 13, color: 'var(--c-gray-500)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 20 }}>этаж</div>
-                        {(() => {
-                          const apts = genFloor(hoveredFloor, korpus.id);
-                          const free = apts.filter(a => a.available).length;
-                          const minP = Math.min(...apts.map(a => a.price));
-                          return (
-                            <div style={{ display: 'grid', gap: 12 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>Квартир</span>
-                                <span style={{ fontSize: 17, color: 'var(--c-charcoal)', fontWeight: 700 }}>{apts.length}</span>
-                              </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>Свободных</span>
-                                <span style={{ fontSize: 17, color: '#16a34a', fontWeight: 700 }}>{free}</span>
-                              </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                <span style={{ fontSize: 13, color: 'var(--c-gray-500)' }}>От</span>
-                                <span style={{ fontSize: 18, color: 'var(--c-brand)', fontWeight: 700 }}>{(minP / 1000000).toFixed(2).replace(/\.?0+$/, '')} млн ₽</span>
-                              </div>
-                            </div>
-                          );
-                        })()}
+                        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--c-gold)', lineHeight: 1, marginBottom: 4 }}>— этаж —</div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 96, color: 'var(--c-charcoal)', lineHeight: 1, letterSpacing: '-0.02em' }}>{hoveredFloor}</div>
+                        <div style={{ width: 36, height: 1, background: 'var(--c-gold)', opacity: 0.7, marginTop: 14 }} />
                       </>
                     ) : (
                       <>
@@ -2053,12 +2036,6 @@ function FloorPlan({ onSelectApt }) {
               </button>
             </div>
 
-            {/* Compact stats line (filters removed) */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 18, marginBottom: 18, fontSize: 13, fontWeight: 500 }}>
-              <span style={{ color: '#16a34a' }}>● Свободно: {stats.free}</span>
-              <span style={{ color: 'var(--c-gray-500)' }}>● Бронь: {stats.booked}</span>
-            </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
               {/* Floor map area */}
               <div style={{
@@ -2066,15 +2043,23 @@ function FloorPlan({ onSelectApt }) {
                 boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid #ece9e5',
               }}>
                 <div style={{
-                  background: 'var(--c-surface)', borderRadius: 10, padding: '14px 20px', marginBottom: 16,
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: 'var(--c-cream)', borderRadius: 10, padding: '16px 22px', marginBottom: 18,
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10,
+                  borderLeft: '3px solid var(--c-gold)',
                 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--c-charcoal)', textTransform: 'uppercase' }}>
-                    {floor} ЭТАЖ · {korpus.name}
-                  </span>
-                  <span style={{ fontSize: 12, color: 'var(--c-gray-500)' }}>
-                    Всего {stats.total} квартир
-                  </span>
+                  <div>
+                    <div style={{ fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', fontWeight: 600, marginBottom: 4 }}>
+                      {korpus.name}{entrance ? ` · ${entrance.name}` : ''}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 26, color: 'var(--c-charcoal)', letterSpacing: '-0.01em', lineHeight: 1 }}>
+                      <em style={{ fontStyle: 'italic', color: 'var(--c-olive-deep)' }}>{floor}</em> этаж
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18, color: 'var(--c-gold)', lineHeight: 1 }}>
+                      — {stats.total} {stats.total === 1 ? 'квартира' : (stats.total < 5 ? 'квартиры' : 'квартир')} —
+                    </div>
+                  </div>
                 </div>
                 {hasSchema
                   ? <FloorSchema schemaUrl={korpus.floorSchemas[floor]} apartments={filtered} hoveredId={hoveredId} selectedApt={selectedApt} onSelect={setSelectedApt} onHover={setHoveredId} />
