@@ -172,8 +172,15 @@
     @media (max-width: 900px) { .resp-places3 { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 520px) { .resp-places3 { grid-template-columns: 1fr; } }
 
-    /* Footer 1.4fr 1fr → 1 fr (stacked) */
-    @media (max-width: 900px) { .footer-top { grid-template-columns: 1fr !important; gap: 36px !important; } }
+    /* Footer 1fr auto → 1 fr (stacked) */
+    @media (max-width: 900px) {
+      .footer-top { grid-template-columns: 1fr !important; gap: 28px !important; }
+      .footer-contacts { grid-template-columns: 1fr !important; }
+      .footer-contacts > div:nth-child(2) { display: none !important; }
+    }
+    @media (max-width: 520px) {
+      .footer-top { gap: 22px !important; }
+    }
 
     /* Contact form 1fr 1fr → 1 fr */
     .resp-contact { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
@@ -3085,46 +3092,60 @@ function Footer() {
       background: 'var(--c-olive-deep) url(\'assets/patterns/06-darkbloom-clear.svg\')',
       backgroundSize: '420px 420px',
       borderTop: '1px solid rgba(239,228,196,0.18)',
-      padding: '72px 0 36px',
+      padding: '44px 0 24px',
       position: 'relative',
     }}>
       <div className="container">
         {/* Top — two-column layout: brand + contacts */}
         <div className="footer-top" style={{
-          display: 'grid', gridTemplateColumns: '1.4fr 1fr',
-          gap: 60, marginBottom: 48, alignItems: 'start',
+          display: 'grid', gridTemplateColumns: '1fr auto',
+          gap: 40, marginBottom: 22, alignItems: 'center',
         }}>
           <div>
-            <div style={{ marginBottom: 18 }}>
-              <img
-                src="assets/logo-horizontal-white.svg"
-                alt="Полянка"
-                style={{ height: 116, width: 'auto', display: 'block', marginLeft: -10 }}
-              />
-            </div>
+            <img
+              src="assets/logo-horizontal-white.svg"
+              alt="Полянка"
+              style={{ height: 90, width: 'auto', display: 'block', marginLeft: -8, marginBottom: 8 }}
+            />
             <p style={{
               fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500,
-              fontSize: 18, color: 'rgba(255,255,255,0.78)', lineHeight: 1.5, maxWidth: 420,
+              fontSize: 16, color: 'rgba(255,255,255,0.78)', lineHeight: 1.4, maxWidth: 420,
             }}>
               — где архитектура встречает природу —
             </p>
             <p style={{
-              fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7,
-              maxWidth: 420, marginTop: 14,
+              fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.55,
+              maxWidth: 420, marginTop: 4,
             }}>
               Тёплые тона, тишина и комфорт в шаге от города.
             </p>
           </div>
 
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 20 }}>— Контакты —</div>
-            <a href={`tel:${SITE.phone}`} style={{ fontSize: 22, color: '#fff', marginBottom: 4, fontWeight: 500, textDecoration: 'none', display: 'block', letterSpacing: '0.01em' }}>{SITE.phone}</a>
-            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--c-champagne)', marginBottom: 22 }}>— {SITE.phoneLabel} —</div>
-            <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.78)', marginBottom: 6 }}>{SITE.address}</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'rgba(255,255,255,0.55)', marginBottom: 26 }}>{SITE.addressLabel} · {SITE.hours}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 14 }}>— Контакты —</div>
+            <div className="footer-contacts" style={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1px auto',
+              gap: 22,
+              alignItems: 'center',
+              marginBottom: 16,
+            }}>
+              {/* Phone column */}
+              <div>
+                <a href={`tel:${SITE.phone}`} style={{ fontSize: 19, color: '#fff', fontWeight: 500, textDecoration: 'none', display: 'block', letterSpacing: '0.01em', lineHeight: 1.2, whiteSpace: 'nowrap' }}>{SITE.phone}</a>
+                <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--c-champagne)', marginTop: 2, whiteSpace: 'nowrap' }}>— {SITE.phoneLabel} —</div>
+              </div>
+              {/* Divider */}
+              <div style={{ width: 1, height: 40, background: 'rgba(239,228,196,0.22)' }} />
+              {/* Address column */}
+              <div>
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', lineHeight: 1.35 }}>{SITE.address}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>{SITE.addressLabel} · {SITE.hours}</div>
+              </div>
+            </div>
             <a className="btn btn-primary" href="#contact"
               onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
-              style={{ fontSize: 13, padding: '12px 26px' }} onMouseDown={addRipple}>
+              style={{ fontSize: 13, padding: '10px 22px' }} onMouseDown={addRipple}>
               Оставить заявку
             </a>
           </div>
