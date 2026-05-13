@@ -583,6 +583,7 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
   const [scrolledRaw, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const scrolled = forceScrolled || scrolledRaw;
+  const leadForm = useLeadForm();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -653,7 +654,7 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
             transform: 'translateY(-3px)',
           }}>{SITE.phone}</a>
           <a className="btn btn-primary btn-call" href="#contact"
-            onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
+            onClick={e => { e.preventDefault(); leadForm.open({ kind: 'application' }); }}
             style={{ fontSize: 13, whiteSpace: 'nowrap' }}
             onMouseDown={addRipple}>
             Оставить заявку
@@ -687,7 +688,7 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
           — {SITE.phone} —
         </a>
         <a className="btn btn-primary btn-lg" href="#contact" style={{ marginTop: 18, justifyContent: 'center' }}
-          onClick={e => { e.preventDefault(); setDrawerOpen(false); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}>
+          onClick={e => { e.preventDefault(); setDrawerOpen(false); leadForm.open({ kind: 'application' }); }}>
           Оставить заявку
         </a>
       </div>
@@ -841,6 +842,7 @@ const SLIDES = _lsLoad('geroi_slides', [
 ]);
 
 function Hero({ onNav }) {
+  const leadForm = useLeadForm();
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
   const [fading, setFading] = useState(false);
@@ -1051,7 +1053,7 @@ function Hero({ onNav }) {
             <button className="btn btn-primary btn-lg" onMouseDown={addRipple} onClick={() => onNav('catalog')}>
               Выбрать квартиру
             </button>
-            <button className="btn btn-hero-ghost btn-lg" onMouseDown={addRipple} onClick={() => onNav('contact')}>
+            <button className="btn btn-hero-ghost btn-lg" onMouseDown={addRipple} onClick={() => leadForm.open({ kind: 'price' })}>
               Узнать цену
             </button>
           </div>
@@ -1744,6 +1746,7 @@ function FloorElevation({ korpus, hovered, onHover, onSelect }) {
 }
 
 function FloorPlan({ onSelectApt }) {
+  const leadForm = useLeadForm();
   // step: 0 = korpus · 'entrance' = подъезд · 1 = этаж · 2 = квартира
   const [step, setStep] = useState(0);
   const [korpus, setKorpus] = useState(null);
@@ -2325,10 +2328,10 @@ function FloorPlan({ onSelectApt }) {
                         {Math.round(selectedApt.price / selectedApt.area).toLocaleString('ru-RU')} ₽ за м²
                       </div>
 
-                      <button className="btn btn-primary" style={{ width: '100%', marginBottom: 10 }} onMouseDown={addRipple} onClick={() => onSelectApt && onSelectApt(selectedApt)}>
+                      <button className="btn btn-primary" style={{ width: '100%', marginBottom: 10 }} onMouseDown={addRipple} onClick={() => leadForm.open({ kind: 'booking', apt: selectedApt })}>
                         Забронировать
                       </button>
-                      <button className="btn btn-secondary" style={{ width: '100%' }} onMouseDown={addRipple}>
+                      <button className="btn btn-secondary" style={{ width: '100%' }} onMouseDown={addRipple} onClick={() => leadForm.open({ kind: 'details', apt: selectedApt })}>
                         Узнать подробнее
                       </button>
                     </div>
@@ -2628,6 +2631,7 @@ function AboutComplex() {
 
 /* ─── PROMOTIONS ─── */
 function Promos() {
+  const leadForm = useLeadForm();
   const promos = PROMOS_DATA;
   const accentMap = { '#4ade80':'rgba(74,222,128,0.12)', '#A85D3F':'rgba(227,133,77,0.12)', '#818cf8':'rgba(129,140,248,0.12)', '#e879f9':'rgba(232,121,249,0.12)' };
   return (
@@ -2666,7 +2670,7 @@ function Promos() {
                 <p style={{ fontSize:14, color:'rgba(255,255,255,0.5)', lineHeight:1.65, marginBottom:28 }}>{p.desc}</p>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                   {p.showButton !== false ? (
-                    <button className="btn btn-primary" style={{ background:accent, fontSize:13, padding:'11px 22px' }} onMouseDown={addRipple}>Узнать подробнее</button>
+                    <button className="btn btn-primary" style={{ background:accent, fontSize:13, padding:'11px 22px' }} onMouseDown={addRipple} onClick={() => leadForm.open({ kind: 'details' })}>Узнать подробнее</button>
                   ) : <span />}
                   <div style={{ fontSize:11, color:'rgba(255,255,255,0.3)', textAlign:'right' }}>До {p.expires}</div>
                 </div>
@@ -3216,6 +3220,7 @@ function ContactForm() {
 
 /* ─── FOOTER ─── */
 function Footer() {
+  const leadForm = useLeadForm();
   const linkStyle = {
     fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecoration: 'none',
     transition: 'color 150ms', letterSpacing: '0.02em',
@@ -3278,7 +3283,7 @@ function Footer() {
               </div>
               {/* CTA column */}
               <a className="btn btn-primary" href="#contact"
-                onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
+                onClick={e => { e.preventDefault(); leadForm.open({ kind: 'application' }); }}
                 style={{ fontSize: 13, padding: '12px 22px', whiteSpace: 'nowrap' }} onMouseDown={addRipple}>
                 Оставить заявку
               </a>
@@ -3380,6 +3385,7 @@ function SiteRenderThumb({ polygon, label, sublabel }) {
 }
 
 function ApartmentModal({ apt, onClose }) {
+  const leadForm = useLeadForm();
   useEffect(() => {
     if (!apt) return;
     const prev = document.body.style.overflow;
@@ -3562,10 +3568,10 @@ function ApartmentModal({ apt, onClose }) {
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="btn btn-primary btn-lg" style={{ flex: '1 1 200px', minWidth: 0 }} onMouseDown={addRipple}>
+            <button className="btn btn-primary btn-lg" style={{ flex: '1 1 200px', minWidth: 0 }} onMouseDown={addRipple} onClick={() => leadForm.open({ kind: 'booking', apt })}>
               Забронировать
             </button>
-            <button className="btn btn-secondary btn-lg" style={{ flex: '1 1 200px', minWidth: 0 }} onMouseDown={addRipple}>
+            <button className="btn btn-secondary btn-lg" style={{ flex: '1 1 200px', minWidth: 0 }} onMouseDown={addRipple} onClick={() => leadForm.open({ kind: 'manager', apt })}>
               Связаться с менеджером
             </button>
           </div>
@@ -3693,10 +3699,264 @@ function DocsPage() {
   );
 }
 
+/* ─── LEAD-FORM CONTEXT + MODAL ─── */
+const LeadFormContext = React.createContext({ open: () => {} });
+
+const LEAD_PRESETS = {
+  application:  { eyebrow: 'Оставить заявку',       title: 'Оставьте заявку — мы _свяжемся_ с вами', lead: 'Менеджер перезвонит в течение 15 минут и ответит на все вопросы.', cta: 'Оставить заявку' },
+  consultation: { eyebrow: 'Получить консультацию', title: 'Бесплатная _консультация_ менеджера',     lead: 'Расскажем подробнее о проекте, подберём подходящую планировку и условия покупки.', cta: 'Получить консультацию' },
+  price:        { eyebrow: 'Узнать цену',           title: 'Вы хотели бы _узнать цену_?',             lead: 'Пришлём актуальный прайс и расскажем о доступных скидках и акциях.', cta: 'Узнать цену' },
+  booking:      { eyebrow: 'Бронирование квартиры', title: '_Забронируем_ квартиру на ваше имя',     lead: 'Зафиксируем стоимость и условия — а менеджер свяжется с вами в течение 15 минут.', cta: 'Забронировать' },
+  manager:      { eyebrow: 'Связаться с менеджером',title: 'Менеджер на _связи_',                     lead: 'Расскажем о проекте, ответим на любые вопросы и поможем с выбором квартиры.', cta: 'Связаться с менеджером' },
+  details:      { eyebrow: 'Узнать подробнее',      title: 'Расскажем _подробнее_ о квартире',        lead: 'Поделимся планировкой, условиями покупки и доступными акциями.', cta: 'Узнать подробнее' },
+};
+
+function LeadFormModal({ intent, onClose }) {
+  const preset = LEAD_PRESETS[intent?.kind] || LEAD_PRESETS.application;
+  const apt = intent?.apt || null;
+  const [form, setForm] = useState({ name: '', phone: '+7 ', rooms: apt ? String(apt.rooms || '') : '', comment: '' });
+  const [agreePolicy, setAgreePolicy] = useState(false);
+  const [agreeMarketing, setAgreeMarketing] = useState(false);
+  const [roomsOpen, setRoomsOpen] = useState(false);
+  const [sent, setSent] = useState(false);
+  const roomsRef = useRef(null);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onEsc = e => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onEsc);
+    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onEsc); };
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!roomsOpen) return;
+    const onDocClick = e => { if (roomsRef.current && !roomsRef.current.contains(e.target)) setRoomsOpen(false); };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [roomsOpen]);
+
+  const docs = Array.isArray(DOCS) ? DOCS : DEFAULT_DOCS;
+  const docHref = (id) => { const d = docs.find(x => x.id === id); return d && d.url ? d.url : '/doc'; };
+
+  const formatPhone = (raw) => {
+    const digits = String(raw || '').replace(/\D/g, '').replace(/^[78]/, '').slice(0, 10);
+    if (digits.length === 0) return '+7 ';
+    let out = '+7 (' + digits.slice(0, 3);
+    if (digits.length >= 4) out += ') ' + digits.slice(3, 6);
+    if (digits.length >= 7) out += '-' + digits.slice(6, 8);
+    if (digits.length >= 9) out += '-' + digits.slice(8, 10);
+    return out;
+  };
+  const onPhoneChange = (e) => setForm(p => ({ ...p, phone: formatPhone(e.target.value) }));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!agreePolicy || !agreeMarketing) return;
+    setSent(true);
+  };
+
+  const inputStyle = {
+    fontFamily: 'var(--font-body)', fontSize: 14, padding: '12px 16px',
+    background: 'rgba(255,255,255,0.07)', border: '1.5px solid rgba(255,255,255,0.12)',
+    borderRadius: 6, color: '#fff', outline: 'none', transition: 'border-color 150ms',
+    width: '100%',
+  };
+
+  const roomsOptions = [
+    { v: '', l: 'Не выбрано' },
+    { v: '1', l: '1-комнатная' },
+    { v: '2', l: '2-комнатная' },
+    { v: '3', l: '3-комнатная' },
+  ];
+  const roomsLabel = (roomsOptions.find(o => o.v === form.rooms) || roomsOptions[0]).l;
+
+  // Markdown-ish italic: "Слово _в курсиве_" → JSX with <em>
+  const renderTitle = (s) => {
+    const parts = String(s).split(/(_[^_]+_)/g);
+    return parts.map((p, i) => p.startsWith('_') && p.endsWith('_')
+      ? <em key={i} style={{ fontStyle: 'italic', color: 'var(--c-gold)' }}>{p.slice(1, -1)}</em>
+      : <span key={i}>{p}</span>);
+  };
+
+  return (
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 300,
+        background: 'rgba(20,17,14,0.78)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 24, overflowY: 'auto',
+      }}
+    >
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'var(--c-dark)', borderRadius: 18, overflow: 'hidden',
+        maxWidth: 540, width: '100%', maxHeight: '92vh', overflowY: 'auto',
+        border: '1px solid rgba(184,153,104,0.32)',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
+        animation: 'fadeUp 320ms cubic-bezier(0.22,1,0.36,1)',
+      }}>
+        <button onClick={onClose} aria-label="Закрыть" style={{
+          position: 'absolute', top: 24, right: 24, zIndex: 5,
+          width: 40, height: 40, borderRadius: '50%',
+          background: 'rgba(20,17,14,0.92)', border: '1px solid var(--c-gold)',
+          color: 'var(--c-gold)', cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontSize: 20, lineHeight: 1,
+          transition: 'transform 200ms, background 200ms',
+        }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(184,153,104,0.20)'; e.currentTarget.style.transform = 'rotate(90deg)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(20,17,14,0.92)'; e.currentTarget.style.transform = 'rotate(0)'; }}
+        >×</button>
+
+        <div style={{ padding: '36px 36px 32px', position: 'relative' }}>
+          {sent ? (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <svg width="64" height="64" viewBox="0 0 56 56" fill="none" style={{ marginBottom: 24 }}>
+                <circle cx="28" cy="28" r="27" stroke="var(--c-gold)" strokeWidth="1.5"/>
+                <path d="M17 28l8 8 14-16" stroke="var(--c-gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div style={{ fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', fontWeight: 600, marginBottom: 14 }}>— Заявка принята —</div>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: 'var(--c-champagne)', marginBottom: 14, lineHeight: 1.15 }}>
+                Спасибо! Мы <em style={{ fontStyle: 'italic', color: 'var(--c-gold)' }}>свяжемся</em> с вами в ближайшее время
+              </h3>
+              <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'rgba(255,255,255,0.65)', marginBottom: 26, lineHeight: 1.55 }}>
+                — менеджер перезвонит в течение 15 минут —
+              </p>
+              <button className="btn btn-primary" onClick={onClose} onMouseDown={addRipple}>Закрыть</button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Eyebrow + title */}
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 6 }}>
+                — {preset.eyebrow} —
+              </div>
+              <h3 style={{
+                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 26,
+                color: 'var(--c-champagne)', lineHeight: 1.2, letterSpacing: '-0.005em', margin: 0,
+              }}>{renderTitle(preset.title)}</h3>
+              <p style={{
+                fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15,
+                color: 'rgba(255,255,255,0.65)', lineHeight: 1.55, marginBottom: 6,
+              }}>— {preset.lead} —</p>
+
+              {/* Apartment context strip (if provided) */}
+              {apt && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  background: 'rgba(184,153,104,0.10)', borderLeft: '2px solid var(--c-gold)',
+                  padding: '12px 14px', borderRadius: 6, marginBottom: 4,
+                }}>
+                  <div style={{
+                    fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic',
+                    fontSize: 20, color: 'var(--c-champagne)', lineHeight: 1, letterSpacing: '-0.01em',
+                  }}>{apt.area} <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: 400 }}>м²</span></div>
+                  <div style={{ width: 1, height: 26, background: 'rgba(184,153,104,0.30)' }} />
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+                    {apt.rooms}-комнатная · {apt.floor} этаж<br/>
+                    <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--c-gold)', fontWeight: 600 }}>
+                      {apt.price ? `${apt.price.toLocaleString('ru-RU')} ₽` : ''}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <input type="text" placeholder="Ваше имя" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} style={inputStyle}
+                onFocus={e => e.target.style.borderColor = 'var(--c-brand)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} required />
+
+              <input type="tel" placeholder="+7 (___) ___-__-__" value={form.phone}
+                onChange={onPhoneChange}
+                onFocus={e => { e.target.style.borderColor = 'var(--c-brand)'; if (!form.phone || form.phone === '+7 ' || form.phone === '+7') setForm(p => ({ ...p, phone: '+7 ' })); }}
+                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; if (form.phone === '+7' || form.phone === '+7 ' || form.phone === '+7 (') setForm(p => ({ ...p, phone: '' })); }}
+                onKeyDown={e => {
+                  if ((e.key === 'Backspace' || e.key === 'Delete') && (form.phone.replace(/\D/g, '').replace(/^7/, '').length === 0)) e.preventDefault();
+                }}
+                style={inputStyle} required />
+
+              {!apt && (
+                <div ref={roomsRef} style={{ position: 'relative' }}>
+                  <button type="button" onClick={() => setRoomsOpen(o => !o)} style={{
+                    ...inputStyle, textAlign: 'left', cursor: 'pointer',
+                    color: form.rooms ? '#fff' : 'rgba(255,255,255,0.4)',
+                    borderColor: roomsOpen ? 'var(--c-brand)' : 'rgba(255,255,255,0.12)',
+                    background: roomsOpen ? 'rgba(168,93,63,0.10)' : 'rgba(255,255,255,0.07)',
+                    paddingRight: 40, position: 'relative',
+                  }}>
+                    {form.rooms ? roomsLabel : 'Количество комнат'}
+                    <span style={{ position: 'absolute', right: 14, top: '50%', transform: `translateY(-50%) rotate(${roomsOpen ? 180 : 0}deg)`, color: 'var(--c-gold)', fontSize: 12, transition: 'transform 220ms ease', pointerEvents: 'none' }}>▾</span>
+                  </button>
+                  {roomsOpen && (
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 30,
+                      background: 'rgba(20,17,14,0.96)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+                      border: '1px solid rgba(168,93,63,0.45)', borderRadius: 8,
+                      boxShadow: '0 14px 32px rgba(0,0,0,0.40)', overflow: 'hidden',
+                      animation: 'fadeUp 180ms ease-out',
+                    }}>
+                      {roomsOptions.map((opt, i) => {
+                        const active = form.rooms === opt.v;
+                        return (
+                          <div key={opt.v}
+                            onClick={() => { setForm(p => ({ ...p, rooms: opt.v })); setRoomsOpen(false); }}
+                            style={{
+                              padding: '11px 16px', cursor: 'pointer',
+                              fontFamily: 'var(--font-body)', fontSize: 14,
+                              color: active ? 'var(--c-gold)' : '#fff',
+                              fontWeight: active ? 600 : 400,
+                              background: active ? 'rgba(168,93,63,0.10)' : 'transparent',
+                              borderTop: i === 0 ? 'none' : '1px solid rgba(168,93,63,0.14)',
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+                              transition: 'background 160ms, color 160ms',
+                            }}
+                            onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(168,93,63,0.08)'; e.currentTarget.style.color = 'var(--c-gold)'; } }}
+                            onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#fff'; } }}
+                          ><span>{opt.l}</span>{active && <span style={{ color: 'var(--c-gold)', fontSize: 12 }}>✓</span>}</div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <textarea placeholder="Комментарий (необязательно)" value={form.comment} onChange={e => setForm(p => ({ ...p, comment: e.target.value }))} rows="2" style={{ ...inputStyle, resize: 'none' }}
+                onFocus={e => e.target.style.borderColor = 'var(--c-brand)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} />
+
+              <button type="submit" className="btn btn-primary btn-lg"
+                style={{ marginTop: 6, width: '100%', opacity: (agreePolicy && agreeMarketing) ? 1 : 0.55, cursor: (agreePolicy && agreeMarketing) ? 'pointer' : 'not-allowed' }}
+                disabled={!agreePolicy || !agreeMarketing}
+                onMouseDown={addRipple}>
+                {preset.cta}
+              </button>
+
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', marginTop: 4 }}>
+                <input type="checkbox" checked={agreePolicy} onChange={e => setAgreePolicy(e.target.checked)} style={{ width: 18, height: 18, accentColor: '#A85D3F', marginTop: 2, flexShrink: 0, cursor: 'pointer' }} />
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.55 }}>
+                  Принимаю <a href={docHref('privacyPolicy')} target="_blank" rel="noopener" style={{ color: 'var(--c-gold)', textDecoration: 'underline', textUnderlineOffset: 2 }} onClick={e => e.stopPropagation()}>политику конфиденциальности</a> и даю согласие на <a href={docHref('personalConsent')} target="_blank" rel="noopener" style={{ color: 'var(--c-gold)', textDecoration: 'underline', textUnderlineOffset: 2 }} onClick={e => e.stopPropagation()}>обработку персональных данных</a>
+                </span>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                <input type="checkbox" checked={agreeMarketing} onChange={e => setAgreeMarketing(e.target.checked)} style={{ width: 18, height: 18, accentColor: '#A85D3F', marginTop: 2, flexShrink: 0, cursor: 'pointer' }} />
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.55 }}>
+                  Даю согласие на <a href={docHref('marketingConsent')} target="_blank" rel="noopener" style={{ color: 'var(--c-gold)', textDecoration: 'underline', textUnderlineOffset: 2 }} onClick={e => e.stopPropagation()}>получение рекламно-информационных материалов</a>
+                </span>
+              </label>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const useLeadForm = () => React.useContext(LeadFormContext);
+
 /* ─── APP ─── */
 function App() {
   const [activeSection, setActiveSection] = useState('hero');
   const [selectedApt, setSelectedApt] = useState(null);
+  const [leadIntent, setLeadIntent] = useState(null);
   const [view, setView] = useState(() => {
     const p = (typeof window !== 'undefined' ? window.location.pathname : '/').replace(/\/$/, '') || '/';
     if (p === '/flat') return 'apartments';
@@ -3748,18 +4008,30 @@ function App() {
     return () => observer.disconnect();
   }, [view]);
 
+  const leadCtx = useMemo(() => ({ open: (intent) => setLeadIntent(intent || { kind: 'application' }) }), []);
+
+  const leadOverlay = (
+    <>
+      {leadIntent && <LeadFormModal intent={leadIntent} onClose={() => setLeadIntent(null)} />}
+    </>
+  );
+
   if (view === 'docs') {
     return (
-      <div>
-        <Header activeSection="" onNav={handleNav} forceScrolled />
-        <DocsPage />
-        <Footer />
-      </div>
+      <LeadFormContext.Provider value={leadCtx}>
+        <div>
+          <Header activeSection="" onNav={handleNav} forceScrolled />
+          <DocsPage />
+          <Footer />
+          {leadOverlay}
+        </div>
+      </LeadFormContext.Provider>
     );
   }
 
   if (view === 'apartments') {
     return (
+      <LeadFormContext.Provider value={leadCtx}>
       <div>
         <Header activeSection="catalog" onNav={handleNav} forceScrolled />
         <div style={{ paddingTop: 110, paddingBottom: 16, background: 'var(--c-surface)' }}>
@@ -3807,11 +4079,14 @@ function App() {
         <ApartmentCatalog onSelectApt={setSelectedApt} fullPage onBackHome={goHome} />
         <Footer />
         {selectedApt && <ApartmentModal apt={selectedApt} onClose={() => setSelectedApt(null)} />}
+        {leadOverlay}
       </div>
+      </LeadFormContext.Provider>
     );
   }
 
   return (
+    <LeadFormContext.Provider value={leadCtx}>
     <div>
       <Header activeSection={activeSection} onNav={handleNav} />
       <Hero onNav={handleNav} />
@@ -3830,7 +4105,9 @@ function App() {
       <div className="reveal"><ContactForm /></div>
       <Footer />
       {selectedApt && <ApartmentModal apt={selectedApt} onClose={() => setSelectedApt(null)} />}
+      {leadOverlay}
     </div>
+    </LeadFormContext.Provider>
   );
 }
 
