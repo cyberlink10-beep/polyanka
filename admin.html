@@ -1045,11 +1045,15 @@ function SettingsTab({ toast }) {
     toast('Настройки сброшены');
   };
 
-  const Field = ({ label, k, placeholder, type = 'text', hint }) => (
-    <div className="form-group">
+  // NB: input fields rendered inline — do NOT factor them into a child
+  // component declared inside this function, that re-creates the component
+  // identity on every render and React unmounts/remounts the <input>, which
+  // causes focus to drop after each keystroke.
+  const fieldRow = (label, k, { placeholder, type = 'text', hint } = {}) => (
+    <div className="form-group" key={k}>
       <span className="form-label">{label}</span>
-      <input type={type} value={s[k] || ''} onChange={e => set(k, e.target.value)} placeholder={placeholder} />
-      {hint && <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)', marginTop: 3 }}>{hint}</div>}
+      <input type={type} value={s[k] ?? ''} onChange={e => set(k, e.target.value)} placeholder={placeholder} />
+      {hint && <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>{hint}</div>}
     </div>
   );
 
@@ -1064,31 +1068,31 @@ function SettingsTab({ toast }) {
         <div className="settings-section">
           <h3>Контактная информация</h3>
           <div className="form-grid">
-            <Field label="Телефон" k="phone" placeholder="+7 (800) 123-45-67" hint="Отображается в шапке и подвале" />
-            <Field label="Подпись под телефоном" k="phoneLabel" placeholder="Бесплатно по России" />
-            <Field label="Адрес офиса продаж" k="address" placeholder="г. Курган, ул. Героев, 1" />
-            <Field label="Подпись под адресом" k="addressLabel" placeholder="Офис продаж" />
-            <Field label="Часы работы" k="hours" placeholder="Пн–Вс: 9:00 – 21:00" />
-            <Field label="Подпись под часами" k="hoursLabel" placeholder="Время работы" />
+            {fieldRow('Телефон',                'phone',        { placeholder: '+7 (800) 123-45-67', hint: 'Отображается в шапке и подвале' })}
+            {fieldRow('Подпись под телефоном',  'phoneLabel',   { placeholder: 'Бесплатно по России' })}
+            {fieldRow('Адрес офиса продаж',     'address',      { placeholder: 'г. Курган, ул. Героев, 1' })}
+            {fieldRow('Подпись под адресом',    'addressLabel', { placeholder: 'Офис продаж' })}
+            {fieldRow('Часы работы',            'hours',        { placeholder: 'Пн–Вс: 9:00 – 21:00' })}
+            {fieldRow('Подпись под часами',     'hoursLabel',   { placeholder: 'Время работы' })}
           </div>
         </div>
 
         <div className="settings-section">
           <h3>Общая информация</h3>
           <div className="form-grid">
-            <Field label="Город" k="city" placeholder="Курган" hint="Используется в бейдже на главной странице" />
-            <Field label="Слоган" k="tagline" placeholder="Жилой комплекс нового поколения" />
+            {fieldRow('Город',  'city',    { placeholder: 'Курган', hint: 'Используется в бейдже на главной странице' })}
+            {fieldRow('Слоган', 'tagline', { placeholder: 'Жилой комплекс нового поколения' })}
           </div>
         </div>
 
         <div className="settings-section">
           <h3>Показатели комплекса (полоса с цифрами)</h3>
           <div className="form-grid">
-            <Field label="Количество этажей" k="floors" placeholder="12" />
-            <Field label="Количество корпусов" k="korpuses" placeholder="4" />
-            <Field label="Квартир всего" k="aptCount" placeholder="320" />
-            <Field label="Год сдачи" k="year" placeholder="2027" />
-            <Field label="Площадь, м²" k="area" placeholder="34–86" hint="Например: 34–86" />
+            {fieldRow('Количество этажей',  'floors',   { placeholder: '12' })}
+            {fieldRow('Количество корпусов','korpuses', { placeholder: '4' })}
+            {fieldRow('Квартир всего',      'aptCount', { placeholder: '320' })}
+            {fieldRow('Год сдачи',          'year',     { placeholder: '2027' })}
+            {fieldRow('Площадь, м²',        'area',     { placeholder: '34–86', hint: 'Например: 34–86' })}
           </div>
         </div>
 
