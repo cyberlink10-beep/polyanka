@@ -591,12 +591,7 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, [drawerOpen]);
+  useBodyScrollLock(drawerOpen);
 
   const links = [
     { id: 'about-complex',  label: 'О комплексе' },
@@ -699,6 +694,28 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
 
 /* ─── DATA LAYER (reads from admin panel localStorage) ─── */
 const _lsLoad = (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; } };
+
+/* Global body-scroll lock — counts nested modals so closing one
+   modal while another is still open doesn't accidentally re-lock
+   or wrongly restore overflow. */
+let __scrollLockCount = 0;
+let __scrollLockPrev = '';
+function useBodyScrollLock(active) {
+  useEffect(() => {
+    if (!active) return;
+    if (__scrollLockCount === 0) {
+      __scrollLockPrev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
+    __scrollLockCount++;
+    return () => {
+      __scrollLockCount = Math.max(0, __scrollLockCount - 1);
+      if (__scrollLockCount === 0) {
+        document.body.style.overflow = __scrollLockPrev || '';
+      }
+    };
+  }, [active]);
+}
 
 /* Russian plural helper: pluralRu(n, ['квартира','квартиры','квартир']) */
 function pluralRu(n, forms) {
@@ -3065,7 +3082,7 @@ function ContactForm() {
               Узнайте цену на вашу квартиру
             </h2>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 40 }}>
-              Оставьте заявку — наш менеджер перезвонит в течение 15 минут и ответит на все вопросы
+              Оставьте заявку — наш менеджер перезвонит в течение 1 часа и ответит на все вопросы
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[
@@ -3089,7 +3106,7 @@ function ContactForm() {
                   <path d="M17 28l8 8 14-16" stroke="#4CAF50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, color: '#fff', textTransform: 'uppercase', marginBottom: 12 }}>Заявка принята!</div>
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginBottom: 24 }}>Мы перезвоним вам в течение 15 минут</div>
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginBottom: 24 }}>Мы перезвоним в течение 1 часа</div>
                 <button className="btn btn-primary" onClick={() => setSent(false)}>Новая заявка</button>
               </div>
             ) : (
@@ -3386,13 +3403,12 @@ function SiteRenderThumb({ polygon, label, sublabel }) {
 
 function ApartmentModal({ apt, onClose }) {
   const leadForm = useLeadForm();
+  useBodyScrollLock(!!apt);
   useEffect(() => {
     if (!apt) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     const onEsc = e => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onEsc);
-    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onEsc); };
+    return () => document.removeEventListener('keydown', onEsc);
   }, [apt, onClose]);
   if (!apt) return null;
 
@@ -3581,7 +3597,7 @@ function ApartmentModal({ apt, onClose }) {
             fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500,
             fontSize: 14, color: 'var(--c-olive)', textAlign: 'center', marginTop: 18,
           }}>
-            — оставьте заявку, и менеджер свяжется с вами в течение часа —
+            — оставьте заявку, и менеджер свяжется с вами в течение 1 часа —
           </div>
         </div>
       </div>
@@ -3703,10 +3719,10 @@ function DocsPage() {
 const LeadFormContext = React.createContext({ open: () => {} });
 
 const LEAD_PRESETS = {
-  application:  { eyebrow: 'Оставить заявку',       title: 'Оставьте заявку — мы _свяжемся_ с вами', lead: 'Менеджер перезвонит в течение 15 минут и ответит на все вопросы.', cta: 'Оставить заявку' },
+  application:  { eyebrow: 'Оставить заявку',       title: 'Оставьте заявку — мы _свяжемся_ с вами', lead: 'Менеджер перезвонит в течение 1 часа и ответит на все вопросы.', cta: 'Оставить заявку' },
   consultation: { eyebrow: 'Получить консультацию', title: 'Бесплатная _консультация_ менеджера',     lead: 'Расскажем подробнее о проекте, подберём подходящую планировку и условия покупки.', cta: 'Получить консультацию' },
   price:        { eyebrow: 'Узнать цену',           title: 'Вы хотели бы _узнать цену_?',             lead: 'Пришлём актуальный прайс и расскажем о доступных скидках и акциях.', cta: 'Узнать цену' },
-  booking:      { eyebrow: 'Бронирование квартиры', title: '_Забронируем_ квартиру на ваше имя',     lead: 'Зафиксируем стоимость и условия — а менеджер свяжется с вами в течение 15 минут.', cta: 'Забронировать' },
+  booking:      { eyebrow: 'Бронирование квартиры', title: '_Забронируем_ квартиру на ваше имя',     lead: 'Зафиксируем стоимость и условия — а менеджер свяжется с вами в течение 1 часа.', cta: 'Забронировать' },
   manager:      { eyebrow: 'Связаться с менеджером',title: 'Менеджер на _связи_',                     lead: 'Расскажем о проекте, ответим на любые вопросы и поможем с выбором квартиры.', cta: 'Связаться с менеджером' },
   details:      { eyebrow: 'Узнать подробнее',      title: 'Расскажем _подробнее_ о квартире',        lead: 'Поделимся планировкой, условиями покупки и доступными акциями.', cta: 'Узнать подробнее' },
 };
@@ -3721,12 +3737,11 @@ function LeadFormModal({ intent, onClose }) {
   const [sent, setSent] = useState(false);
   const roomsRef = useRef(null);
 
+  useBodyScrollLock(true);
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     const onEsc = e => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onEsc);
-    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onEsc); };
+    return () => document.removeEventListener('keydown', onEsc);
   }, [onClose]);
 
   useEffect(() => {
@@ -3820,7 +3835,7 @@ function LeadFormModal({ intent, onClose }) {
                 Спасибо! Мы <em style={{ fontStyle: 'italic', color: 'var(--c-gold)' }}>свяжемся</em> с вами в ближайшее время
               </h3>
               <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'rgba(255,255,255,0.65)', marginBottom: 26, lineHeight: 1.55 }}>
-                — менеджер перезвонит в течение 15 минут —
+                — менеджер перезвонит в течение 1 часа —
               </p>
               <button className="btn btn-primary" onClick={onClose} onMouseDown={addRipple}>Закрыть</button>
             </div>
