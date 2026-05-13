@@ -647,11 +647,11 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
 
         {/* Desktop CTA */}
         <div className="hide-mobile" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14, paddingTop: 3 }}>
-          <a href="tel:+73522777777" className="phone-link" style={{
+          <a href={`tel:${(SITE.phone || '').replace(/[^\d+]/g, '')}`} className="phone-link" style={{
             fontSize: 14, fontWeight: 700, textDecoration: 'none',
             letterSpacing: '0.02em', whiteSpace: 'nowrap',
             transform: 'translateY(-3px)',
-          }}>+7 (352) 277-77-77</a>
+          }}>{SITE.phone}</a>
           <a className="btn btn-primary btn-call" href="#contact"
             onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
             style={{ fontSize: 13, whiteSpace: 'nowrap' }}
@@ -683,8 +683,8 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
             <a key={l.id} className="mobile-drawer-link" onClick={() => goTo(l.id)}>{l.label}</a>
           ))}
         </nav>
-        <a href="tel:+73522777777" className="mobile-drawer-phone" onClick={() => setDrawerOpen(false)}>
-          — +7 (352) 277-77-77 —
+        <a href={`tel:${(SITE.phone || '').replace(/[^\d+]/g, '')}`} className="mobile-drawer-phone" onClick={() => setDrawerOpen(false)}>
+          — {SITE.phone} —
         </a>
         <a className="btn btn-primary btn-lg" href="#contact" style={{ marginTop: 18, justifyContent: 'center' }}
           onClick={e => { e.preventDefault(); setDrawerOpen(false); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}>
