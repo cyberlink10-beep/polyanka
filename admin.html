@@ -1923,6 +1923,7 @@ function KorpusesTab({ toast }) {
       name: `Корпус ${korpuses.length + 1}`,
       floors: 9, total: 60, free: 20,
       polygon: '', floorPolygons: {}, floorSchemas: {},
+      entrances: [], // оставим пустым — админ сам решит сколько подъездов добавить
       cx: 50, cy: 50,
     };
     persist([...korpuses, newKorpus]);
@@ -2011,6 +2012,60 @@ function KorpusesTab({ toast }) {
             <input type="number" min={0} value={sel.free} onChange={e => updateSel({ free: Number(e.target.value) || 0 })} />
           </div>
         </div>
+
+        {/* Entrances editor */}
+        {(() => {
+          const ents = Array.isArray(sel.entrances) ? sel.entrances : [];
+          const setEnts = (next) => updateSel({ entrances: next });
+          const addEnt = () => {
+            const maxId = ents.reduce((m, e) => Math.max(m, Number(e.id) || 0), 0);
+            setEnts([...ents, { id: maxId + 1, name: `Подъезд ${ents.length + 1}`, floors: sel.floors || 9, totalApts: 0 }]);
+          };
+          const delEnt = (i) => {
+            if (!confirm('Удалить этот подъезд?')) return;
+            setEnts(ents.filter((_, j) => j !== i));
+          };
+          const setEnt = (i, k, v) => setEnts(ents.map((e, j) => j === i ? { ...e, [k]: v } : e));
+          const moveEnt = (i, dir) => {
+            const j = i + dir;
+            if (j < 0 || j >= ents.length) return;
+            const a = [...ents]; [a[i], a[j]] = [a[j], a[i]]; setEnts(a);
+          };
+          return (
+            <div className="settings-section" style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <h3 style={{ margin: 0 }}>Подъезды · {ents.length}</h3>
+                <button className="btn btn-primary btn-sm" onClick={addEnt}>+ Добавить подъезд</button>
+              </div>
+              {ents.length === 0 && (
+                <div style={{ padding: '20px 0', fontSize: 13, color: 'var(--text-3)' }}>
+                  Если подъезд один — шаг «Выберите подъезд» на сайте автоматически пропускается.
+                </div>
+              )}
+              {ents.map((e, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr auto', gap: 10, alignItems: 'end', padding: '10px 0', borderTop: i === 0 ? 'none' : '1px solid var(--hairline-2)' }}>
+                  <div className="form-group">
+                    <span className="form-label">Название</span>
+                    <input value={e.name || ''} onChange={ev => setEnt(i, 'name', ev.target.value)} placeholder={`Подъезд ${i + 1}`} />
+                  </div>
+                  <div className="form-group">
+                    <span className="form-label">Этажей</span>
+                    <input type="number" min={1} max={50} value={e.floors || ''} onChange={ev => setEnt(i, 'floors', Math.max(1, Number(ev.target.value) || 1))} />
+                  </div>
+                  <div className="form-group">
+                    <span className="form-label">Квартир</span>
+                    <input type="number" min={0} value={e.totalApts || ''} onChange={ev => setEnt(i, 'totalApts', Number(ev.target.value) || 0)} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => moveEnt(i, -1)} disabled={i === 0} style={{ padding: '6px 9px' }}>↑</button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => moveEnt(i, 1)} disabled={i === ents.length - 1} style={{ padding: '6px 9px' }}>↓</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => delEnt(i)}>Удалить</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Mode toggle */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
