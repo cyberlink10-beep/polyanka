@@ -515,14 +515,24 @@ function LoginScreen({ onLogin }) {
 }
 
 /* ─── APARTMENT MODAL ─── */
-const EMPTY_APT = { rooms: 1, area: '', floor: '', korpus: 1, price: '', available: true, badge: '', img: '', polygon: '' };
+const EMPTY_APT = { rooms: 1, area: '', floor: '', korpus: 1, entrance: null, price: '', available: true, badge: '', img: '', polygon: '' };
 
 function AptModal({ apt, onSave, onClose }) {
-  const [form, setForm] = useState(apt ? { ...apt, badge: apt.badge || '' } : EMPTY_APT);
+  const [form, setForm] = useState(apt ? { ...EMPTY_APT, ...apt, badge: apt.badge || '' } : EMPTY_APT);
   const [imgErr, setImgErr] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
+  // Read korpuses from storage so the form reflects what the admin actually has
+  const korpuses = ls.load('geroi_korpuses', []);
+  const selectedKorpus = korpuses.find(k => k.id === Number(form.korpus));
+  const korpusEntrances = Array.isArray(selectedKorpus?.entrances) ? selectedKorpus.entrances : [];
+
   useEffect(() => { setImgErr(false); }, [form.img]);
+  // Reset entrance when switching korpus to an invalid one
+  useEffect(() => {
+    if (form.entrance == null) return;
+    if (!korpusEntrances.some(e => e.id === form.entrance)) set('entrance', null);
+  }, [form.korpus]);
 
   const submit = e => {
     e.preventDefault();
@@ -531,6 +541,7 @@ function AptModal({ apt, onSave, onClose }) {
       area: parseFloat(form.area) || 0,
       floor: parseInt(form.floor) || 1,
       korpus: parseInt(form.korpus) || 1,
+      entrance: form.entrance == null ? null : Number(form.entrance),
       price: parseInt(form.price) || 0,
       badge: form.badge || null,
     });
@@ -569,7 +580,23 @@ function AptModal({ apt, onSave, onClose }) {
               <div className="form-group">
                 <span className="form-label">Корпус</span>
                 <select value={form.korpus || 1} onChange={e => set('korpus', Number(e.target.value))}>
-                  {[1,2,3,4].map(n => <option key={n} value={n}>Корпус {n}</option>)}
+                  {(korpuses.length ? korpuses : [{ id: 1, name: 'Корпус 1' }, { id: 2, name: 'Корпус 2' }, { id: 3, name: 'Корпус 3' }, { id: 4, name: 'Корпус 4' }]).map(k => (
+                    <option key={k.id} value={k.id}>{k.name || `Корпус ${k.id}`}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <span className="form-label">Подъезд</span>
+                <select
+                  value={form.entrance == null ? '' : form.entrance}
+                  onChange={e => set('entrance', e.target.value === '' ? null : Number(e.target.value))}
+                  disabled={korpusEntrances.length === 0}
+                >
+                  <option value="">{korpusEntrances.length === 0 ? 'У корпуса нет подъездов' : '— не указан —'}</option>
+                  {korpusEntrances.map(en => (
+                    <option key={en.id} value={en.id}>{en.name || `Подъезд ${en.id}`}</option>
+                  ))}
                 </select>
               </div>
 
@@ -1656,16 +1683,36 @@ function FooterTab({ toast }) {
 const DEFAULT_KORPUSES_ADMIN = [
   { id: 1, name: 'Корпус 1', floors: 9,  total: 72, free: 28,
     polygon: '10,28 36,38 36,53 33,53 33,72 22,72 22,55 6,48',
-    floorPolygons: {}, cx: 18, cy: 50 },
+    floorPolygons: {}, entrancePolygons: {},
+    entrances: [
+      { id: 1, name: 'Подъезд 1', floors: 9, totalApts: 36 },
+      { id: 2, name: 'Подъезд 2', floors: 9, totalApts: 36 },
+    ],
+    cx: 18, cy: 50 },
   { id: 2, name: 'Корпус 2', floors: 12, total: 96, free: 41,
     polygon: '44,16 60,19 58,42 44,40',
-    floorPolygons: {}, cx: 52, cy: 28 },
+    floorPolygons: {}, entrancePolygons: {},
+    entrances: [
+      { id: 1, name: 'Подъезд 1', floors: 12, totalApts: 48 },
+      { id: 2, name: 'Подъезд 2', floors: 12, totalApts: 48 },
+    ],
+    cx: 52, cy: 28 },
   { id: 3, name: 'Корпус 3', floors: 10, total: 80, free: 33,
     polygon: '60,32 92,42 92,55 88,55 88,72 75,72 75,53 60,52',
-    floorPolygons: {}, cx: 80, cy: 50 },
+    floorPolygons: {}, entrancePolygons: {},
+    entrances: [
+      { id: 1, name: 'Подъезд 1', floors: 10, totalApts: 40 },
+      { id: 2, name: 'Подъезд 2', floors: 10, totalApts: 40 },
+    ],
+    cx: 80, cy: 50 },
   { id: 4, name: 'Корпус 4', floors: 11, total: 84, free: 29,
     polygon: '38,52 62,58 62,82 38,76',
-    floorPolygons: {}, cx: 49, cy: 68 },
+    floorPolygons: {}, entrancePolygons: {},
+    entrances: [
+      { id: 1, name: 'Подъезд 1', floors: 11, totalApts: 42 },
+      { id: 2, name: 'Подъезд 2', floors: 11, totalApts: 42 },
+    ],
+    cx: 49, cy: 68 },
 ];
 
 function PolygonEditor({ value, onChange, imgSrc }) {
@@ -1906,8 +1953,9 @@ function KorpusesTab({ toast }) {
   const [siteRender, setSiteRender] = useState(() => ls.load('geroi_site_render', 'assets/site-render.jpg'));
   const [apts, setApts] = useState(() => ls.load('geroi_apts', DEFAULT_APARTMENTS));
   const [selId, setSelId] = useState(korpuses[0]?.id || 1);
-  const [mode, setMode] = useState('korpus'); // 'korpus' | 'floor' | 'apts'
+  const [mode, setMode] = useState('korpus'); // 'korpus' | 'entrance' | 'floor' | 'apts'
   const [floorNum, setFloorNum] = useState(1);
+  const [entranceId, setEntranceId] = useState(null);
   const [activeAptId, setActiveAptId] = useState(null);
 
   const sel = korpuses.find(k => k.id === selId) || korpuses[0];
@@ -1948,21 +1996,51 @@ function KorpusesTab({ toast }) {
 
   const onChangeKorpusPolygon = pts => updateSel({ polygon: pts });
   const onChangeFloorPolygon = pts => updateSel({ floorPolygons: { ...sel.floorPolygons, [floorNum]: pts } });
+  const onChangeEntrancePolygon = pts => {
+    if (entranceId == null) return;
+    updateSel({ entrancePolygons: { ...(sel.entrancePolygons || {}), [entranceId]: pts } });
+  };
   const clearKorpusPolygon = () => updateSel({ polygon: '' });
   const clearFloorPolygon = () => {
     const fp = { ...sel.floorPolygons }; delete fp[floorNum];
     updateSel({ floorPolygons: fp });
   };
+  const clearEntrancePolygon = () => {
+    if (entranceId == null) return;
+    const ep = { ...(sel.entrancePolygons || {}) }; delete ep[entranceId];
+    updateSel({ entrancePolygons: ep });
+  };
   const clearAllFloors = () => { if (confirm('Удалить разметку всех этажей этого корпуса?')) updateSel({ floorPolygons: {} }); };
+  const clearAllEntrances = () => { if (confirm('Удалить разметку всех подъездов этого корпуса?')) updateSel({ entrancePolygons: {} }); };
+  /* Unified "Clear" button — wipes the polygon for the currently active mode */
+  const clearCurrent = () => {
+    if (mode === 'korpus')        clearKorpusPolygon();
+    else if (mode === 'entrance') clearEntrancePolygon();
+    else if (mode === 'floor')    clearFloorPolygon();
+    else if (mode === 'apts')     clearAptPolygon();
+  };
 
   /* Apartments mode helpers */
   const floorSchemaUrl = (sel.floorSchemas && sel.floorSchemas[floorNum]) || '';
   const setFloorSchemaUrl = url => updateSel({ floorSchemas: { ...(sel.floorSchemas || {}), [floorNum]: url } });
-  const aptsOnFloor = apts.filter(a => a.korpus === selId && Number(a.floor) === Number(floorNum));
+  const aptsOnFloor = apts.filter(a => {
+    if (a.korpus !== selId) return false;
+    if (Number(a.floor) !== Number(floorNum)) return false;
+    // Filter by entrance when both the apartment and the editor have one set.
+    if (entranceId != null && a.entrance != null && a.entrance !== entranceId) return false;
+    return true;
+  });
   const persistApts = next => { setApts(next); ls.save('geroi_apts', next); };
   const updateApt = (id, patch) => persistApts(apts.map(a => a.id === id ? { ...a, ...patch } : a));
   const onChangeAptPolygon = pts => { if (activeAptId != null) updateApt(activeAptId, { polygon: pts }); };
   const clearAptPolygon = () => { if (activeAptId != null) updateApt(activeAptId, { polygon: '' }); };
+
+  /* Ensure entranceId stays valid as we switch korpus / entrances change */
+  useEffect(() => {
+    const ents = Array.isArray(sel?.entrances) ? sel.entrances : [];
+    if (ents.length === 0) { setEntranceId(null); return; }
+    if (entranceId == null || !ents.some(e => e.id === entranceId)) setEntranceId(ents[0].id);
+  }, [selId, sel?.entrances?.length]);
 
   return (
     <>
@@ -2067,10 +2145,15 @@ function KorpusesTab({ toast }) {
           );
         })()}
 
-        {/* Mode toggle */}
+        {/* Mode toggle — 4 modes + unified Clear button */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 14, alignItems: 'center', flexWrap: 'wrap' }}>
           <button className={mode === 'korpus' ? 'btn btn-primary' : 'btn btn-secondary'} onClick={() => setMode('korpus')}>
             Контур корпуса
+          </button>
+          <button className={mode === 'entrance' ? 'btn btn-primary' : 'btn btn-secondary'} onClick={() => setMode('entrance')}
+            disabled={!Array.isArray(sel.entrances) || sel.entrances.length === 0}
+            title={!Array.isArray(sel.entrances) || sel.entrances.length === 0 ? 'Добавьте подъезды в блоке выше' : ''}>
+            Контуры подъездов
           </button>
           <button className={mode === 'floor' ? 'btn btn-primary' : 'btn btn-secondary'} onClick={() => setMode('floor')}>
             Контуры этажей
@@ -2078,9 +2161,26 @@ function KorpusesTab({ toast }) {
           <button className={mode === 'apts' ? 'btn btn-primary' : 'btn btn-secondary'} onClick={() => setMode('apts')}>
             Квартиры на этаже
           </button>
+
+          {/* Entrance selector (entrance + apts) */}
+          {(mode === 'entrance' || mode === 'apts') && Array.isArray(sel.entrances) && sel.entrances.length > 0 && (
+            <>
+              <span style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 12 }}>Подъезд:</span>
+              <select value={entranceId ?? ''} onChange={e => { setEntranceId(Number(e.target.value)); setActiveAptId(null); }}
+                style={{ width: 160, padding: '7px 10px', fontSize: 13 }}>
+                {sel.entrances.map(en => (
+                  <option key={en.id} value={en.id}>
+                    {en.name || `Подъезд ${en.id}`}{mode === 'entrance' && (sel.entrancePolygons?.[en.id] ? ' ✓' : '')}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+
+          {/* Floor selector (floor + apts) */}
           {(mode === 'floor' || mode === 'apts') && (
             <>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginLeft: 12 }}>Этаж:</span>
+              <span style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 12 }}>Этаж:</span>
               <select value={floorNum} onChange={e => { setFloorNum(Number(e.target.value)); setActiveAptId(null); }}
                 style={{ width: 100, padding: '7px 10px', fontSize: 13 }}>
                 {Array.from({ length: sel.floors }, (_, i) => sel.floors - i).map(f => (
@@ -2089,33 +2189,45 @@ function KorpusesTab({ toast }) {
               </select>
             </>
           )}
+
+          {/* Single Clear button — context-aware */}
+          <button className="btn btn-danger btn-sm" onClick={clearCurrent} style={{ marginLeft: 12 }}
+            disabled={mode === 'apts' && activeAptId == null}
+            title="Очистить текущий контур">
+            Очистить контур
+          </button>
+
+          {/* Bulk clear helpers */}
           {mode === 'floor' && (
-            <>
-              <button className="btn btn-danger btn-sm" onClick={clearFloorPolygon}>Очистить этаж</button>
-              <button className="btn btn-danger btn-sm" onClick={clearAllFloors}>Очистить все этажи</button>
-            </>
+            <button className="btn btn-danger btn-sm" onClick={clearAllFloors}>Очистить все этажи</button>
           )}
-          {mode === 'apts' && activeAptId != null && (
-            <button className="btn btn-danger btn-sm" onClick={clearAptPolygon}>Очистить контур квартиры</button>
-          )}
-          {mode === 'korpus' && (
-            <button className="btn btn-danger btn-sm" onClick={clearKorpusPolygon} style={{ marginLeft: 12 }}>Очистить контур</button>
+          {mode === 'entrance' && (
+            <button className="btn btn-danger btn-sm" onClick={clearAllEntrances}>Очистить все подъезды</button>
           )}
         </div>
 
         {/* Hint */}
         <div style={{ background: 'rgba(168,93,63,0.08)', border: '1px solid rgba(168,93,63,0.25)', padding: '10px 14px', borderRadius: 8, marginBottom: 16, fontSize: 12, color: 'rgba(0,0,0,0.75)', lineHeight: 1.5 }}>
           <b>Как пользоваться:</b> кликните по фотографии, чтобы добавить точку контура. Перетаскивайте точки для коррекции. Правый клик по точке — удалить.
+          {mode === 'entrance' && ' Обведите каждый подъезд отдельно — переключайте подъезды в выпадающем списке выше.'}
           {mode === 'floor' && ' Обведите контур каждого этажа отдельно — переключайте этажи в выпадающем списке выше.'}
-          {mode === 'apts' && ' Выберите квартиру слева, потом обведите её контур на схеме этажа.'}
+          {mode === 'apts' && ' Выберите подъезд и этаж, затем выберите квартиру слева и обведите её контур на схеме этажа.'}
         </div>
 
-        {/* Editor: korpus / floor mode uses site render; apts mode uses floor schema */}
+        {/* Editor: korpus / entrance / floor mode uses site render; apts mode uses floor schema */}
         {mode !== 'apts' ? (
           <PolygonEditor
             imgSrc={siteRender}
-            value={mode === 'korpus' ? (sel.polygon || '') : (sel.floorPolygons?.[floorNum] || '')}
-            onChange={mode === 'korpus' ? onChangeKorpusPolygon : onChangeFloorPolygon}
+            value={
+              mode === 'korpus'   ? (sel.polygon || '') :
+              mode === 'entrance' ? (sel.entrancePolygons?.[entranceId] || '') :
+              /* floor */           (sel.floorPolygons?.[floorNum] || '')
+            }
+            onChange={
+              mode === 'korpus'   ? onChangeKorpusPolygon :
+              mode === 'entrance' ? onChangeEntrancePolygon :
+              /* floor */           onChangeFloorPolygon
+            }
           />
         ) : (
           <div>
@@ -2134,32 +2246,47 @@ function KorpusesTab({ toast }) {
                 Укажите путь к фото-планировке выше, чтобы начать обводить квартиры
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 14 }}>
-                {/* Apartment list (filter by korpus + floor) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 14 }}>
+                {/* Apartment list (filter by korpus + entrance + floor) */}
                 <div style={{ background: 'var(--surface-2)', borderRadius: 10, padding: 12, maxHeight: 520, overflowY: 'auto' }}>
-                  <div className="form-label" style={{ marginBottom: 8 }}>Квартиры на этаже {floorNum} ({aptsOnFloor.length})</div>
+                  <div className="form-label" style={{ marginBottom: 8 }}>
+                    Квартиры
+                    {entranceId != null && Array.isArray(sel.entrances) ? ` · ${(sel.entrances.find(e => e.id === entranceId)?.name || '')}` : ''}
+                    {' · '}этаж {floorNum} ({aptsOnFloor.length})
+                  </div>
                   {aptsOnFloor.length === 0 ? (
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
-                      Нет квартир с korpus={selId}, floor={floorNum}. Добавьте их во вкладке «Квартиры», указав корпус и этаж.
+                    <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
+                      Нет квартир с этими параметрами. Добавьте их во вкладке «Квартиры», указав корпус, подъезд и этаж.
                     </div>
                   ) : aptsOnFloor.map(a => {
                     const active = activeAptId === a.id;
                     const has = a.polygon && a.polygon.trim();
+                    const aptEntName = a.entrance != null ? (sel.entrances?.find(e => e.id === a.entrance)?.name || `Подъезд ${a.entrance}`) : null;
                     return (
                       <div key={a.id} onClick={() => setActiveAptId(a.id)}
                         style={{
                           padding: '10px 12px', marginBottom: 6, borderRadius: 8,
                           cursor: 'pointer', transition: 'all 150ms',
-                          background: active ? 'rgba(168,93,63,0.18)' : 'rgba(0,0,0,0.03)',
+                          background: active ? 'rgba(168,93,63,0.12)' : 'rgba(0,0,0,0.03)',
                           border: '1.5px solid', borderColor: active ? '#A85D3F' : 'rgba(0,0,0,0.05)',
                         }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Кв. {a.id} · {a.rooms}-к · {a.area}м²</span>
-                          <span style={{ fontSize: 14, color: has ? '#4ade80' : 'rgba(0,0,0,0.5)' }}>{has ? '✓' : '○'}</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Кв. {a.id} · {a.rooms}-к · {a.area}м²</span>
+                          <span style={{ fontSize: 14, color: has ? '#1F8638' : 'var(--text-3)' }}>{has ? '✓' : '○'}</span>
                         </div>
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
                           {a.available ? 'Свободна' : 'Бронь/Продана'} · {a.price?.toLocaleString('ru-RU')} ₽
+                          {aptEntName ? ` · ${aptEntName}` : (entranceId != null ? ' · нет подъезда' : '')}
                         </div>
+                        {active && entranceId != null && a.entrance !== entranceId && (
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            style={{ marginTop: 8, width: '100%', justifyContent: 'center' }}
+                            onClick={ev => { ev.stopPropagation(); updateApt(a.id, { entrance: entranceId }); toast(`Квартира привязана к ${(sel.entrances.find(e => e.id === entranceId)?.name || 'подъезду')}`); }}
+                          >
+                            Привязать к {sel.entrances.find(e => e.id === entranceId)?.name || 'подъезду'}
+                          </button>
+                        )}
                       </div>
                     );
                   })}
