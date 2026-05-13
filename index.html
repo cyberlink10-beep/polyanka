@@ -2111,7 +2111,7 @@ function FloorPlan({ onSelectApt }) {
                         fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 400,
                         fontSize: 17, color: 'var(--c-gold)', marginTop: 6, lineHeight: 1.3,
                       }}>
-                        — {selectedApt.rooms}-комнатная планировка —
+                        — {selectedApt.rooms}-комнатная —
                       </div>
                       <div style={{ width: 40, height: 1, background: 'var(--c-gold)', opacity: 0.7, marginTop: 16 }} />
                     </div>
@@ -2146,33 +2146,48 @@ function FloorPlan({ onSelectApt }) {
                     <div style={{ padding: '24px 26px 26px' }}>
                       <div style={{
                         fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase',
-                        color: 'var(--c-olive)', fontWeight: 600, marginBottom: 14,
+                        color: 'var(--c-olive)', fontWeight: 600, marginBottom: 16,
+                        textAlign: 'center',
                       }}>— Характеристики —</div>
 
-                      {[
-                        ['Этаж',   `${selectedApt.floor} из ${(entrance && entrance.floors) || korpus.floors}`],
-                        ['Корпус', korpus.name],
-                        ...(entrance ? [['Подъезд', entrance.name]] : []),
-                        ['Статус', selectedApt.available ? 'Свободна' : 'В брони'],
-                      ].map(([l, v]) => (
-                        <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '11px 0', borderBottom: '1px solid var(--c-gray-100)' }}>
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--c-gray-500)', fontWeight: 400 }}>{l}</span>
-                          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500, fontSize: 16, color: 'var(--c-charcoal)' }}>{v}</span>
-                        </div>
-                      ))}
+                      {(() => {
+                        const korpusNum = String(korpus.name || '').replace(/^Корпус\s*/i, '').trim() || korpus.id;
+                        const entranceNum = entrance ? (String(entrance.name || '').replace(/^Подъезд\s*/i, '').trim() || entrance.id) : null;
+                        const rows = [
+                          ['Этаж',   `${selectedApt.floor} из ${(entrance && entrance.floors) || korpus.floors}`],
+                          ['Корпус', korpusNum],
+                          ...(entrance ? [['Подъезд', entranceNum]] : []),
+                          ['Статус', selectedApt.available ? 'Свободна' : 'В брони'],
+                        ];
+                        return rows.map(([l, v]) => (
+                          <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '11px 0', borderBottom: '1px solid var(--c-gray-100)' }}>
+                            <span style={{
+                              fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 400,
+                              fontSize: 16, color: 'var(--c-olive-deep)', letterSpacing: '0.005em',
+                            }}>— {l} —</span>
+                            <span style={{
+                              fontFamily: 'var(--font-display)', fontWeight: 500,
+                              fontSize: 18, color: 'var(--c-charcoal)', letterSpacing: '-0.005em',
+                            }}>{v}</span>
+                          </div>
+                        ));
+                      })()}
 
                       {/* Price block */}
                       <div style={{ padding: '22px 0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', fontWeight: 600 }}>Стоимость</span>
+                        <span style={{
+                          fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 400,
+                          fontSize: 18, color: 'var(--c-olive-deep)',
+                        }}>— Стоимость —</span>
                         <span style={{
                           fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 32,
                           color: 'var(--c-brand)', letterSpacing: '-0.015em', lineHeight: 1,
                         }}>{selectedApt.price.toLocaleString('ru-RU')} ₽</span>
                       </div>
                       <div style={{
-                        fontFamily: 'var(--font-display)', fontStyle: 'italic',
-                        fontSize: 13, color: 'var(--c-gray-500)', textAlign: 'right',
-                        marginBottom: 22, marginTop: 4,
+                        fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500,
+                        fontSize: 16, color: 'var(--c-gold)', textAlign: 'right',
+                        marginBottom: 22, marginTop: 6, letterSpacing: '0.01em',
                       }}>
                         — {Math.round(selectedApt.price / selectedApt.area).toLocaleString('ru-RU')} ₽ за м² —
                       </div>
