@@ -693,6 +693,19 @@ function Header({ activeSection, onNav, forceScrolled = false }) {
 /* ─── DATA LAYER (reads from admin panel localStorage) ─── */
 const _lsLoad = (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; } };
 
+/* Russian plural helper: pluralRu(n, ['квартира','квартиры','квартир']) */
+function pluralRu(n, forms) {
+  const num = Math.abs(Number(n) || 0);
+  const mod10 = num % 10;
+  const mod100 = num % 100;
+  if (mod100 >= 11 && mod100 <= 14) return forms[2];
+  if (mod10 === 1) return forms[0];
+  if (mod10 >= 2 && mod10 <= 4) return forms[1];
+  return forms[2];
+}
+const floorWord = (n) => pluralRu(n, ['этаж', 'этажа', 'этажей']);
+const aptWord   = (n) => pluralRu(n, ['квартира', 'квартиры', 'квартир']);
+
 const _DEFAULT_SETTINGS = {
   phone: '+7 (800) 123-45-67', phoneLabel: 'Бесплатно по России',
   address: 'г. Курган, ул. Героев, 1', addressLabel: 'Офис продаж',
@@ -1055,7 +1068,7 @@ function AboutStrip() {
       <div className="container resp-5stat" style={{
         position: 'relative',
       }}>
-        {[[SITE.floors, 'этажей'], [SITE.korpuses, 'корпуса'], [SITE.aptCount, 'квартир'], [SITE.year, 'год сдачи'], [SITE.area, 'м² площадь']].map(([v, l], i) => (
+        {[[SITE.floors, floorWord(SITE.floors)], [SITE.korpuses, pluralRu(SITE.korpuses, ['корпус','корпуса','корпусов'])], [SITE.aptCount, aptWord(SITE.aptCount)], [SITE.year, 'год сдачи'], [SITE.area, 'м² площадь']].map(([v, l], i) => (
           <div key={l} className={`reveal reveal-delay-${i + 1}`} style={{
             textAlign: 'center',
             borderLeft: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.14)',
@@ -1999,7 +2012,7 @@ function FloorPlan({ onSelectApt }) {
                       transition: 'top 260ms cubic-bezier(0.22,1,0.36,1), left 260ms cubic-bezier(0.22,1,0.36,1), opacity 200ms ease',
                     }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 22, color: '#fff', textTransform: 'uppercase', marginBottom: 8 }}>{k.name}</div>
-                      <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>{k.floors} этажей · {k.total} квартир</div>
+                      <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>{k.floors} {floorWord(k.floors)} · {k.total} {aptWord(k.total)}</div>
                       <div style={{ fontSize: 14, color: '#4ade80', fontWeight: 600 }}>● {k.free} свободно</div>
                     </div>
                   );
@@ -2026,8 +2039,8 @@ function FloorPlan({ onSelectApt }) {
                           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 26, color: 'var(--c-charcoal)', lineHeight: 1.1, marginBottom: 14 }}>{hov.name}</div>
                           <div style={{ width: 36, height: 1, background: 'var(--c-gold)', opacity: 0.7, marginBottom: 14 }} />
                           <div style={{ fontSize: 13, color: 'var(--c-gray-500)', lineHeight: 1.6 }}>
-                            {hov.floors ? `${hov.floors} этажей` : `${korpus.floors} этажей`}
-                            {hov.totalApts ? ` · ${hov.totalApts} квартир` : ''}
+                            {(() => { const n = hov.floors || korpus.floors; return `${n} ${floorWord(n)}`; })()}
+                            {hov.totalApts ? ` · ${hov.totalApts} ${aptWord(hov.totalApts)}` : ''}
                           </div>
                         </>
                       ) : (
