@@ -3085,52 +3085,54 @@ function Footer() {
       background: 'var(--c-olive-deep) url(\'assets/patterns/06-darkbloom-clear.svg\')',
       backgroundSize: '420px 420px',
       borderTop: '1px solid rgba(239,228,196,0.18)',
-      padding: '40px 0 24px',
+      padding: '72px 0 36px',
       position: 'relative',
     }}>
       <div className="container">
         {/* Top — two-column layout: brand + contacts */}
         <div className="footer-top" style={{
-          display: 'grid', gridTemplateColumns: '1.3fr 1fr',
-          gap: 40, marginBottom: 24, alignItems: 'center',
+          display: 'grid', gridTemplateColumns: '1.4fr 1fr',
+          gap: 60, marginBottom: 48, alignItems: 'start',
         }}>
           <div>
-            <img
-              src="assets/logo-horizontal-white.svg"
-              alt="Полянка"
-              style={{ height: 84, width: 'auto', display: 'block', marginLeft: -8, marginBottom: 10 }}
-            />
+            <div style={{ marginBottom: 18 }}>
+              <img
+                src="assets/logo-horizontal-white.svg"
+                alt="Полянка"
+                style={{ height: 116, width: 'auto', display: 'block', marginLeft: -10 }}
+              />
+            </div>
             <p style={{
               fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500,
-              fontSize: 16, color: 'rgba(255,255,255,0.78)', lineHeight: 1.4, maxWidth: 420,
+              fontSize: 18, color: 'rgba(255,255,255,0.78)', lineHeight: 1.5, maxWidth: 420,
             }}>
               — где архитектура встречает природу —
             </p>
             <p style={{
-              fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6,
-              maxWidth: 420, marginTop: 6,
+              fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7,
+              maxWidth: 420, marginTop: 14,
             }}>
               Тёплые тона, тишина и комфорт в шаге от города.
             </p>
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 10 }}>— Контакты —</div>
-            <a href={`tel:${SITE.phone}`} style={{ fontSize: 20, color: '#fff', fontWeight: 500, textDecoration: 'none', display: 'block', letterSpacing: '0.01em', lineHeight: 1.2 }}>{SITE.phone}</a>
-            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--c-champagne)', marginBottom: 10 }}>— {SITE.phoneLabel} —</div>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.78)', lineHeight: 1.45 }}>{SITE.address}</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: 14 }}>{SITE.addressLabel} · {SITE.hours}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 20 }}>— Контакты —</div>
+            <a href={`tel:${SITE.phone}`} style={{ fontSize: 22, color: '#fff', marginBottom: 4, fontWeight: 500, textDecoration: 'none', display: 'block', letterSpacing: '0.01em' }}>{SITE.phone}</a>
+            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--c-champagne)', marginBottom: 22 }}>— {SITE.phoneLabel} —</div>
+            <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.78)', marginBottom: 6 }}>{SITE.address}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'rgba(255,255,255,0.55)', marginBottom: 26 }}>{SITE.addressLabel} · {SITE.hours}</div>
             <a className="btn btn-primary" href="#contact"
               onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
-              style={{ fontSize: 13, padding: '10px 22px' }} onMouseDown={addRipple}>
+              style={{ fontSize: 13, padding: '12px 26px' }} onMouseDown={addRipple}>
               Оставить заявку
             </a>
           </div>
         </div>
 
         {/* Legal disclaimer */}
-        <div style={{ borderTop: '1px solid rgba(239,228,196,0.12)', paddingTop: 16, marginBottom: 12 }}>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', lineHeight: 1.6, maxWidth: 900 }}>{FOOTER_EXTRA.legalText}</p>
+        <div style={{ borderTop: '1px solid rgba(239,228,196,0.12)', paddingTop: 24, marginBottom: 16 }}>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', lineHeight: 1.7, maxWidth: 900 }}>{FOOTER_EXTRA.legalText}</p>
         </div>
 
         {/* Bottom row — copyright + service links */}
