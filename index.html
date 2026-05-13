@@ -172,10 +172,8 @@
     @media (max-width: 900px) { .resp-places3 { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 520px) { .resp-places3 { grid-template-columns: 1fr; } }
 
-    /* Footer 2fr 1fr 1fr 1fr → 1 fr (stacked) */
-    .resp-footer { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
-    @media (max-width: 900px) { .resp-footer { grid-template-columns: 1fr 1fr; gap: 32px; } }
-    @media (max-width: 520px) { .resp-footer { grid-template-columns: 1fr; gap: 28px; } }
+    /* Footer 1.4fr 1fr → 1 fr (stacked) */
+    @media (max-width: 900px) { .footer-top { grid-template-columns: 1fr !important; gap: 36px !important; } }
 
     /* Contact form 1fr 1fr → 1 fr */
     .resp-contact { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
@@ -779,6 +777,14 @@ const DEFAULT_FOOTER_EXTRA = {
   legalText: 'Любая информация, представленная на данном сайте, носит исключительно информационный характер, не является публичной офертой, определяемой положениями статьи 437 ГК РФ.',
   privacyUrl: '#', declarationUrl: '#',
 };
+
+/* ─── DOCUMENTS — downloadable PDFs on /doc page ─── */
+const DEFAULT_DOCS = [
+  { id: 'marketingConsent',  title: 'Согласие на получение рекламных рассылок', url: '' },
+  { id: 'personalConsent',   title: 'Согласие на обработку персональных данных', url: '' },
+  { id: 'privacyPolicy',     title: 'Политика обработки персональных данных',    url: '' },
+];
+const DOCS = _lsLoad('geroi_docs', DEFAULT_DOCS);
 const FOOTER_EXTRA = { ...DEFAULT_FOOTER_EXTRA, ..._lsLoad('geroi_footer', {}) };
 
 const DEFAULT_KORPUSES = [
@@ -3068,6 +3074,12 @@ function ContactForm() {
 
 /* ─── FOOTER ─── */
 function Footer() {
+  const linkStyle = {
+    fontSize: 13, color: 'rgba(255,255,255,0.55)', textDecoration: 'none',
+    transition: 'color 150ms', letterSpacing: '0.02em',
+  };
+  const hoverIn  = e => e.currentTarget.style.color = '#fff';
+  const hoverOut = e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)';
   return (
     <footer style={{
       background: 'var(--c-olive-deep) url(\'assets/patterns/06-darkbloom-clear.svg\')',
@@ -3077,61 +3089,67 @@ function Footer() {
       position: 'relative',
     }}>
       <div className="container">
-        <div className="resp-footer" style={{ marginBottom: 40 }}>
+        {/* Top — two-column layout: brand + contacts */}
+        <div className="footer-top" style={{
+          display: 'grid', gridTemplateColumns: '1.4fr 1fr',
+          gap: 60, marginBottom: 48, alignItems: 'start',
+        }}>
           <div>
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 18 }}>
               <img
                 src="assets/logo-horizontal-white.svg"
                 alt="Полянка"
-                style={{ height: 104, width: 'auto', display: 'block', marginLeft: -8 }}
+                style={{ height: 116, width: 'auto', display: 'block', marginLeft: -10 }}
               />
             </div>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: 260 }}>
-              Жилой комплекс «Полянка» — где архитектура встречает природу. Тёплые тона, тишина и комфорт в шаге от города.
+            <p style={{
+              fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500,
+              fontSize: 18, color: 'rgba(255,255,255,0.78)', lineHeight: 1.5, maxWidth: 420,
+            }}>
+              — где архитектура встречает природу —
+            </p>
+            <p style={{
+              fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7,
+              maxWidth: 420, marginTop: 14,
+            }}>
+              Тёплые тона, тишина и комфорт в шаге от города.
             </p>
           </div>
+
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 18 }}>Квартиры</div>
-            {['1-комнатные', '2-комнатные', '3-комнатные', 'Планировки', 'Цены'].map(l => (
-              <div key={l} style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 10, cursor: 'pointer', transition: 'color 150ms' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-              >{l}</div>
-            ))}
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 18 }}>Комплекс</div>
-            {['О проекте', 'Ход строительства', 'Инфраструктура', 'Документы', 'Новости'].map(l => (
-              <div key={l} style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 10, cursor: 'pointer', transition: 'color 150ms' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-              >{l}</div>
-            ))}
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 18 }}>Контакты</div>
-            <div style={{ fontSize: 17, color: '#fff', marginBottom: 4, fontWeight: 500 }}>{SITE.phone}</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 18 }}>{SITE.phoneLabel}</div>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 4 }}>{SITE.address}</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 22 }}>{SITE.addressLabel}: {SITE.hours}</div>
-            <button className="btn btn-primary" style={{ fontSize: 13, padding: '12px 22px' }} onMouseDown={addRipple}>Записаться</button>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-gold)', marginBottom: 20 }}>— Контакты —</div>
+            <a href={`tel:${SITE.phone}`} style={{ fontSize: 22, color: '#fff', marginBottom: 4, fontWeight: 500, textDecoration: 'none', display: 'block', letterSpacing: '0.01em' }}>{SITE.phone}</a>
+            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--c-champagne)', marginBottom: 22 }}>— {SITE.phoneLabel} —</div>
+            <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.78)', marginBottom: 6 }}>{SITE.address}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'rgba(255,255,255,0.55)', marginBottom: 26 }}>{SITE.addressLabel} · {SITE.hours}</div>
+            <a className="btn btn-primary" href="#contact"
+              onClick={e => { e.preventDefault(); document.getElementById('contact')?.scrollIntoView({ behavior:'smooth' }); }}
+              style={{ fontSize: 13, padding: '12px 26px' }} onMouseDown={addRipple}>
+              Оставить заявку
+            </a>
           </div>
         </div>
+
         {/* Legal disclaimer */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 24, marginBottom: 16 }}>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', lineHeight: 1.7, maxWidth: 900 }}>{FOOTER_EXTRA.legalText}</p>
+        <div style={{ borderTop: '1px solid rgba(239,228,196,0.12)', paddingTop: 24, marginBottom: 16 }}>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', lineHeight: 1.7, maxWidth: 900 }}>{FOOTER_EXTRA.legalText}</p>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.02em' }}>
+
+        {/* Bottom row — copyright + service links */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.02em' }}>
             © {SITE.year} ЖК «Полянка» · Все права защищены
           </div>
-          <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-            <a href={FOOTER_EXTRA.privacyUrl || '#'} style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', textDecoration: 'none', transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.45)'}>
+          <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', alignItems: 'center' }}>
+            <a href="/doc" style={linkStyle} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>
+              Документы
+            </a>
+            <span style={{ width: 1, height: 14, background: 'rgba(239,228,196,0.20)' }} />
+            <a href={FOOTER_EXTRA.privacyUrl || '/doc'} style={linkStyle} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>
               Политика конфиденциальности
             </a>
-            <a href={FOOTER_EXTRA.declarationUrl || '#'} target="_blank" rel="noopener" style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', textDecoration: 'none', transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color='#fff'} onMouseLeave={e => e.currentTarget.style.color='rgba(255,255,255,0.45)'}>
+            <span style={{ width: 1, height: 14, background: 'rgba(239,228,196,0.20)' }} />
+            <a href={FOOTER_EXTRA.declarationUrl || '#'} target="_blank" rel="noopener" style={linkStyle} onMouseEnter={hoverIn} onMouseLeave={hoverOut}>
               Проектная декларация на НАШ.ДОМ.РФ
             </a>
           </div>
@@ -3427,19 +3445,116 @@ function useReveal() {
   }, []);
 }
 
+/* ─── DOCUMENTS PAGE (/doc) ─── */
+function DocsPage() {
+  const docs = Array.isArray(DOCS) && DOCS.length ? DOCS : DEFAULT_DOCS;
+  return (
+    <section style={{ padding: '110px 0 96px', background: 'var(--c-surface)', minHeight: '100vh' }}>
+      <div className="container">
+        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+          <div style={{ fontSize: 12, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', marginBottom: 14, fontWeight: 600 }}>
+            — Документы —
+          </div>
+          <h1 style={{
+            fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(36px,4.5vw,56px)',
+            color: 'var(--c-charcoal)', lineHeight: 1.05, letterSpacing: '-0.005em',
+          }}>
+            Юридические <em style={{ fontStyle: 'italic', color: 'var(--c-olive-deep)' }}>документы</em>
+          </h1>
+          <p style={{
+            fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18,
+            color: 'var(--c-gold)', marginTop: 16, lineHeight: 1.5, maxWidth: 560, margin: '16px auto 0',
+          }}>
+            — нажмите на карточку, чтобы скачать соответствующий документ —
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, maxWidth: 1000, margin: '0 auto' }}>
+          {docs.map((doc, i) => {
+            const has = !!doc.url;
+            const Tag = has ? 'a' : 'div';
+            return (
+              <Tag
+                key={doc.id || i}
+                {...(has ? { href: doc.url, target: '_blank', rel: 'noopener', download: '' } : {})}
+                style={{
+                  background: '#fff', border: '1px solid var(--c-gray-100)',
+                  borderRadius: 16, padding: '32px 26px 28px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                  cursor: has ? 'pointer' : 'default',
+                  transition: 'transform 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms, border-color 240ms',
+                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
+                  textDecoration: 'none', color: 'inherit',
+                  opacity: has ? 1 : 0.65,
+                }}
+                onMouseEnter={e => { if (has) { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(168,93,63,0.14)'; e.currentTarget.style.borderColor = 'var(--c-gold)'; } }}
+                onMouseLeave={e => { if (has) { e.currentTarget.style.transform = 'translateY(0)';  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.05)'; e.currentTarget.style.borderColor = 'var(--c-gray-100)'; } }}
+              >
+                {/* PDF icon */}
+                <div style={{
+                  width: 52, height: 60, borderRadius: 6,
+                  background: 'var(--c-cream)', border: '1px solid var(--c-gold)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  position: 'relative', marginBottom: 18, flexShrink: 0,
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600,
+                    fontSize: 14, color: 'var(--c-olive-deep)', letterSpacing: '0.05em',
+                  }}>PDF</span>
+                  <span style={{
+                    position: 'absolute', top: -1, right: -1,
+                    width: 14, height: 14, background: 'var(--c-gold)',
+                    clipPath: 'polygon(0 0, 100% 100%, 0 100%)',
+                  }} />
+                </div>
+                <div style={{ fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--c-olive)', fontWeight: 600, marginBottom: 6 }}>
+                  Документ № {i + 1}
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 20,
+                  color: 'var(--c-charcoal)', lineHeight: 1.25, letterSpacing: '-0.005em',
+                  marginBottom: 16,
+                }}>{doc.title}</div>
+                <div style={{ width: 36, height: 1, background: 'var(--c-gold)', opacity: 0.7, marginBottom: 14 }} />
+                <div style={{
+                  marginTop: 'auto',
+                  fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600,
+                  fontSize: 15, color: has ? 'var(--c-brand)' : 'var(--c-gray-500)',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                  {has ? (
+                    <>
+                      Скачать
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </>
+                  ) : 'будет добавлен'}
+                </div>
+              </Tag>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ─── APP ─── */
 function App() {
   const [activeSection, setActiveSection] = useState('hero');
   const [selectedApt, setSelectedApt] = useState(null);
   const [view, setView] = useState(() => {
     const p = (typeof window !== 'undefined' ? window.location.pathname : '/').replace(/\/$/, '') || '/';
-    return p === '/flat' ? 'apartments' : 'home';
+    if (p === '/flat') return 'apartments';
+    if (p === '/doc')  return 'docs';
+    return 'home';
   });
   useReveal();
 
   const handleNav = useCallback((sectionId) => {
-    // On /flat — navigate to home with hash (full reload)
-    if (view === 'apartments') {
+    // On /flat or /doc — navigate to home with hash (full reload)
+    if (view !== 'home') {
       window.location.href = '/#' + sectionId;
       return;
     }
@@ -3479,6 +3594,16 @@ function App() {
     sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
     return () => observer.disconnect();
   }, [view]);
+
+  if (view === 'docs') {
+    return (
+      <div>
+        <Header activeSection="" onNav={handleNav} forceScrolled />
+        <DocsPage />
+        <Footer />
+      </div>
+    );
+  }
 
   if (view === 'apartments') {
     return (

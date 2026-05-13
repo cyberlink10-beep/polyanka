@@ -403,7 +403,7 @@ const DEFAULT_SETTINGS = {
 /* ─── STORAGE HELPERS ─── */
 const SYNC_KEYS = [
   'geroi_apts','geroi_slides','geroi_settings','geroi_about',
-  'geroi_promos','geroi_features','geroi_construction','geroi_gallery','geroi_infra','geroi_footer',
+  'geroi_promos','geroi_features','geroi_construction','geroi_gallery','geroi_infra','geroi_footer','geroi_docs',
   'geroi_korpuses','geroi_site_render',
 ];
 let __syncTimer = null;
@@ -1570,7 +1570,7 @@ function ConstructionTab({ toast }) {
 }
 
 /* Compact file-picker button — uploads to /api/upload and hands the file back via onPick */
-function PhotoUploadButton({ onPick, label, small }) {
+function PhotoUploadButton({ onPick, label, small, accept = 'image/*' }) {
   const [busy, setBusy] = useState(false);
   const ref = useRef(null);
   const handle = async e => {
@@ -1593,7 +1593,7 @@ function PhotoUploadButton({ onPick, label, small }) {
       >
         {busy ? '⏳ Загрузка...' : label}
       </button>
-      <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={handle} />
+      <input ref={ref} type="file" accept={accept} style={{ display: 'none' }} onChange={handle} />
     </>
   );
 }
@@ -1745,6 +1745,94 @@ function InfraTab({ toast }) {
         </div>
 
         <div className="section-actions"><button className="btn btn-primary" onClick={saveAll}>Сохранить</button></div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── DOCUMENTS TAB ─── */
+const DEFAULT_DOCS_ADMIN = [
+  { id: 'marketingConsent', title: 'Согласие на получение рекламных рассылок',  url: '' },
+  { id: 'personalConsent',  title: 'Согласие на обработку персональных данных', url: '' },
+  { id: 'privacyPolicy',    title: 'Политика обработки персональных данных',    url: '' },
+];
+
+function DocsTab({ toast }) {
+  const [docs, setDocs] = useState(() => {
+    const loaded = ls.load('geroi_docs', null);
+    if (!Array.isArray(loaded) || loaded.length === 0) return DEFAULT_DOCS_ADMIN;
+    // Merge with defaults to fill in missing slots
+    return DEFAULT_DOCS_ADMIN.map(def => {
+      const existing = loaded.find(x => x.id === def.id);
+      return existing ? { ...def, ...existing } : def;
+    });
+  });
+  const persist = next => { setDocs(next); ls.save('geroi_docs', next); };
+  const setField = (i, k, v) => persist(docs.map((d, j) => j === i ? { ...d, [k]: v } : d));
+  const saveAll = () => { ls.save('geroi_docs', docs); toast('Документы сохранены'); };
+
+  const uploadFor = async (i, file) => {
+    if (!file) return;
+    try {
+      const url = await uploadImageFile(file);
+      setField(i, 'url', url);
+      toast('Файл загружен');
+    } catch (e) {
+      alert('Ошибка загрузки: ' + (e.message || 'неизвестно'));
+    }
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <div className="page-title">Документы</div>
+        <div className="page-subtitle">Юридические документы, доступные для скачивания на странице /doc</div>
+      </div>
+      <div className="page-body">
+        {docs.map((doc, i) => (
+          <div key={doc.id} className="settings-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
+              <div>
+                <h3 style={{ margin: 0 }}>Документ № {i + 1}</h3>
+                <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>
+                  {doc.url
+                    ? <span style={{ color: '#1F8638' }}>✓ Файл загружен</span>
+                    : <span>Файл не загружен</span>}
+                </div>
+              </div>
+              <PhotoUploadButton
+                onPick={file => uploadFor(i, file)}
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                label={doc.url ? '↻ Заменить файл' : '+ Загрузить файл'}
+              />
+            </div>
+
+            <div className="form-grid">
+              <div className="form-group full">
+                <span className="form-label">Название документа</span>
+                <input value={doc.title || ''} onChange={e => setField(i, 'title', e.target.value)} />
+              </div>
+              <div className="form-group full">
+                <span className="form-label">URL файла</span>
+                <input value={doc.url || ''} onChange={e => setField(i, 'url', e.target.value)} placeholder="https://..." />
+                <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>
+                  Можно загрузить кнопкой выше или вставить готовую ссылку вручную. Поддерживаются PDF, DOC, DOCX.
+                </div>
+              </div>
+              {doc.url && (
+                <div className="form-group full">
+                  <a href={doc.url} target="_blank" rel="noopener" style={{ fontSize: 13, color: '#A85D3F' }}>
+                    ↗ Открыть файл в новой вкладке
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+
+        <div className="section-actions">
+          <button className="btn btn-primary" onClick={saveAll}>Сохранить</button>
+        </div>
       </div>
     </div>
   );
@@ -2488,6 +2576,7 @@ const TABS = [
   { id: 'construction', label: 'Строительство',   icon: '🏗️' },
   { id: 'infra',        label: 'Инфраструктура',  icon: '🗺️' },
   { id: 'settings',     label: 'Настройки',       icon: '⚙️' },
+  { id: 'docs',         label: 'Документы',       icon: '📑' },
   { id: 'footer',       label: 'Подвал',          icon: '📄' },
   { id: 'export',       label: 'Экспорт',         icon: '💾' },
 ];
@@ -2540,6 +2629,7 @@ function AdminPanel() {
         {tab === 'construction' && <ConstructionTab toast={showToast} />}
         {tab === 'infra'        && <InfraTab toast={showToast} />}
         {tab === 'settings'     && <SettingsTab toast={showToast} />}
+        {tab === 'docs'         && <DocsTab toast={showToast} />}
         {tab === 'footer'       && <FooterTab toast={showToast} />}
         {tab === 'export'       && <ExportTab toast={showToast} />}
       </div>
