@@ -2374,9 +2374,24 @@ function KorpusesTab({ toast }) {
     else if (mode === 'apts')     clearAptPolygon();
   };
 
-  /* Apartments mode helpers */
-  const floorSchemaUrl = (sel.floorSchemas && sel.floorSchemas[floorNum]) || '';
-  const setFloorSchemaUrl = url => updateSel({ floorSchemas: { ...(sel.floorSchemas || {}), [floorNum]: url } });
+  /* Apartments mode helpers — floor schema is per-entrance when an
+     entrance is selected (each подъезд + этаж has its own фото). */
+  const getFloorSchemas = () => {
+    if (entranceId != null && Array.isArray(sel.entrances)) {
+      const en = sel.entrances.find(e => e.id === entranceId);
+      if (en) return en.floorSchemas || {};
+    }
+    return sel.floorSchemas || {};
+  };
+  const floorSchemaUrl = getFloorSchemas()[floorNum] || '';
+  const setFloorSchemaUrl = url => {
+    const dict = { ...getFloorSchemas(), [floorNum]: url };
+    if (entranceId != null && Array.isArray(sel.entrances)) {
+      updateSel({ entrances: sel.entrances.map(e => e.id === entranceId ? { ...e, floorSchemas: dict } : e) });
+    } else {
+      updateSel({ floorSchemas: dict });
+    }
+  };
   const aptsOnFloor = apts.filter(a => {
     if (a.korpus !== selId) return false;
     if (Number(a.floor) !== Number(floorNum)) return false;
@@ -2560,7 +2575,7 @@ function KorpusesTab({ toast }) {
                   style={{ width: 110, padding: '7px 10px', fontSize: 13 }}>
                   {Array.from({ length: totalFloors }, (_, i) => totalFloors - i).map(f => (
                     <option key={f} value={f}>
-                      {f} этаж {mode === 'floor' ? (fp[f] ? '✓' : '') : (sel.floorSchemas?.[f] ? '🖼' : '')}
+                      {f} этаж {mode === 'floor' ? (fp[f] ? '✓' : '') : (getFloorSchemas()[f] ? '🖼' : '')}
                     </option>
                   ))}
                 </select>

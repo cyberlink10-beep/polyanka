@@ -1801,8 +1801,12 @@ function FloorPlan({ onSelectApt }) {
   };
 
   // Step 2 data
-  // Use real apartments if floor schema exists, otherwise fall back to procedural FloorMap
-  const hasSchema = korpus && floor && korpus.floorSchemas && korpus.floorSchemas[floor];
+  // Floor schema is per-entrance when the entrance has its own; falls back to korpus-level.
+  const floorSchemas = (entrance && entrance.floorSchemas && Object.keys(entrance.floorSchemas).length)
+    ? entrance.floorSchemas
+    : (korpus?.floorSchemas || {});
+  const floorSchemaUrl = (korpus && floor) ? floorSchemas[floor] : null;
+  const hasSchema = !!floorSchemaUrl;
   const realApts = (floor && korpus)
     ? APARTMENTS.filter(a => {
         if (a.korpus !== korpus.id) return false;
@@ -2217,7 +2221,7 @@ function FloorPlan({ onSelectApt }) {
                   </div>
                 </div>
                 {hasSchema
-                  ? <FloorSchema schemaUrl={korpus.floorSchemas[floor]} apartments={filtered} hoveredId={hoveredId} selectedApt={selectedApt} onSelect={setSelectedApt} onHover={setHoveredId} />
+                  ? <FloorSchema schemaUrl={floorSchemaUrl} apartments={filtered} hoveredId={hoveredId} selectedApt={selectedApt} onSelect={setSelectedApt} onHover={setHoveredId} />
                   : <FloorMap  apartments={filtered} hoveredId={hoveredId} selectedApt={selectedApt} onSelect={setSelectedApt} onHover={setHoveredId} />
                 }
                 {/* Legend — premium serif */}
