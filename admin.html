@@ -2090,18 +2090,70 @@ function PolygonEditor({ value, onChange, imgSrc }) {
   );
 }
 
-/* Image upload helper — sends raw bytes to /api/upload and returns the public URL */
+/* Client-side image optimiser — runs in the browser before upload.
+   Downscales to a sane resolution and re-encodes to WebP (falls back
+   to JPEG). Planировки/рендеры in 2-20 MB shrink to ~100-400 KB with
+   no visible quality loss. Non-images (PDF/DOC) and SVG pass through. */
+async function optimizeImage(file, { maxSize = 2000, quality = 0.9 } = {}) {
+  if (!file || !file.type || !file.type.startsWith('image/')) return file;
+  if (file.type === 'image/svg+xml' || file.type === 'image/gif') return file;
+  try {
+    const dataUrl = await new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => res(fr.result);
+      fr.onerror = () => rej(new Error('read'));
+      fr.readAsDataURL(file);
+    });
+    const img = await new Promise((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => rej(new Error('decode'));
+      im.src = dataUrl;
+    });
+    const w0 = img.naturalWidth || img.width;
+    const h0 = img.naturalHeight || img.height;
+    if (!w0 || !h0) return file;
+    const scale = Math.min(1, maxSize / w0, maxSize / h0);
+    // Already small and lightweight — leave as-is
+    if (scale >= 1 && file.size < 500 * 1024) return file;
+    const w = Math.round(w0 * scale), h = Math.round(h0 * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, w, h);
+    const webpOk = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    const outType = webpOk ? 'image/webp' : 'image/jpeg';
+    if (!webpOk) {
+      // JPEG has no alpha — paint white behind so transparent PNGs don't go black
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    const blob = await new Promise(res => canvas.toBlob(res, outType, quality));
+    if (!blob || blob.size >= file.size) return file; // optimisation didn't help
+    const ext = webpOk ? '.webp' : '.jpg';
+    const base = String(file.name || 'image').replace(/\.[^.]+$/, '');
+    return new File([blob], base + ext, { type: outType });
+  } catch {
+    return file; // any failure — fall back to the original file
+  }
+}
+
+/* Image upload helper — optimises in-browser, then sends to /api/upload */
 async function uploadImageFile(file) {
   if (!file) throw new Error('Нет файла');
-  if (file.size > 7.5 * 1024 * 1024) throw new Error('Файл слишком большой (макс 7.5 MB)');
+  const optimized = await optimizeImage(file);
+  if (optimized.size > 7.5 * 1024 * 1024) throw new Error('Файл слишком большой (макс 7.5 MB)');
   const r = await fetch('/api/upload', {
     method: 'POST',
     headers: {
-      'Content-Type': file.type || 'application/octet-stream',
+      'Content-Type': optimized.type || 'application/octet-stream',
       'x-admin-password': ADMIN_PASSWORD,
-      'x-filename': encodeURIComponent(file.name || 'upload'),
+      'x-filename': encodeURIComponent(optimized.name || 'upload'),
     },
-    body: file,
+    body: optimized,
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
