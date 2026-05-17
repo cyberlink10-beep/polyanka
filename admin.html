@@ -515,7 +515,7 @@ function LoginScreen({ onLogin }) {
 }
 
 /* ─── APARTMENT MODAL ─── */
-const EMPTY_APT = { rooms: 1, area: '', floor: '', korpus: 1, entrance: null, price: '', available: true, badge: '', img: '', polygon: '' };
+const EMPTY_APT = { rooms: 1, number: '', area: '', areaFull: '', floor: '', korpus: 1, entrance: null, price: '', pricePerM: '', available: true, badge: '', img: '', planUrl: '', polygon: '' };
 
 function AptModal({ apt, onSave, onClose }) {
   const [form, setForm] = useState(apt ? { ...EMPTY_APT, ...apt, badge: apt.badge || '' } : EMPTY_APT);
@@ -538,12 +538,16 @@ function AptModal({ apt, onSave, onClose }) {
     e.preventDefault();
     onSave({
       ...form,
-      area: parseFloat(form.area) || 0,
-      floor: parseInt(form.floor) || 1,
-      korpus: parseInt(form.korpus) || 1,
-      entrance: form.entrance == null ? null : Number(form.entrance),
-      price: parseInt(form.price) || 0,
-      badge: form.badge || null,
+      number:    form.number === '' ? null : parseInt(form.number) || null,
+      area:      parseFloat(form.area) || 0,
+      areaFull:  form.areaFull === '' ? null : parseFloat(form.areaFull) || null,
+      floor:     parseInt(form.floor) || 1,
+      korpus:    parseInt(form.korpus) || 1,
+      entrance:  form.entrance == null ? null : Number(form.entrance),
+      price:     parseInt(form.price) || 0,
+      pricePerM: form.pricePerM === '' ? null : parseInt(form.pricePerM) || null,
+      planUrl:   String(form.planUrl || '').trim(),
+      badge:     form.badge || null,
     });
   };
 
@@ -559,6 +563,11 @@ function AptModal({ apt, onSave, onClose }) {
             <div className="form-grid">
 
               <div className="form-group">
+                <span className="form-label">Номер квартиры</span>
+                <input type="number" value={form.number ?? ''} onChange={e => set('number', e.target.value)} placeholder="12" min={1} />
+              </div>
+
+              <div className="form-group">
                 <span className="form-label">Количество комнат</span>
                 <select value={form.rooms} onChange={e => set('rooms', Number(e.target.value))}>
                   <option value={1}>1-комнатная</option>
@@ -568,13 +577,18 @@ function AptModal({ apt, onSave, onClose }) {
               </div>
 
               <div className="form-group">
-                <span className="form-label">Площадь, м²</span>
-                <input type="number" value={form.area} onChange={e => set('area', e.target.value)} placeholder="38.5" required min={10} max={200} step={0.1} />
+                <span className="form-label">Площадь с учётом, м²</span>
+                <input type="number" value={form.area} onChange={e => set('area', e.target.value)} placeholder="47.2" required min={5} max={300} step={0.01} />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label">Площадь объекта вся, м²</span>
+                <input type="number" value={form.areaFull ?? ''} onChange={e => set('areaFull', e.target.value)} placeholder="49.2" min={5} max={400} step={0.01} />
               </div>
 
               <div className="form-group">
                 <span className="form-label">Этаж</span>
-                <input type="number" value={form.floor} onChange={e => set('floor', e.target.value)} placeholder="5" required min={1} max={25} />
+                <input type="number" value={form.floor} onChange={e => set('floor', e.target.value)} placeholder="3" required min={1} max={25} />
               </div>
 
               <div className="form-group">
@@ -601,8 +615,18 @@ function AptModal({ apt, onSave, onClose }) {
               </div>
 
               <div className="form-group">
-                <span className="form-label">Цена, ₽</span>
+                <span className="form-label">Стоимость квартиры, ₽</span>
                 <input type="number" value={form.price} onChange={e => set('price', e.target.value)} placeholder="3 200 000" required min={0} step={1000} />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label">Цена за м², ₽</span>
+                <input type="number" value={form.pricePerM ?? ''} onChange={e => set('pricePerM', e.target.value)} placeholder="100 000" min={0} step={500} />
+              </div>
+
+              <div className="form-group full">
+                <span className="form-label">Ссылка на планировку (Яндекс.Диск и т.п.)</span>
+                <input type="text" value={form.planUrl ?? ''} onChange={e => set('planUrl', e.target.value)} placeholder="https://disk.yandex.ru/i/..." />
               </div>
 
               <div className="form-group">
@@ -662,75 +686,76 @@ function AptModal({ apt, onSave, onClose }) {
 }
 
 /* ─── APARTMENTS TAB ─── */
-/* ─── EXCEL HELPERS for apartments ─── */
-const XLS_COLUMNS = [
-  { key: 'id',        label: 'ID',           example: 1,    type: 'int' },
-  { key: 'korpus',    label: 'Корпус',       example: 1,    type: 'int' },
-  { key: 'floor',     label: 'Этаж',         example: 1,    type: 'int' },
-  { key: 'rooms',     label: 'Комнат',       example: 2,    type: 'int' },
-  { key: 'area',      label: 'Площадь м²',   example: 62.95, type: 'float' },
-  { key: 'price',     label: 'Цена ₽',       example: 6100000, type: 'int' },
-  { key: 'available', label: 'Статус',       example: 'свободна', type: 'status' },
-  { key: 'badge',     label: 'Метка',        example: '',   type: 'text' },
-  { key: 'img',       label: 'Картинка',     example: 'assets/2-k.png', type: 'text' },
-  { key: 'polygon',   label: 'Полигон',      example: '', type: 'text' },
-];
+/* ─── EXCEL HELPERS — формат «Шахматка с планировками» отдела продаж ───
+   Двухстрочная шапка:
+   ряд 1: Корпус | Подъезд | № кв | Этаж | Комнатность | Площадь | · | Стоимость | · | Планировка | Статус
+   ряд 2:   ·   |    ·    |   ·  |  ·   |      ·      | Объекта вся | С учётом 1/2,3 | кв.м | квартиры | · | ·
+*/
+const num = (v) => {
+  if (v === null || v === undefined || v === '') return 0;
+  const n = parseFloat(String(v).replace(/\s/g, '').replace(',', '.').replace(/[^\d.\-]/g, ''));
+  return isFinite(n) ? n : 0;
+};
 
-function aptToRow(a) {
-  return {
-    'ID': a.id,
-    'Корпус': a.korpus ?? 1,
-    'Этаж': a.floor ?? '',
-    'Комнат': a.rooms ?? 1,
-    'Площадь м²': a.area ?? '',
-    'Цена ₽': a.price ?? '',
-    'Статус': a.available ? 'свободна' : 'продана',
-    'Метка': a.badge ?? '',
-    'Картинка': a.img ?? '',
-    'Полигон': a.polygon ?? '',
-  };
-}
-function rowToApt(r, idx) {
-  const status = String(r['Статус'] || '').toLowerCase().trim();
-  const sold = ['продана', 'продано', 'бронь', 'забронирована', 'sold', 'booked', 'no', 'нет', 'false'].includes(status);
-  const id = Number(r['ID']) || (Date.now() + idx);
-  return {
-    id,
-    korpus:  Number(r['Корпус']) || 1,
-    floor:   Number(r['Этаж'])   || 1,
-    rooms:   Number(r['Комнат']) || 1,
-    area:    Number(r['Площадь м²']) || 0,
-    price:   Number(r['Цена ₽']) || 0,
-    available: !sold,
-    badge:   String(r['Метка'] || '').trim() || null,
-    img:     String(r['Картинка'] || '').trim(),
-    polygon: String(r['Полигон'] || '').trim(),
-  };
+function aptStatusText(a) {
+  if (a.available === false) return a.badge && /бронь|заброн/i.test(a.badge) ? 'бронь' : 'продана';
+  return 'свободна';
 }
 
+/* Build the .xlsx exactly like the sales-department file (two-row header) */
 function downloadExcelTemplate(currentApts) {
   if (typeof XLSX === 'undefined') { alert('Библиотека XLSX не загружена. Перезагрузите страницу.'); return; }
-  const rows = currentApts && currentApts.length
-    ? currentApts.map(aptToRow)
-    : [Object.fromEntries(XLS_COLUMNS.map(c => [c.label, c.example]))];
-  const ws = XLSX.utils.json_to_sheet(rows, { header: XLS_COLUMNS.map(c => c.label) });
-  // Column widths
-  ws['!cols'] = XLS_COLUMNS.map(c => ({ wch: Math.max(c.label.length, 12) }));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Квартиры');
-  // Add a hint sheet with allowed values
-  const hints = [
-    ['Поле', 'Допустимые значения'],
-    ['Корпус', '1, 2, 3, 4'],
-    ['Статус', 'свободна / продана / бронь'],
-    ['Метка', 'Акция, Хит, Премиум, Новинка, Последняя, или пусто'],
-    ['Картинка', 'путь к файлу assets/... или полный URL https://...'],
-    ['Полигон', 'координаты x,y x,y x,y... в виде строки (необязательно)'],
+  const header1 = ['Корпус', 'Подъезд', '№ кв', 'Этаж', 'Комнатность', 'Площадь', '', 'Стоимость', '', 'Планировка', 'Статус'];
+  const header2 = ['', '', '', '', '', 'Объекта вся', 'С учётом 1/2,3', 'кв.м', 'квартиры', '', ''];
+  const src = (currentApts && currentApts.length) ? currentApts : [
+    { korpus:1, entrance:1, number:1, floor:1, rooms:1, areaFull:49.2, area:47.2, pricePerM:95000, price:4484000, planUrl:'https://disk.yandex.ru/i/...', available:true, badge:null },
   ];
-  const ws2 = XLSX.utils.aoa_to_sheet(hints);
-  ws2['!cols'] = [{ wch: 12 }, { wch: 60 }];
-  XLSX.utils.book_append_sheet(wb, ws2, 'Подсказки');
-  XLSX.writeFile(wb, 'apartments-template.xlsx');
+  const dataRows = src.map(a => ([
+    `${a.korpus || 1} корпус`,
+    a.entrance ?? '',
+    a.number ?? '',
+    a.floor ?? '',
+    a.rooms ?? '',
+    a.areaFull ?? a.area ?? '',
+    a.area ?? '',
+    a.pricePerM ?? '',
+    a.price ?? '',
+    a.planUrl || a.img || '',
+    a.available === false ? aptStatusText(a) : '',
+  ]));
+  const aoa = [header1, header2, ...dataRows];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [
+    { wch: 11 }, { wch: 9 }, { wch: 7 }, { wch: 7 }, { wch: 13 },
+    { wch: 13 }, { wch: 15 }, { wch: 12 }, { wch: 13 }, { wch: 34 }, { wch: 24 },
+  ];
+  // Merge the grouped header cells (Площадь / Стоимость span two columns)
+  ws['!merges'] = [
+    { s:{r:0,c:0}, e:{r:1,c:0} }, { s:{r:0,c:1}, e:{r:1,c:1} },
+    { s:{r:0,c:2}, e:{r:1,c:2} }, { s:{r:0,c:3}, e:{r:1,c:3} },
+    { s:{r:0,c:4}, e:{r:1,c:4} }, { s:{r:0,c:5}, e:{r:0,c:6} },
+    { s:{r:0,c:7}, e:{r:0,c:8} }, { s:{r:0,c:9}, e:{r:1,c:9} },
+    { s:{r:0,c:10}, e:{r:1,c:10} },
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'список');
+  const hints = [
+    ['Поле', 'Как заполнять'],
+    ['Корпус', '«1 корпус», «2 корпус» — текстом, как в шахматке'],
+    ['Подъезд', 'номер подъезда: 1, 2, ...'],
+    ['№ кв', 'номер квартиры'],
+    ['Этаж / Комнатность', 'целые числа'],
+    ['Площадь · Объекта вся', 'полная площадь, м²'],
+    ['Площадь · С учётом 1/2,3', 'площадь с понижающим коэффициентом — она показывается на сайте'],
+    ['Стоимость · кв.м', 'цена за квадратный метр'],
+    ['Стоимость · квартиры', 'итоговая стоимость квартиры'],
+    ['Планировка', 'ссылка на изображение/страницу планировки'],
+    ['Статус', 'пусто или «свободна» = в продаже · «продана» · «бронь» / «забронирована»'],
+  ];
+  const wsH = XLSX.utils.aoa_to_sheet(hints);
+  wsH['!cols'] = [{ wch: 26 }, { wch: 70 }];
+  XLSX.utils.book_append_sheet(wb, wsH, 'Подсказки');
+  XLSX.writeFile(wb, 'Шахматка_ЖК_Полянка.xlsx');
 }
 
 async function readExcelFile(file) {
@@ -738,8 +763,40 @@ async function readExcelFile(file) {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: 'array' });
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
-  return rows.map((r, i) => rowToApt(r, i)).filter(a => a.area > 0);
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+  const apts = [];
+  for (const row of aoa) {
+    const c0 = String(row[0] ?? '').toLowerCase();
+    if (!c0.includes('корпус')) continue;           // skip headers / blank rows
+    const number = parseInt(num(row[2]));
+    if (!number) continue;                          // header row («№ кв») or empty
+    const korpus = parseInt(String(row[0]).match(/\d+/)?.[0]) || 1;
+    const entrance = parseInt(num(row[1])) || 1;
+    const floor = parseInt(num(row[3])) || 1;
+    const rooms = parseInt(num(row[4])) || 1;
+    const areaFull = num(row[5]);
+    const area = num(row[6]) || areaFull;           // «с учётом» — основная площадь
+    const pricePerM = Math.round(num(row[7]));
+    const price = Math.round(num(row[8]));
+    const planUrl = String(row[9] ?? '').trim();
+    const statusRaw = String(row[10] ?? '').toLowerCase().trim();
+    const sold = /продан/.test(statusRaw);
+    const booked = /бронь|заброн/.test(statusRaw);
+    apts.push({
+      id: korpus * 1000 + number,
+      korpus, entrance, number, floor, rooms,
+      area: Math.round((area || areaFull) * 100) / 100,
+      areaFull: Math.round(areaFull * 100) / 100,
+      pricePerM, price,
+      available: !sold && !booked,
+      badge: booked ? 'Бронь' : null,
+      planUrl,
+      img: '',
+      polygon: '',
+    });
+  }
+  return apts;
 }
 
 function ApartmentsTab({ toast }) {
@@ -888,10 +945,12 @@ function ApartmentsTab({ toast }) {
             <thead>
               <tr>
                 <th>Фото</th>
+                <th>№ кв</th>
                 <th>Тип</th>
                 <th>Площадь</th>
                 <th>Этаж</th>
                 <th>Корпус</th>
+                <th>Подъезд</th>
                 <th>Цена</th>
                 <th>Статус</th>
                 <th>Метка</th>
@@ -908,10 +967,12 @@ function ApartmentsTab({ toast }) {
                     }
                     <div className="no-img" style={{ display: a.img ? 'none' : 'flex' }}>нет</div>
                   </td>
+                  <td style={{ color: 'var(--text)', fontWeight: 600 }}>{a.number != null ? `№ ${a.number}` : '—'}</td>
                   <td style={{ color: 'var(--text)', fontWeight: 600 }}>{a.rooms}-комн.</td>
                   <td>{a.area} м²</td>
                   <td>{a.floor} эт.</td>
                   <td>Корп. {a.korpus || 1}</td>
+                  <td>{a.entrance != null ? `Подъезд ${a.entrance}` : '—'}</td>
                   <td style={{ color: 'var(--text)' }}>{fmt(a.price)} ₽</td>
                   <td>
                     <span
@@ -939,7 +1000,7 @@ function ApartmentsTab({ toast }) {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: '48px', color: 'rgba(0,0,0,0.35)', fontSize: 14 }}>
+                  <td colSpan={11} style={{ textAlign: 'center', padding: '48px', color: 'rgba(0,0,0,0.35)', fontSize: 14 }}>
                     Квартиры не найдены
                   </td>
                 </tr>
