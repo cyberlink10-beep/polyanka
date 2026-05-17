@@ -515,7 +515,7 @@ function LoginScreen({ onLogin }) {
 }
 
 /* ─── APARTMENT MODAL ─── */
-const EMPTY_APT = { rooms: 1, number: '', area: '', areaFull: '', floor: '', korpus: 1, entrance: null, price: '', pricePerM: '', available: true, badge: '', img: '', planUrl: '', polygon: '' };
+const EMPTY_APT = { rooms: 1, number: '', area: '', areaCoef: '', floor: '', korpus: 1, entrance: null, price: '', pricePerM: '', available: true, badge: '', img: '', planUrl: '', polygon: '' };
 
 function AptModal({ apt, onSave, onClose }) {
   const [form, setForm] = useState(apt ? { ...EMPTY_APT, ...apt, badge: apt.badge || '' } : EMPTY_APT);
@@ -540,7 +540,7 @@ function AptModal({ apt, onSave, onClose }) {
       ...form,
       number:    form.number === '' ? null : parseInt(form.number) || null,
       area:      parseFloat(form.area) || 0,
-      areaFull:  form.areaFull === '' ? null : parseFloat(form.areaFull) || null,
+      areaCoef:  form.areaCoef === '' ? null : parseFloat(form.areaCoef) || null,
       floor:     parseInt(form.floor) || 1,
       korpus:    parseInt(form.korpus) || 1,
       entrance:  form.entrance == null ? null : Number(form.entrance),
@@ -577,13 +577,13 @@ function AptModal({ apt, onSave, onClose }) {
               </div>
 
               <div className="form-group">
-                <span className="form-label">Площадь с учётом, м²</span>
-                <input type="number" value={form.area} onChange={e => set('area', e.target.value)} placeholder="47.2" required min={5} max={300} step={0.01} />
+                <span className="form-label">Площадь объекта вся, м² (показывается на сайте)</span>
+                <input type="number" value={form.area} onChange={e => set('area', e.target.value)} placeholder="49.2" required min={5} max={400} step={0.01} />
               </div>
 
               <div className="form-group">
-                <span className="form-label">Площадь объекта вся, м²</span>
-                <input type="number" value={form.areaFull ?? ''} onChange={e => set('areaFull', e.target.value)} placeholder="49.2" min={5} max={400} step={0.01} />
+                <span className="form-label">Площадь с учётом 1/2,3, м²</span>
+                <input type="number" value={form.areaCoef ?? ''} onChange={e => set('areaCoef', e.target.value)} placeholder="47.2" min={5} max={400} step={0.01} />
               </div>
 
               <div className="form-group">
@@ -711,7 +711,7 @@ function downloadExcelTemplate(currentApts) {
   const header1 = ['Корпус', 'Подъезд', '№ кв', 'Этаж', 'Комнатность', 'Площадь', '', 'Стоимость', '', 'Планировка', 'Статус', 'Метка', 'Фото-планировка', 'Полигон (контур)', 'ID'];
   const header2 = ['', '', '', '', '', 'Объекта вся', 'С учётом 1/2,3', 'кв.м', 'квартиры', '', '', '', '', '', ''];
   const src = (currentApts && currentApts.length) ? currentApts : [
-    { id:1001, korpus:1, entrance:1, number:1, floor:1, rooms:1, areaFull:49.2, area:47.2, pricePerM:95000, price:4484000, planUrl:'https://disk.yandex.ru/i/...', available:true, badge:'', img:'', polygon:'' },
+    { id:1001, korpus:1, entrance:1, number:1, floor:1, rooms:1, area:49.2, areaCoef:47.2, pricePerM:95000, price:4484000, planUrl:'https://disk.yandex.ru/i/...', available:true, badge:'', img:'', polygon:'' },
   ];
   const dataRows = src.map(a => ([
     `${a.korpus || 1} корпус`,
@@ -719,8 +719,8 @@ function downloadExcelTemplate(currentApts) {
     a.number ?? '',
     a.floor ?? '',
     a.rooms ?? '',
-    a.areaFull ?? a.area ?? '',
     a.area ?? '',
+    a.areaCoef ?? '',
     a.pricePerM ?? '',
     a.price ?? '',
     a.planUrl || '',
@@ -802,8 +802,8 @@ async function readExcelFile(file) {
     const entrance = parseInt(num(row[1])) || 1;
     const floor = parseInt(num(row[3])) || 1;
     const rooms = parseInt(num(row[4])) || 1;
-    const areaFull = num(row[5]);
-    const area = num(row[6]) || areaFull;           // «с учётом» — основная площадь
+    const area = num(row[5]);                       // «Объекта вся» — основная, показывается на сайте
+    const areaCoef = num(row[6]);                   // «С учётом 1/2,3» — вторичная
     const pricePerM = Math.round(num(row[7]));
     const price = Math.round(num(row[8]));
     const planUrl = String(row[9] ?? '').trim();
@@ -818,8 +818,8 @@ async function readExcelFile(file) {
     apts.push({
       id: idRaw || (korpus * 1000 + number),
       korpus, entrance, number, floor, rooms,
-      area: Math.round((area || areaFull) * 100) / 100,
-      areaFull: Math.round(areaFull * 100) / 100,
+      area: Math.round((area || areaCoef) * 100) / 100,
+      areaCoef: Math.round((areaCoef || 0) * 100) / 100,
       pricePerM, price,
       available: !sold && !booked,
       badge: badgeRaw || (booked ? 'Бронь' : null),
