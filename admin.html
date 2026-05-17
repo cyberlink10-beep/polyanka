@@ -702,13 +702,16 @@ function aptStatusText(a) {
   return 'свободна';
 }
 
-/* Build the .xlsx exactly like the sales-department file (two-row header) */
+/* Build the .xlsx — sales-department two-row header for columns A-K,
+   plus four technical columns L-O (Метка / Фото / Полигон / ID) that
+   keep the site fully in sync. Polygons MUST round-trip so re-uploading
+   an edited price list never wipes the floor-plan contours. */
 function downloadExcelTemplate(currentApts) {
   if (typeof XLSX === 'undefined') { alert('Библиотека XLSX не загружена. Перезагрузите страницу.'); return; }
-  const header1 = ['Корпус', 'Подъезд', '№ кв', 'Этаж', 'Комнатность', 'Площадь', '', 'Стоимость', '', 'Планировка', 'Статус'];
-  const header2 = ['', '', '', '', '', 'Объекта вся', 'С учётом 1/2,3', 'кв.м', 'квартиры', '', ''];
+  const header1 = ['Корпус', 'Подъезд', '№ кв', 'Этаж', 'Комнатность', 'Площадь', '', 'Стоимость', '', 'Планировка', 'Статус', 'Метка', 'Фото-планировка', 'Полигон (контур)', 'ID'];
+  const header2 = ['', '', '', '', '', 'Объекта вся', 'С учётом 1/2,3', 'кв.м', 'квартиры', '', '', '', '', '', ''];
   const src = (currentApts && currentApts.length) ? currentApts : [
-    { korpus:1, entrance:1, number:1, floor:1, rooms:1, areaFull:49.2, area:47.2, pricePerM:95000, price:4484000, planUrl:'https://disk.yandex.ru/i/...', available:true, badge:null },
+    { id:1001, korpus:1, entrance:1, number:1, floor:1, rooms:1, areaFull:49.2, area:47.2, pricePerM:95000, price:4484000, planUrl:'https://disk.yandex.ru/i/...', available:true, badge:'', img:'', polygon:'' },
   ];
   const dataRows = src.map(a => ([
     `${a.korpus || 1} корпус`,
@@ -720,14 +723,19 @@ function downloadExcelTemplate(currentApts) {
     a.area ?? '',
     a.pricePerM ?? '',
     a.price ?? '',
-    a.planUrl || a.img || '',
+    a.planUrl || '',
     a.available === false ? aptStatusText(a) : '',
+    a.badge || '',
+    a.img || '',
+    a.polygon || '',
+    a.id ?? '',
   ]));
   const aoa = [header1, header2, ...dataRows];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols'] = [
     { wch: 11 }, { wch: 9 }, { wch: 7 }, { wch: 7 }, { wch: 13 },
-    { wch: 13 }, { wch: 15 }, { wch: 12 }, { wch: 13 }, { wch: 34 }, { wch: 24 },
+    { wch: 13 }, { wch: 15 }, { wch: 12 }, { wch: 13 }, { wch: 34 }, { wch: 18 },
+    { wch: 14 }, { wch: 28 }, { wch: 40 }, { wch: 9 },
   ];
   // Merge the grouped header cells (Площадь / Стоимость span two columns)
   ws['!merges'] = [
@@ -735,7 +743,9 @@ function downloadExcelTemplate(currentApts) {
     { s:{r:0,c:2}, e:{r:1,c:2} }, { s:{r:0,c:3}, e:{r:1,c:3} },
     { s:{r:0,c:4}, e:{r:1,c:4} }, { s:{r:0,c:5}, e:{r:0,c:6} },
     { s:{r:0,c:7}, e:{r:0,c:8} }, { s:{r:0,c:9}, e:{r:1,c:9} },
-    { s:{r:0,c:10}, e:{r:1,c:10} },
+    { s:{r:0,c:10}, e:{r:1,c:10} }, { s:{r:0,c:11}, e:{r:1,c:11} },
+    { s:{r:0,c:12}, e:{r:1,c:12} }, { s:{r:0,c:13}, e:{r:1,c:13} },
+    { s:{r:0,c:14}, e:{r:1,c:14} },
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'список');
@@ -751,9 +761,13 @@ function downloadExcelTemplate(currentApts) {
     ['Стоимость · квартиры', 'итоговая стоимость квартиры'],
     ['Планировка', 'ссылка на изображение/страницу планировки'],
     ['Статус', 'пусто или «свободна» = в продаже · «продана» · «бронь» / «забронирована»'],
+    ['Метка', 'необязательная плашка: Акция, Хит, Премиум, Новинка, Последняя'],
+    ['Фото-планировка', 'ссылка на загруженное фото планировки (assets/... или https://...)'],
+    ['Полигон (контур)', '⚠️ НЕ удалять и НЕ менять! Координаты обводки квартиры на схеме этажа. Если стереть — контур придётся обводить заново в админке.'],
+    ['ID', '⚠️ НЕ менять! Технический идентификатор для синхронизации. Если пусто — будет вычислен автоматически.'],
   ];
   const wsH = XLSX.utils.aoa_to_sheet(hints);
-  wsH['!cols'] = [{ wch: 26 }, { wch: 70 }];
+  wsH['!cols'] = [{ wch: 26 }, { wch: 88 }];
   XLSX.utils.book_append_sheet(wb, wsH, 'Подсказки');
   XLSX.writeFile(wb, 'Шахматка_ЖК_Полянка.xlsx');
 }
@@ -764,6 +778,19 @@ async function readExcelFile(file) {
   const wb = XLSX.read(buf, { type: 'array' });
   const ws = wb.Sheets[wb.SheetNames[0]];
   const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+  // Locate the technical columns by header text — they may be absent, or
+  // shifted if the sales team adds columns. Columns A-K stay positional.
+  let colBadge = 11, colImg = 12, colPoly = 13, colId = 14;
+  for (const row of aoa.slice(0, 3)) {
+    row.forEach((cell, idx) => {
+      const t = String(cell ?? '').toLowerCase();
+      if (/метк/.test(t)) colBadge = idx;
+      else if (/фото|картинк/.test(t)) colImg = idx;
+      else if (/полигон|контур/.test(t)) colPoly = idx;
+      else if (/^id$/.test(t.trim())) colId = idx;
+    });
+  }
 
   const apts = [];
   for (const row of aoa) {
@@ -783,17 +810,22 @@ async function readExcelFile(file) {
     const statusRaw = String(row[10] ?? '').toLowerCase().trim();
     const sold = /продан/.test(statusRaw);
     const booked = /бронь|заброн/.test(statusRaw);
+    // Technical columns (preserved on round-trip)
+    const badgeRaw = String(row[colBadge] ?? '').trim();
+    const img = String(row[colImg] ?? '').trim();
+    const polygon = String(row[colPoly] ?? '').trim();
+    const idRaw = parseInt(num(row[colId]));
     apts.push({
-      id: korpus * 1000 + number,
+      id: idRaw || (korpus * 1000 + number),
       korpus, entrance, number, floor, rooms,
       area: Math.round((area || areaFull) * 100) / 100,
       areaFull: Math.round(areaFull * 100) / 100,
       pricePerM, price,
       available: !sold && !booked,
-      badge: booked ? 'Бронь' : null,
+      badge: badgeRaw || (booked ? 'Бронь' : null),
       planUrl,
-      img: '',
-      polygon: '',
+      img,
+      polygon,
     });
   }
   return apts;
