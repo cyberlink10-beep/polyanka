@@ -616,17 +616,12 @@ function AptModal({ apt, onSave, onClose }) {
 
               <div className="form-group">
                 <span className="form-label">Стоимость квартиры, ₽</span>
-                <input type="number" value={form.price} onChange={e => set('price', e.target.value)} placeholder="3 200 000" required min={0} step={1000} />
+                <input type="number" value={form.price} onChange={e => set('price', e.target.value)} placeholder="3 200 000" required min={0} step="any" />
               </div>
 
               <div className="form-group">
                 <span className="form-label">Цена за м², ₽</span>
-                <input type="number" value={form.pricePerM ?? ''} onChange={e => set('pricePerM', e.target.value)} placeholder="100 000" min={0} step={500} />
-              </div>
-
-              <div className="form-group full">
-                <span className="form-label">Ссылка на планировку (Яндекс.Диск и т.п.)</span>
-                <input type="text" value={form.planUrl ?? ''} onChange={e => set('planUrl', e.target.value)} placeholder="https://disk.yandex.ru/i/..." />
+                <input type="number" value={form.pricePerM ?? ''} onChange={e => set('pricePerM', e.target.value)} placeholder="100 000" min={0} step="any" />
               </div>
 
               <div className="form-group">
