@@ -1255,6 +1255,8 @@ function ApartmentCatalog({ onSelectApt, fullPage = false, onShowAll, onBackHome
 
   const filtered = APARTMENTS
     .filter(a => {
+      // Проданные и забронированные квартиры в каталог не попадают
+      if (a.available === false) return false;
       if (roomsFilter && a.rooms !== roomsFilter) return false;
       if (a.price < priceRange[0]) return false;
       if (a.price > priceRange[1]) return false;

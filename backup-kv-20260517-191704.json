@@ -1,0 +1,306 @@
+{
+  "geroi_apts": [
+    {
+      "id": 1,
+      "img": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/ChatGPT_Image_12_____2026__.__22_02_22-1778612657281-geh2hs.png",
+      "area": 36,
+      "badge": "Акция",
+      "floor": 2,
+      "price": 3000000,
+      "rooms": 1,
+      "korpus": 1,
+      "polygon": "12.60,54.22 13.45,25.54 21.85,25.32 21.77,20.65 14.00,20.51 13.06,2.85 3.11,2.77 2.57,54.00",
+      "entrance": 1,
+      "available": true
+    },
+    {
+      "id": 2,
+      "img": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/2-k-1778603672017-ormwow.png",
+      "area": 58,
+      "badge": "Новинка",
+      "floor": 2,
+      "price": 4500000,
+      "rooms": 2,
+      "korpus": 1,
+      "polygon": "14.01,26.19 13.55,54.07 31.47,54.07 31.70,26.19",
+      "entrance": 1,
+      "available": true
+    },
+    {
+      "id": 3,
+      "img": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/3-k-1778603707430-w6yrqh.png",
+      "area": 78,
+      "badge": null,
+      "floor": 2,
+      "price": 6200000,
+      "rooms": 3,
+      "korpus": 1,
+      "polygon": "32.74,26.64 53.19,26.42 52.41,53.86 32.66,53.93",
+      "entrance": 1,
+      "available": false
+    }
+  ],
+  "geroi_infra": {
+    "zoom": 16,
+    "mapUrl": "https://yandex.ru/map-widget/v1/?ll=65.335234%2C55.349594&z=15&pt=65.335234%2C55.349594%2Cpm2rdl&l=map",
+    "places": [
+      {
+        "cat": "Образование",
+        "lat": 55.350826,
+        "lon": 65.337131,
+        "dist": "350 м",
+        "name": "Школа"
+      },
+      {
+        "cat": "Образование",
+        "dist": "200 м",
+        "name": "Детский сад"
+      },
+      {
+        "cat": "Торговля",
+        "dist": "1.2 км",
+        "name": "Торговый центр"
+      },
+      {
+        "cat": "Отдых",
+        "dist": "800 м",
+        "name": "Парк"
+      },
+      {
+        "cat": "Здоровье",
+        "dist": "500 м",
+        "name": "Поликлиника"
+      },
+      {
+        "cat": "Сервис",
+        "dist": "1 км",
+        "name": "МФЦ"
+      }
+    ],
+    "centerLat": 55.349582,
+    "centerLon": 65.335233,
+    "mapAddress": "Кетово, ул. Уральская",
+    "categoryColors": {
+      "Отдых": "#4E5538",
+      "Другое": "#A85D3F",
+      "Сервис": "#B89968",
+      "Здоровье": "#B86B4D",
+      "Торговля": "#A85D3F",
+      "Транспорт": "#7D8068",
+      "Образование": "#6B7350"
+    }
+  },
+  "geroi_promos": [
+    {
+      "id": 1,
+      "desc": "Специальные условия от ведущих банков-партнёров",
+      "badge": "Выгодно",
+      "title": "Ипотека от 0,1%",
+      "accent": "#4ade80",
+      "expires": "31 мая 2025",
+      "showButton": false
+    },
+    {
+      "id": 2,
+      "desc": "При покупке квартиры от 60 м² — машиноместо бесплатно",
+      "badge": "Акция",
+      "title": "Паркинг в подарок",
+      "accent": "#4ade80",
+      "expires": "30 июня 2025",
+      "showButton": false
+    },
+    {
+      "id": 3,
+      "desc": "Беспроцентная рассрочка на весь период строительства",
+      "badge": "Новинка",
+      "title": "Рассрочка 0%",
+      "accent": "#4ade80",
+      "expires": "15 июня 2025",
+      "showButton": false
+    },
+    {
+      "id": 4,
+      "desc": "Зачтём старую квартиру по рыночной цене",
+      "badge": "Обмен",
+      "title": "Trade-in квартиры",
+      "accent": "#4ade80",
+      "expires": "31 мая 2025",
+      "showButton": false
+    }
+  ],
+  "geroi_gallery": [
+    {
+      "src": "assets/render-sports.jpg",
+      "label": "Спортивная площадка"
+    },
+    {
+      "src": "assets/render-facade.jpg",
+      "label": "Коммерческий первый этаж"
+    },
+    {
+      "src": "assets/render-courtyard.jpg",
+      "label": "Внутренний двор"
+    },
+    {
+      "src": "assets/render-aerial.jpg",
+      "label": "Вид с воздуха"
+    },
+    {
+      "src": "assets/render-sunset.jpg",
+      "label": "Закат. Корпус 2"
+    },
+    {
+      "src": "assets/render-street.jpg",
+      "label": "Фасад со стороны улицы"
+    }
+  ],
+  "geroi_korpuses": [
+    {
+      "cx": 30,
+      "cy": 50,
+      "id": 1,
+      "free": 40,
+      "name": "Корпус 1",
+      "total": 40,
+      "floors": 4,
+      "polygon": "53.38,37.19 95.85,36.97 95.99,31.97 88.96,31.33 88.82,20.35 53.52,20.46 52.67,21.20 52.60,35.48",
+      "entrances": [
+        {
+          "id": 1,
+          "name": "Подъезд 1",
+          "floors": 4,
+          "totalApts": 20,
+          "floorPolygons": {
+            "1": "71.27,31.65 71.33,35.19 88.04,35.10 88.23,31.65",
+            "2": "71.33,31.55 71.46,29.06 87.97,28.86 87.91,31.74",
+            "3": "71.33,28.96 87.47,28.96 87.91,26.08 71.33,25.89",
+            "4": "71.39,25.41 87.85,25.22 88.04,21.86 71.65,22.25"
+          }
+        },
+        {
+          "id": 2,
+          "name": "Подъезд 2",
+          "floors": 4,
+          "totalApts": 20,
+          "floorPolygons": {
+            "1": "53.99,35.96 70.82,35.67 70.95,32.70 53.80,32.32",
+            "2": "54.18,32.03 70.76,31.84 70.95,28.77 53.99,28.48",
+            "3": "54.11,28.67 70.82,28.58 71.14,25.60 53.86,25.22",
+            "4": "53.92,25.41 70.89,25.32 71.14,22.06 54.37,22.25"
+          }
+        }
+      ],
+      "floorSchemas": {
+        "1": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/_____2-1-1778676471700-gs9wd6.png",
+        "2": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/_____2-1-1778676504521-l77fju.png"
+      },
+      "floorPolygons": {
+        "1": "53.87,36.23 70.96,36.33 70.82,31.97 53.87,32.07",
+        "2": "53.94,28.45 88.47,28.13 88.40,31.75 54.01,32.18",
+        "3": "53.73,25.47 88.26,25.25 88.40,28.88 53.59,28.98",
+        "4": "53.59,21.63 88.47,21.52 88.47,25.89 53.52,25.79"
+      },
+      "entrancePolygons": {
+        "1": "70.95,20.43 71.01,36.34 88.67,36.34 88.61,20.62",
+        "2": "70.89,20.52 70.95,36.25 53.54,36.34 53.54,20.52"
+      }
+    },
+    {
+      "cx": 50,
+      "cy": 50,
+      "id": 2,
+      "free": 37,
+      "name": "Корпус 2",
+      "total": 40,
+      "floors": 4,
+      "polygon": "11.18,20.35 46.98,20.46 47.05,36.65 4.43,37.29 4.43,30.15 11.11,30.26",
+      "floorSchemas": {},
+      "floorPolygons": {
+        "1": "29.18,31.97 46.84,32.18 46.84,36.01 29.04,36.23",
+        "2": "11.60,28.45 46.84,28.34 46.91,31.97 11.67,32.18",
+        "3": "11.67,25.36 47.12,25.15 47.12,28.77 11.67,28.98",
+        "4": "11.60,20.99 46.69,20.99 46.84,25.57 11.60,25.79"
+      }
+    },
+    {
+      "cx": 70,
+      "cy": 50,
+      "id": 3,
+      "free": 28,
+      "name": "Корпус 3",
+      "total": 68,
+      "floors": 10,
+      "polygon": "",
+      "floorSchemas": {},
+      "floorPolygons": {}
+    }
+  ],
+  "geroi_settings": {
+    "area": "31-142",
+    "city": "Кетово",
+    "year": "2027",
+    "hours": "Пн-Вс: 9:00 - 18:00",
+    "phone": "+7 (352) 242-88-49",
+    "floors": "4",
+    "address": "г. Курган, ул. Бурова-Петрова, 112",
+    "tagline": "ЖК Полянка — комфорт нового уровня",
+    "aptCount": "85",
+    "korpuses": "2",
+    "hoursLabel": "Время работы",
+    "phoneLabel": "Бесплатно по России",
+    "addressLabel": "Офис продаж"
+  },
+  "geroi_site_render": "assets/render-floorplan.jpg",
+  "geroi_construction": [
+    {
+      "id": 1778601425464,
+      "month": "Февраль 2026",
+      "photos": [
+        {
+          "src": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/fev-1-1778601451350-qxmue4.jpeg",
+          "caption": ""
+        },
+        {
+          "src": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/fev-2-1778601464299-i6xe2i.jpeg",
+          "caption": ""
+        },
+        {
+          "src": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/fev-3-1778601475941-5x1209.jpeg",
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "id": 1778601521297,
+      "month": "Март 2026",
+      "photos": [
+        {
+          "src": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/mart-1-1778601536995-d26av0.jpeg",
+          "caption": ""
+        },
+        {
+          "src": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/mart-2-1778601551269-cy81xb.jpeg",
+          "caption": ""
+        }
+      ]
+    },
+    {
+      "id": 1778601559464,
+      "month": "Апрель 2026",
+      "photos": [
+        {
+          "src": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/apr-1-1778601566391-fa88yx.jpeg",
+          "caption": ""
+        },
+        {
+          "src": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/apr-2-1778601571445-1oieao.jpeg",
+          "caption": ""
+        },
+        {
+          "src": "https://txvjuhvmozsmzfjfdcnr.supabase.co/storage/v1/object/public/images/uploads/apr-3-1778601585121-r1jil1.jpeg",
+          "caption": ""
+        }
+      ]
+    }
+  ]
+}
